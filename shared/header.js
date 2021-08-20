@@ -13,7 +13,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import { useNavigation } from '@react-navigation/native';
 
-export default function Header() {
+export default function Header({ version }) {
   const [inputState, setInput] = useState('Seach for a card');
 
   const navigation = useNavigation();
@@ -22,6 +22,21 @@ export default function Header() {
     navigation.openDrawer();
   };
 
+  if (version == 'noSearchBar') {
+    return (
+      <View style={styles.header}>
+        <MaterialIcons
+          name='menu'
+          size={28}
+          color={'#f4f4f4'}
+          onPress={() => {
+            openMenu();
+          }}
+          style={styles.icon}
+        />
+      </View>
+    );
+  }
   return (
     <View style={styles.header}>
       <MaterialIcons

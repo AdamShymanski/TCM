@@ -21,11 +21,11 @@ const onlyLettersRegEx =
 const firstCapitalLetter = /^[A-Z].*/;
 
 const reviewSchema = yup.object({
-  // fullName: yup
-  //   .string('Wrong format!')
-  //   .required('Name is required!')
-  //   .min(4, 'Name must be longer then 4 charts!')
-  //   .matches(onlyLettersRegEx, 'Name cannot contain numbers or symbols!'),
+  nick: yup
+    .string('Wrong format!')
+    .required('Name is required!')
+    .min(4, 'Name must be longer then 4 charts!')
+    .matches(onlyLettersRegEx, 'Name cannot contain numbers or symbols!'),
   email: yup
     .string('Wrong format!')
     .email('Email is invalid!')
@@ -38,24 +38,24 @@ const reviewSchema = yup.object({
       strongPasswordRegEx,
       'At least one number, capital letter, lower letter and symbol!'
     ),
-  // confirmPassword: yup.string().when('password', {
-  //   is: (val) => (val && val.length > 0 ? true : false),
-  //   then: yup
-  //     .string()
-  //     .oneOf([yup.ref('password')], "Passwords aren't the same!"),
-  // }),
-  // address: yup.string('Wrong format!').required('Address is required!'),
-  // postalCode: yup
-  //   .string('Wrong format!')
-  //   .required('Postal or Zip Code is required!'),
-  // country: yup
-  //   .string('Wrong format!')
-  //   .required('Country is required!')
-  //   .matches(firstCapitalLetter, 'Wrong country name!'),
-  // phoneNumber: yup
-  //   .string('Wrong format!')
-  //   .required('Phone Number is required!')
-  //   .min(9, 'Phone number is too short!'),
+  confirmPassword: yup.string().when('password', {
+    is: (val) => (val && val.length > 0 ? true : false),
+    then: yup
+      .string()
+      .oneOf([yup.ref('password')], "Passwords aren't the same!"),
+  }),
+  address: yup.string('Wrong format!').required('Address is required!'),
+  postalCode: yup
+    .string('Wrong format!')
+    .required('Postal or Zip Code is required!'),
+  country: yup
+    .string('Wrong format!')
+    .required('Country is required!')
+    .matches(firstCapitalLetter, 'Wrong country name!'),
+  phoneNumber: yup
+    .string('Wrong format!')
+    .required('Phone Number is required!')
+    .min(9, 'Phone number is too short!'),
 });
 
 export default function Register({ auth }) {
@@ -89,7 +89,7 @@ export default function Register({ auth }) {
       <Formik
         initialValues={{
           phoneNumber: '',
-          fullName: '',
+          nick: '',
           address: '',
           postalCode: '',
           country: '',
@@ -99,10 +99,15 @@ export default function Register({ auth }) {
         }}
         validationSchema={reviewSchema}
         onSubmit={async (values, actions) => {
-          // actions.resetForm();
-          // addReview(values);
-
-          await register(values.email, values.password);
+          await register(
+            values.email,
+            values.password,
+            values.nick,
+            values.address,
+            values.postalCode,
+            values.country,
+            values.phoneNumber
+          );
         }}
         style={{
           flex: 1,
@@ -121,18 +126,16 @@ export default function Register({ auth }) {
               width: '100%',
               height: '100%',
             }}>
-            {/* <TextInput
+            <TextInput
               mode={'outlined'}
-              value={props.values.fullName}
-              onChangeText={props.handleChange('fullName')}
-              label='Full Name'
+              value={props.values.nick}
+              onChangeText={props.handleChange('nick')}
+              label='Nick'
               outlineColor={'#5c5c5c'}
-              error={
-                props.touched.fullName && props.errors.fullName ? true : false
-              }
+              error={props.touched.nick && props.errors.nick ? true : false}
               style={{
                 width: '70%',
-                height: 46,
+
                 backgroundColor: '#1b1b1b',
                 color: '#f4f4f4',
                 marginTop: 20,
@@ -146,7 +149,7 @@ export default function Register({ auth }) {
                 },
               }}
             />
-            <ErrorMessage component='div' name='fullName'>
+            <ErrorMessage component='div' name='nick'>
               {(msg) => (
                 <Text
                   style={{
@@ -162,7 +165,7 @@ export default function Register({ auth }) {
                   {msg}
                 </Text>
               )}
-            </ErrorMessage> */}
+            </ErrorMessage>
             <TextInput
               mode={'outlined'}
               value={props.values.email}
@@ -243,7 +246,7 @@ export default function Register({ auth }) {
                 </Text>
               )}
             </ErrorMessage>
-            {/* <TextInput
+            <TextInput
               mode={'outlined'}
               value={props.values.confirmPassword}
               onChangeText={props.handleChange('confirmPassword')}
@@ -256,7 +259,6 @@ export default function Register({ auth }) {
               }
               style={{
                 width: '70%',
-                height: 46,
                 backgroundColor: '#1b1b1b',
                 color: '#f4f4f4',
                 marginTop: 20,
@@ -301,7 +303,7 @@ export default function Register({ auth }) {
               }
               style={{
                 width: '70%',
-                height: 46,
+
                 backgroundColor: '#1b1b1b',
                 color: '#f4f4f4',
                 marginTop: 20,
@@ -345,7 +347,7 @@ export default function Register({ auth }) {
               }
               style={{
                 width: '70%',
-                height: 46,
+
                 backgroundColor: '#1b1b1b',
                 color: '#f4f4f4',
                 marginTop: 20,
@@ -387,7 +389,7 @@ export default function Register({ auth }) {
               }
               style={{
                 width: '70%',
-                height: 46,
+
                 backgroundColor: '#1b1b1b',
                 color: '#f4f4f4',
                 marginTop: 20,
@@ -431,7 +433,7 @@ export default function Register({ auth }) {
               }
               style={{
                 width: '70%',
-                height: 46,
+
                 backgroundColor: '#1b1b1b',
                 color: '#f4f4f4',
                 marginTop: 20,
@@ -461,7 +463,7 @@ export default function Register({ auth }) {
                   {msg}
                 </Text>
               )}
-            </ErrorMessage> */}
+            </ErrorMessage>
 
             <View
               style={{
