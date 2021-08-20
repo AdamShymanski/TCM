@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Image } from 'react-native';
 import {
   useTheme,
@@ -12,9 +12,26 @@ import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import IconF from 'react-native-vector-icons/Feather';
 
-import { auth } from '../authContext';
+import { fetchOwnerData, auth } from '../authContext';
 
 export default function CustomDrawer({ navigation }) {
+  const [flagState, setFlagState] = useState(null);
+
+  const [owner, setOwner] = useState({
+    name: '',
+    reputation: 0,
+    collectionSize: 0,
+    countryCode: '',
+  });
+
+  useEffect(() => {
+    const resolvePromises = async () => {
+      setOwner(await fetchOwnerData(auth.currentUser.uid));
+    };
+
+    resolvePromises();
+  }, []);
+
   return (
     <View style={{ flex: 1, backgroundColor: '#121212' }}>
       <DrawerContentScrollView style={{ backgroundColor: '#121212' }}>
@@ -35,22 +52,24 @@ export default function CustomDrawer({ navigation }) {
                 }}>
                 <Image
                   style={{ width: 26, height: 22 }}
-                  source={{ uri: 'https://flagcdn.com/32x24/es.png' }}
+                  source={{
+                    uri: `https://flagcdn.com/32x24/${owner.countryCode}.png`,
+                  }}
                 />
               </View>
-              <Title style={styles.title}>John Doe</Title>
+              <Title style={styles.title}>{owner.name}</Title>
             </View>
 
             <View style={styles.row}>
               <View style={styles.section}>
                 <Paragraph style={[styles.paragraph, styles.caption]}>
-                  80
+                  {owner.reputation}
                 </Paragraph>
                 <Caption style={styles.caption}>Reputation</Caption>
               </View>
               <View style={styles.section}>
                 <Paragraph style={[styles.paragraph, styles.caption]}>
-                  100
+                  {owner.collectionSize}
                 </Paragraph>
                 <Caption style={styles.caption}>Cards</Caption>
               </View>
@@ -85,7 +104,7 @@ export default function CustomDrawer({ navigation }) {
               labelStyle={{ color: '#f4f4f4' }}
               label='Saved Offers'
               onPress={() => {
-                // props.navigation.navigate('Home');
+                navigation.navigate('SavedOffers');
               }}
             />
             <DrawerItem
@@ -103,7 +122,7 @@ export default function CustomDrawer({ navigation }) {
                 <Icon name='plus-box-outline' color={'#f4f4f4'} size={size} />
               )}
               labelStyle={{ color: '#f4f4f4' }}
-              label='Add Ofer'
+              label='Add Offer'
               onPress={() => {
                 //! navigation.navigate('addOffer');
               }}
