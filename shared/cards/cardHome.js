@@ -21,7 +21,6 @@ import condition_icon from './../../assets/condition.png';
 import grade_icon from './../../assets/grade.png';
 import go_icon from './../../assets/gradingOrganization.png';
 import cn_icon from './../../assets/CN.png';
-import pricetag_icon from './../../assets/pricetag.png';
 
 import {
   fetchPhotos,
@@ -31,7 +30,9 @@ import {
   auth,
 } from '../../authContext';
 
-export function CardHome({ props }) {
+import { useNavigation } from '@react-navigation/native';
+
+export function CardHome({ props, isSavedState }) {
   const isGraded = props.isGraded;
   const condition = props.condition;
   const description = props.description;
@@ -43,17 +44,15 @@ export function CardHome({ props }) {
 
   let cardPhotos = [];
 
-  const [offerSaveState, setSaveOffer] = useState(null);
   const [loadingState, setLoading] = useState(true);
   const [imageViewerState, setImageViewer] = useState(false);
-
   const [owner, setOwner] = useState({
     name: '',
     reputation: 0,
     collectionSize: 0,
     countryCodes: '',
   });
-
+  const [isSaved, setSaveOffer] = useState(false);
   const [photosArray, setPhotosArray] = useState([
     {
       // Simplest usage.
@@ -68,62 +67,55 @@ export function CardHome({ props }) {
     },
   ]);
 
+  const navigation = useNavigation();
+
   useEffect(() => {
     const resolvePromises = async () => {
       cardPhotos = await fetchPhotos(props.id);
-
       setOwner(await fetchOwnerData(props.owner));
       setPhotosArray(fillPhotosArray(cardPhotos));
+
+      isSavedState.forEach((item) => {
+        if (item == props.id) setSaveOffer(true);
+      });
+      setLoading(false);
     };
 
     resolvePromises();
-
-    setLoading(false);
   }, []);
 
   useEffect(() => {
-    checkSavedOffers(owner);
-  }, [owner]);
+    setSaveOffer(false);
+    isSavedState.forEach((item) => {
+      if (item == props.id) setSaveOffer(true);
+    });
+  }, [isSavedState]);
 
   const onPress = () => {
     console.log('no elo kurwa');
   };
 
   const clickSave = async () => {
-    if (!offerSaveState) {
+    if (!isSaved) {
       try {
-        saveOffer(auth.currentUser.uid, props.id);
         setSaveOffer(true);
+        saveOffer(auth.currentUser.uid, props.id);
       } catch (err) {
         console.log(err);
       }
     }
-    if (offerSaveState) {
+    if (isSaved) {
       try {
-        unsaveOffer(auth.currentUser.uid, props.id);
         setSaveOffer(false);
+        unsaveOffer(auth.currentUser.uid, props.id);
       } catch (err) {
         console.log(err);
       }
-    }
-  };
-
-  const checkSavedOffers = (owner) => {
-    try {
-      owner.savedOffers.forEach((item) => {
-        if (item == props.id) {
-          setSaveOffer(true);
-        }
-      });
-    } catch (err) {
-      console.log(err);
     }
   };
 
   const renderSaveButton = () => {
-    if (offerSaveState === null) return null;
-
-    if (offerSaveState) {
+    if (isSaved) {
       return (
         <TouchableOpacity
           style={[
@@ -412,7 +404,7 @@ export function CardHome({ props }) {
                   style={{
                     aspectRatio: 1 / 1,
                     width: undefined,
-                    height: 24,
+                    height: 18,
                     marginRight: 8,
                   }}
                 />
@@ -439,7 +431,7 @@ export function CardHome({ props }) {
                   style={{
                     aspectRatio: 1 / 1,
                     width: undefined,
-                    height: 24,
+                    height: 18,
                     marginRight: 8,
                   }}
                 />
@@ -465,7 +457,7 @@ export function CardHome({ props }) {
                   style={{
                     aspectRatio: 52 / 27,
                     width: undefined,
-                    height: 16,
+                    height: 12,
                     marginRight: 8,
                   }}
                 />
@@ -478,7 +470,6 @@ export function CardHome({ props }) {
                   {certificateNumber}
                 </Text>
               </View>
-              {/* <View style={{ flexDirection: 'row' }}></View> */}
             </View>
           ) : null}
           <View
@@ -520,7 +511,7 @@ export function CardHome({ props }) {
                   backgroundColor: '#0082FF',
                   borderRadius: 3,
                 }}
-                onPress={onPress}>
+                onPress={() => navigation.navigate('ContactInfo', owner)}>
                 <Text
                   style={{
                     fontSize: 16,
@@ -545,6 +536,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     marginHorizontal: 4,
     marginVertical: 6,
+    marginRight: 20,
+    marginLeft: 20,
   },
   cardContent: {
     marginVertical: 20,
@@ -566,13 +559,13 @@ const stylesCard = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     borderRadius: 6,
-    width: '100%',
   },
   description: {
     backgroundColor: '#121212',
     marginLeft: 10,
     height: '100%',
-    width: '100%',
+    flex: 1,
+
     paddingLeft: 12,
     paddingTop: 10,
     borderRadius: 5,
@@ -602,6 +595,7 @@ const stylesCard = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 5,
     justifyContent: 'space-evenly',
+    paddingHorizontal: 8,
   },
   profileParams: {
     flexDirection: 'row',

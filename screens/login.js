@@ -122,6 +122,7 @@ export default function Login() {
             <TextInput
               mode={'outlined'}
               value={props.values.password}
+              secureTextEntry={true}
               onChangeText={props.handleChange('password')}
               label='Password'
               outlineColor={'#5c5c5c'}

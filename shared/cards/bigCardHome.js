@@ -10,26 +10,26 @@ import {
 
 import ImageViewer from 'react-native-image-zoom-viewer';
 
-function BigCard({ props }) {
+import { fetchBigCardsDetails } from '../../authContext';
+
+export default function BigCardHome({ props, setId }) {
   const [imageViewerState, setImageViewer] = useState(false);
+  const [details, setDetails] = useState([0, 0, 0]);
 
-  const [photosArray, setPhotosArray] = useState([
-    {
-      // Simplest usage.
-      url: 'https://firebasestorage.googleapis.com/v0/b/ptcg-marketplace.appspot.com/o/global%2Fplacegolder.png?alt=media&token=ed9d1f9b-9a3b-4c82-b86f-132da3e75957',
-
-      // width: number
-      // height: number
-      // Optional, if you know the image size, you can set the optimization performance
-
-      // You can pass props to <Image />.
-      props: {},
-    },
-  ]);
+  useEffect(() => {
+    const resolvePromise = async () => {
+      await fetchBigCardsDetails(props.id, setDetails);
+    };
+    resolvePromise();
+  }, []);
 
   return (
-    <View style={{ flexDirection: 'column', marginBottom: 30 }}>
-      <Modal visible={imageViewerState} transparent={true} style={{ flex: 1 }}>
+    <View style={{ flexDirection: 'column', marginBottom: 6, marginTop: 14 }}>
+      <Modal
+        visible={imageViewerState}
+        transparent={true}
+        style={{ flex: 1 }}
+        animationType={'slide'}>
         <ImageViewer
           imageUrls={[
             {
@@ -143,14 +143,14 @@ function BigCard({ props }) {
           <View style={{ marginTop: 22 }}>
             <Text style={{ flexDirection: 'row', color: '#f4f4f4' }}>
               Price <Text style={{ color: '#5c5c5c' }}> from </Text>
-              <Text style={styles.text2}> $523</Text>{' '}
+              <Text style={styles.text2}> ${details[2]}</Text>{' '}
               <Text style={{ color: '#5c5c5c' }}> up to </Text>
-              <Text style={styles.text2}> $5223</Text>
+              <Text style={styles.text2}> ${details[1]}</Text>
             </Text>
           </View>
           <View style={{ marginTop: 8 }}>
             <Text style={{ flexDirection: 'row', color: '#f4f4f4' }}>
-              Offers Number : <Text style={styles.text2}> 232</Text>
+              Offers Number : <Text style={styles.text2}> {details[0]}</Text>
             </Text>
           </View>
         </View>
@@ -158,18 +158,20 @@ function BigCard({ props }) {
       <View style={{ width: '100%', flexDirection: 'row-reverse' }}>
         <TouchableOpacity
           style={{
-            width: 120,
+            width: 140,
             height: 30,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
 
-            backgroundColor: '#0082FF',
+            backgroundColor: details[0] !== 0 ? '#0082FF' : '#00315e',
             borderRadius: 3,
 
             marginTop: 12,
           }}
-          onPress={null}>
+          onPress={() => {
+            setId(props.id);
+          }}>
           <Text
             style={{
               fontSize: 16,
@@ -183,8 +185,6 @@ function BigCard({ props }) {
     </View>
   );
 }
-
-export default BigCard;
 
 const styles = StyleSheet.create({
   text1: {

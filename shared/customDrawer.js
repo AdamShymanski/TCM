@@ -94,7 +94,7 @@ export default function CustomDrawer({ navigation }) {
               labelStyle={{ color: '#f4f4f4' }}
               label='Orders'
               onPress={() => {
-                // navigation.navigate('Home');
+                navigation.navigate('Orders');
               }}
             />
             <DrawerItem
@@ -119,22 +119,12 @@ export default function CustomDrawer({ navigation }) {
             />
             <DrawerItem
               icon={({ color, size }) => (
-                <Icon name='plus-box-outline' color={'#f4f4f4'} size={size} />
-              )}
-              labelStyle={{ color: '#f4f4f4' }}
-              label='Add Offer'
-              onPress={() => {
-                //! navigation.navigate('addOffer');
-              }}
-            />
-            <DrawerItem
-              icon={({ color, size }) => (
                 <IconF name='settings' color={'#f4f4f4'} size={size - 4} />
               )}
               labelStyle={{ color: '#f4f4f4' }}
               label='Settings'
               onPress={() => {
-                //! navigation.navigate('Settings');
+                navigation.navigate('Settings');
               }}
             />
             <DrawerItem

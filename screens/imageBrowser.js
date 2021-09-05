@@ -12,89 +12,6 @@ import { ImageBrowser } from 'expo-image-picker-multiple';
 import globalState from '../global.js';
 import { useNavigation } from '@react-navigation/native';
 
-// export default class ImageBrowserScreen extends Component {
-//   _getHeaderLoader = () => <ActivityIndicator size='small' color={'#0580FF'} />;
-
-//   imagesCallback = (callback) => {
-//     const { navigation } = this.props;
-//     this.props.navigation.setOptions({
-//       headerRight: () => this._getHeaderLoader(),
-//     });
-
-//     callback
-//       .then(async (photos) => {
-//         const cPhotos = [];
-//         for (let photo of photos) {
-//           const pPhoto = await this._processImageAsync(photo.uri);
-
-//           cPhotos.push({
-//             uri: pPhoto.uri,
-//             name: photo.filename,
-//             type: 'image/jpg',
-//           });
-
-//           globalState.photos = cPhotos;
-
-//           // cPhotos.push({
-//           //   uri: pPhoto.uri,
-//           //   name: photo.filename,
-//           //   type: 'image/jpg',
-//           // });
-//         }
-//         // navigation.navigate('AddCard', { photos: cPhotos });
-//         navigation.navigate('AddCard');
-//       })
-//       .catch((e) => console.log(e));
-//   };
-
-//   async _processImageAsync(uri) {
-//     const file = await ImageManipulator.manipulateAsync(
-//       uri,
-//       [{ resize: { width: 1000 } }],
-//       { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
-//     );
-//     return file;
-//   }
-
-//   _renderDoneButton = (count, onSubmit) => {
-//     if (!count) return null;
-//     return (
-//       <TouchableOpacity title={'Done'} onPress={onSubmit}>
-//         <Text onPress={onSubmit}>Done</Text>
-//       </TouchableOpacity>
-//     );
-//   };
-
-//   updateHandler = (count, onSubmit) => {
-//     this.props.navigation.setOptions({
-//       title: `Selected ${count} files`,
-//       headerRight: () => this._renderDoneButton(count, onSubmit),
-//     });
-//   };
-
-//   renderSelectedComponent = (number) => (
-//     <View style={styles.countBadge}>
-//       <Text style={styles.countBadgeText}>{number}</Text>
-//     </View>
-//   );
-
-//   render() {
-//     const emptyStayComponent = <Text style={styles.emptyStay}>Empty =(</Text>;
-
-//     return (
-//       <View style={[styles.flex, styles.container]}>
-//         <ImageBrowser
-//           max={3}
-//           onChange={this.updateHandler}
-//           callback={this.imagesCallback}
-//           renderSelectedComponent={this.renderSelectedComponent}
-//           emptyStayComponent={emptyStayComponent}
-//         />
-//       </View>
-//     );
-//   }
-// }
-
 const ImageBrowserScreen = ({ route }) => {
   const navigation = useNavigation();
 
@@ -121,16 +38,9 @@ const ImageBrowserScreen = ({ route }) => {
             name: photo.filename,
             type: 'image/jpg',
           });
-
-          // cPhotos.push({
-          //   uri: pPhoto.uri,
-          //   name: photo.filename,
-          //   type: 'image/jpg',
-          // });
         }
-        // navigation.navigate('AddCard', { photos: cPhotos });
         setPhoto(cPhotos);
-        navigation.navigate('AddCard');
+        navigation.goBack();
       })
       .catch((e) => console.log(e));
   };
@@ -174,15 +84,11 @@ const ImageBrowserScreen = ({ route }) => {
           {'Done'}
         </Text>
       </TouchableOpacity>
-      // <TouchableOpacity title={'Done'} onPress={onSubmit}>
-      //   <Text onPress={onSubmit}>Done</Text>
-      // </TouchableOpacity>
     );
   };
 
   const updateHandler = (count, onSubmit) => {
     navigation.setOptions({
-      // title: `Selected ${count} files`,
       headerRight: () => _renderDoneButton(count, onSubmit),
     });
   };
