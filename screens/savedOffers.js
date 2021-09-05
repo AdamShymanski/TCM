@@ -7,7 +7,10 @@ import {
   ScrollView,
   Button,
   TouchableOpacity,
+  FlatList,
 } from 'react-native';
+
+import { useIsFocused } from '@react-navigation/native';
 
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -20,48 +23,44 @@ import { globalStyles, images } from '../styles/global';
 // import reputation_icon from './../assets/reputation_icon.png';
 // import collection_icon from './../assets/collection_icon.png';
 
-import { fetchSavedCards, fetchCards } from '../authContext';
+import { fetchSavedCards } from '../authContext';
 import pokemon from 'pokemontcgsdk';
 import Condition from 'yup/lib/Condition';
 
-export default function savedOffers({ navigation }) {
-  // const [cardState, setCard] = useState(null);
-  // const [pokemonId, setPID] = useState('base1-4');
-  // const [offerSave, setSaveOffer] = useState(false);
-  // const [reputationScore, setReputation] = useState('21');
-  // const [collectionSize, setCollection] = useState('64');
-
+export default function SavedOffers({ navigation }) {
   const [cardsData, setCardsData] = useState(null);
   const [loadingState, setLoading] = useState(true);
 
+  const isFocused = useIsFocused();
+
   useEffect(() => {
-    const dowloads = async () => {
-      await fetchSavedCards().then((item) => {
-        setCardsData(item);
-
-        setLoading(false);
-      });
-    };
-
-    dowloads();
-  }, []);
+    if (!isFocused) {
+      setCardsData(null);
+      setLoading(true);
+    }
+    if (isFocused) {
+      fetchSavedCards(setCardsData, setLoading);
+    }
+  }, [isFocused]);
 
   return (
-    <ScrollView style={globalStyles.container}>
-      {!loadingState
-        ? cardsData.map((item, i) => {
-            return <CardSavedOffers props={item} key={i} />;
-          })
-        : null}
-    </ScrollView>
+    <View style={globalStyles.container}>
+      {!loadingState ? (
+        <FlatList
+          data={cardsData}
+          renderItem={({ item, index }) => {
+            return (
+              <CardSavedOffers
+                props={item}
+                setCardsData={setCardsData}
+                cardsData={cardsData}
+                index={index}
+              />
+            );
+          }}
+          keyExtractor={(item, index) => index.toString()}
+        />
+      ) : null}
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  AANFText: {
-    fontWeight: '600',
-  },
-  modalContent: {
-    flex: 1,
-  },
-});

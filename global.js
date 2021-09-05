@@ -9,4 +9,7 @@ module.exports = {
   userData: null,
   globalData: null,
   photos: null,
+  
+  savedOffersId: null,
+  setSavedOffersId: null,
 };

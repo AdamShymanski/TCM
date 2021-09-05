@@ -10,7 +10,7 @@ import {
 
 import ImageViewer from 'react-native-image-zoom-viewer';
 
-function BigCard({ props }) {
+export default function CardAcp({ props, setId, closeModal }) {
   const [imageViewerState, setImageViewer] = useState(false);
 
   const [photosArray, setPhotosArray] = useState([
@@ -29,12 +29,15 @@ function BigCard({ props }) {
 
   return (
     <View style={{ flexDirection: 'column', marginBottom: 30 }}>
-      <Modal visible={imageViewerState} transparent={true} style={{ flex: 1 }}>
+      <Modal
+        visible={imageViewerState}
+        transparent={true}
+        style={{ flex: 1 }}
+        animationType={'slide'}>
         <ImageViewer
           imageUrls={[
             {
               url: props.images.large,
-
               width: 358,
               height: 500,
               props: {},
@@ -158,7 +161,7 @@ function BigCard({ props }) {
       <View style={{ width: '100%', flexDirection: 'row-reverse' }}>
         <TouchableOpacity
           style={{
-            width: 120,
+            width: 140,
             height: 30,
             flexDirection: 'row',
             alignItems: 'center',
@@ -169,22 +172,23 @@ function BigCard({ props }) {
 
             marginTop: 12,
           }}
-          onPress={null}>
+          onPress={() => {
+            setId(props.id);
+            closeModal();
+          }}>
           <Text
             style={{
               fontSize: 16,
               fontWeight: '700',
               color: '#121212',
             }}>
-            Go To Offers
+            Select this card
           </Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
-export default BigCard;
 
 const styles = StyleSheet.create({
   text1: {

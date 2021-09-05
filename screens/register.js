@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Button,
@@ -8,11 +8,11 @@ import {
   ScrollView,
 } from 'react-native';
 import { TextInput } from 'react-native-paper';
-import { globalStyles } from '../styles/global.js';
-import { Formik, ErrorMessage, Form } from 'formik';
+import { Formik, ErrorMessage } from 'formik';
 import * as yup from 'yup';
 
 import { register } from './../authContext';
+import { CountryPickerModal } from '../shared/countryPickerModal';
 
 const strongPasswordRegEx =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&].{8,}$/;
@@ -20,12 +20,14 @@ const onlyLettersRegEx =
   /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$/u;
 const firstCapitalLetter = /^[A-Z].*/;
 
+const nickRegEx = /^[_A-z0-9]*((-|\s)*[_A-z0-9])*$/g;
+
 const reviewSchema = yup.object({
   nick: yup
     .string('Wrong format!')
     .required('Name is required!')
     .min(4, 'Name must be longer then 4 charts!')
-    .matches(onlyLettersRegEx, 'Name cannot contain numbers or symbols!'),
+    .matches(nickRegEx, 'No special charts!'),
   email: yup
     .string('Wrong format!')
     .email('Email is invalid!')
@@ -42,23 +44,30 @@ const reviewSchema = yup.object({
     is: (val) => (val && val.length > 0 ? true : false),
     then: yup
       .string()
-      .oneOf([yup.ref('password')], "Passwords aren't the same!"),
+      .oneOf(
+        [yup.ref('password')],
+        "Passwords aren't the same!                  "
+      )
+      .required('Confirm Password is required!                  '),
   }),
-  address: yup.string('Wrong format!').required('Address is required!'),
-  postalCode: yup
-    .string('Wrong format!')
-    .required('Postal or Zip Code is required!'),
+  // address: yup.string('Wrong format!').required('Address is required!'),
+  // postalCode: yup
+  //   .string('Wrong format!')
+  //   .required('Postal or Zip Code is required!'),
   country: yup
     .string('Wrong format!')
     .required('Country is required!')
     .matches(firstCapitalLetter, 'Wrong country name!'),
-  phoneNumber: yup
-    .string('Wrong format!')
-    .required('Phone Number is required!')
-    .min(9, 'Phone number is too short!'),
+  // phoneNumber: yup
+  //   .string('Wrong format!')
+  //   .required('Phone Number is required!')
+  //   .min(9, 'Phone number is too short!'),
 });
 
 export default function Register({ auth }) {
+  const [countryPickerState, setCountryPickerState] = useState('');
+  const [countryValue, setCountryValue] = useState('');
+
   return (
     <ScrollView style={{ backgroundColor: '#1b1b1b', flex: 1 }}>
       <View style={{ alignItems: 'center', width: '100%' }}>
@@ -88,11 +97,8 @@ export default function Register({ auth }) {
 
       <Formik
         initialValues={{
-          phoneNumber: '',
           nick: '',
-          address: '',
-          postalCode: '',
-          country: '',
+          country: countryValue,
           email: '',
           password: '',
           confirmPassword: '',
@@ -103,10 +109,7 @@ export default function Register({ auth }) {
             values.email,
             values.password,
             values.nick,
-            values.address,
-            values.postalCode,
-            values.country,
-            values.phoneNumber
+            values.country
           );
         }}
         style={{
@@ -126,6 +129,14 @@ export default function Register({ auth }) {
               width: '100%',
               height: '100%',
             }}>
+            {countryPickerState ? (
+              <CountryPickerModal
+                setValue={(value) => {
+                  props.setFieldValue('country', value);
+                }}
+                setVisible={setCountryPickerState}
+              />
+            ) : null}
             <TextInput
               mode={'outlined'}
               value={props.values.nick}
@@ -177,7 +188,7 @@ export default function Register({ auth }) {
                 width: '70%',
                 backgroundColor: '#1b1b1b',
                 color: '#f4f4f4',
-                marginTop: 20,
+                marginTop: props.touched.nick && props.errors.nick ? 0 : 20,
               }}
               theme={{
                 colors: {
@@ -208,6 +219,7 @@ export default function Register({ auth }) {
             <TextInput
               mode={'outlined'}
               value={props.values.password}
+              secureTextEntry={true}
               onChangeText={props.handleChange('password')}
               label='Password'
               outlineColor={'#5c5c5c'}
@@ -218,7 +230,7 @@ export default function Register({ auth }) {
                 width: '70%',
                 backgroundColor: '#1b1b1b',
                 color: '#f4f4f4',
-                marginTop: 20,
+                marginTop: props.touched.email && props.errors.email ? 0 : 20,
               }}
               theme={{
                 colors: {
@@ -249,6 +261,7 @@ export default function Register({ auth }) {
             <TextInput
               mode={'outlined'}
               value={props.values.confirmPassword}
+              secureTextEntry={true}
               onChangeText={props.handleChange('confirmPassword')}
               label='Confirm Password'
               outlineColor={'#5c5c5c'}
@@ -261,7 +274,8 @@ export default function Register({ auth }) {
                 width: '70%',
                 backgroundColor: '#1b1b1b',
                 color: '#f4f4f4',
-                marginTop: 20,
+                marginTop:
+                  props.touched.password && props.errors.password ? 0 : 20,
               }}
               theme={{
                 colors: {
@@ -292,117 +306,36 @@ export default function Register({ auth }) {
                 </Text>
               )}
             </ErrorMessage>
-            <TextInput
-              mode={'outlined'}
-              value={props.values.address}
-              onChangeText={props.handleChange('address')}
-              label='Address'
-              outlineColor={'#5c5c5c'}
-              error={
-                props.touched.address && props.errors.address ? true : false
-              }
-              style={{
-                width: '70%',
-
-                backgroundColor: '#1b1b1b',
-                color: '#f4f4f4',
-                marginTop: 20,
-              }}
-              theme={{
-                colors: {
-                  primary: '#0082ff',
-                  placeholder: '#5c5c5c',
-                  background: 'transparent',
-                  text: '#f4f4f4',
-                },
-              }}
-            />
-            <ErrorMessage component='div' name='address'>
-              {(msg) => (
-                <Text
-                  style={{
-                    width: '70%',
-                    marginTop: 8,
-                    marginBottom: 18,
-                    height: 20,
-                    flexDirection: 'row',
-                    justifyContent: 'flex-end',
-                    color: '#b40424',
-                    fontWeight: '700',
-                  }}>
-                  {msg}
-                </Text>
-              )}
-            </ErrorMessage>
-            <TextInput
-              mode={'outlined'}
-              value={props.values.postalCode}
-              onChangeText={props.handleChange('postalCode')}
-              label='Postal or Zip Code'
-              outlineColor={'#5c5c5c'}
-              error={
-                props.touched.postalCode && props.errors.postalCode
-                  ? true
-                  : false
-              }
-              style={{
-                width: '70%',
-
-                backgroundColor: '#1b1b1b',
-                color: '#f4f4f4',
-                marginTop: 20,
-              }}
-              theme={{
-                colors: {
-                  primary: '#0082ff',
-                  placeholder: '#5c5c5c',
-                  background: 'transparent',
-                  text: '#f4f4f4',
-                },
-              }}
-            />
-            <ErrorMessage component='div' name='postalCode'>
-              {(msg) => (
-                <Text
-                  style={{
-                    width: '70%',
-                    marginTop: 8,
-                    marginBottom: 18,
-                    height: 20,
-                    flexDirection: 'row',
-                    justifyContent: 'flex-end',
-                    color: '#b40424',
-                    fontWeight: '700',
-                  }}>
-                  {msg}
-                </Text>
-              )}
-            </ErrorMessage>
-            <TextInput
-              mode={'outlined'}
-              value={props.values.country}
-              onChangeText={props.handleChange('country')}
-              label='Country'
-              outlineColor={'#5c5c5c'}
-              error={
-                props.touched.country && props.errors.country ? true : false
-              }
-              style={{
-                width: '70%',
-
-                backgroundColor: '#1b1b1b',
-                color: '#f4f4f4',
-                marginTop: 20,
-              }}
-              theme={{
-                colors: {
-                  primary: '#0082ff',
-                  placeholder: '#5c5c5c',
-                  background: 'transparent',
-                  text: '#f4f4f4',
-                },
-              }}
-            />
+            <TouchableOpacity
+              style={{ width: '70%' }}
+              onPress={() => {
+                setCountryPickerState(true);
+              }}>
+              <TextInput
+                mode={'outlined'}
+                value={props.values.country}
+                onChangeText={props.handleChange('country')}
+                label='Country'
+                outlineColor={props.errors.country ? '#b40424' : '#5c5c5c'}
+                style={{
+                  width: '100%',
+                  backgroundColor: '#1b1b1b',
+                  marginTop:
+                    props.touched.confirmPassword &&
+                    props.errors.confirmPassword
+                      ? 0
+                      : 20,
+                }}
+                disabled={true}
+                theme={{
+                  colors: {
+                    text: '#fff',
+                    disabled: props.errors.country ? '#b40424' : '#5c5c5c',
+                    background: 'transparent',
+                  },
+                }}
+              />
+            </TouchableOpacity>
             <ErrorMessage component='div' name='country'>
               {(msg) => (
                 <Text
@@ -420,7 +353,7 @@ export default function Register({ auth }) {
                 </Text>
               )}
             </ErrorMessage>
-            <TextInput
+            {/* <TextInput
               mode={'outlined'}
               value={props.values.phoneNumber}
               onChangeText={props.handleChange('phoneNumber')}
@@ -463,7 +396,7 @@ export default function Register({ auth }) {
                   {msg}
                 </Text>
               )}
-            </ErrorMessage>
+            </ErrorMessage> */}
 
             <View
               style={{

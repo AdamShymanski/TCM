@@ -18,20 +18,17 @@ import {
 } from 'react-native';
 import { Switch, TextInput } from 'react-native-paper';
 
-// import { Picker } from '@react-native-picker/picker';
-
 import CardAcp from '../shared/cards/cardAcp';
-
 import { useNavigation } from '@react-navigation/native';
-import { addCard, fetchBigCards, fetchMoreBigCards } from '../authContext';
+import { fetchBigCards, fetchMoreBigCards, updateCard } from '../authContext';
 
 import pikachu from '../assets/pikachu.png';
 
 import PickerModal from '../shared/pickerModal';
 
-export default function AddCard() {
+export default function EditCard({ route }) {
   const navigation = useNavigation();
-  // .matches(/^\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})$/, 'Wrong price format!'),
+
   const reviewSchema = yup.object({
     price: yup
       .string('Wrong format!')
@@ -41,10 +38,6 @@ export default function AddCard() {
       .string('Wrong format!')
       .required('Condition is required!')
       .max(2, 'Wrong format'),
-    languageVersion: yup
-      .string('Wrong format!')
-      .required('Language Version is required!')
-      .min(4, 'Wrong format'),
     languageVersion: yup
       .string('Wrong format!')
       .required('Language Version is required!')
@@ -77,6 +70,7 @@ export default function AddCard() {
       .required('Description is required!')
       .max(60, 'Description is too long!'),
   });
+
   const ImagePlaceHolder = () => {
     if (photoState === null || undefined) {
       return (
@@ -149,7 +143,9 @@ export default function AddCard() {
                 marginRight: 20,
                 borderRadius: 4,
               }}
-              source={{ uri: photoState[0].uri }}
+              source={{
+                uri: photoState[0].url ? photoState[0].url : photoState[0].uri,
+              }}
             />
           )}
           {photoState[1] === undefined || null ? (
@@ -176,7 +172,9 @@ export default function AddCard() {
                 marginRight: 20,
                 borderRadius: 4,
               }}
-              source={{ uri: photoState[1].uri }}
+              source={{
+                uri: photoState[1].url ? photoState[1].url : photoState[1].uri,
+              }}
             />
           )}
           {photoState[2] === undefined || null ? (
@@ -202,35 +200,24 @@ export default function AddCard() {
                 marginRight: 20,
                 borderRadius: 4,
               }}
-              source={{ uri: photoState[2].uri }}
+              source={{
+                uri: photoState[2].url ? photoState[2].url : photoState[2].uri,
+              }}
             />
           )}
         </View>
       );
     }
   };
-  const submitForm = async (values) => {
-    if (cardId) {
-      if (photoState) {
-        await addCard(values, gradingSwitch, photoState, cardId);
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Thanks' }],
-        });
-      }
-    } else {
-      setScError(true);
-    }
-  };
 
-  const [photoState, setPhoto] = useState(null);
-  const [gradingSwitch, setGrading] = useState(true);
+  const [photoState, setPhoto] = useState(route.params.photosArray);
+  const [gradingSwitch, setGrading] = useState(route.params.props.isGraded);
 
   const [modalState, setModal] = useState(false);
   const [scError, setScError] = useState(false);
 
-  const [cardId, setId] = useState(null);
-
+  const [cardId, setId] = useState(route.params.props.cardId);
+  const [pageNumber, setPageNumber] = useState(2);
   const [loadingState, setLoading] = useState(false);
   const [bigCardsData, setBigCardsData] = useState(null);
 
@@ -240,10 +227,8 @@ export default function AddCard() {
   );
 
   const [showFilters, setShowFiletrs] = useState(true);
-
   const [pickerValue, setPickerValue] = useState('Rarity Declining');
   const [pickerModal, setPickerModal] = useState(false);
-  const [pageNumber, setPageNumber] = useState(2);
 
   const searchForCard = async () => {
     setBigCardsData(
@@ -557,20 +542,71 @@ export default function AddCard() {
       <Formik
         style={{ flex: 1 }}
         initialValues={{
-          // cardNumber: '',
-          price: '',
-          grade: '',
-          gradingOrganization: '',
-          certificateNumber: '',
-          condition: '',
-          description: '',
-          languageVersion: '',
+          price: route.params.props.price,
+          grade: route.params.props.grade,
+          gradingOrganization: route.params.props.gradingOrganization,
+          certificateNumber: route.params.props.certificateNumber,
+          condition: route.params.props.condition,
+          description: route.params.props.description,
+          languageVersion: route.params.props.languageVersion,
         }}
         validationSchema={
           gradingSwitch ? reviewSchemaWithGrading : reviewSchema
         }
-        onSubmit={(values, actions) => {
-          submitForm(values);
+        onSubmit={async (values, actions) => {
+          const initValues = [
+            route.params.props.price,
+            route.params.props.grade,
+            route.params.props.gradingOrganization,
+            route.params.props.certificateNumber,
+            route.params.props.condition,
+            route.params.props.description,
+            route.params.props.languageVersion,
+            route.params.props.isGraded,
+          ];
+          const outValues = [
+            values.price,
+            values.grade,
+            values.gradingOrganization,
+            values.certificateNumber,
+            values.condition,
+            values.description,
+            values.languageVersion,
+            gradingSwitch,
+          ];
+          const valuesOrder = [
+            'price',
+            'grade',
+            'gradingOrganization',
+            'certificateNumber',
+            'condition',
+            'description',
+            'languageVersion',
+            'isGraded',
+          ];
+
+          const detectChanges = () => {
+            let change = false;
+            outValues.forEach((item, index) => {
+              if (item !== initValues[index]) {
+                change = true;
+              }
+            });
+            if (change) {
+              return true;
+            }
+          };
+          
+          if (detectChanges()) {
+            await updateCard(
+              route.params.props.id,
+              outValues,
+              initValues,
+              valuesOrder
+            );
+            route.params.setModal(false);
+            navigation.goBack();
+          }
         }}>
         {(props) => (
           <View>

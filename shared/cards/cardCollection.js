@@ -23,36 +23,26 @@ import go_icon from './../../assets/gradingOrganization.png';
 import cn_icon from './../../assets/CN.png';
 import pricetag_icon from './../../assets/pricetag.png';
 
-import {
-  fetchPhotos,
-  fetchOwnerData,
-  saveOffer,
-  unsaveOffer,
-  auth,
-} from '../../authContext';
+import { fetchPhotos } from '../../authContext';
 
-export function CardSavedOffers({ props, setCardsData, cardsData, index }) {
-  const isGraded = props.isGraded;
+import { useNavigation } from '@react-navigation/native';
+
+export function CardCollection({ props, setModal, setId }) {
   const condition = props.condition;
   const description = props.description;
   const price = props.price;
+  const languageVersion = props.languageVersion;
+
+  const isGraded = props.isGraded;
   const grade = props.grade;
   const gradingOrganization = props.gradingOrganization;
   const certificateNumber = props.certificateNumber;
-  const languageVersion = props.languageVersion;
 
   let cardPhotos = [];
 
   const [loadingState, setLoading] = useState(true);
   const [imageViewerState, setImageViewer] = useState(false);
-
-  const [owner, setOwner] = useState({
-    name: '',
-    reputation: 0,
-    collectionSize: 0,
-    countryCodes: '',
-  });
-
+  const [isSaved, setSaveOffer] = useState(false);
   const [photosArray, setPhotosArray] = useState([
     {
       // Simplest usage.
@@ -67,67 +57,21 @@ export function CardSavedOffers({ props, setCardsData, cardsData, index }) {
     },
   ]);
 
+  const navigation = useNavigation();
+
   useEffect(() => {
     const resolvePromises = async () => {
       cardPhotos = await fetchPhotos(props.id);
-      setOwner(await fetchOwnerData(props.owner));
       setPhotosArray(fillPhotosArray(cardPhotos));
+
+      setLoading(false);
     };
 
     resolvePromises();
-    setLoading(false);
   }, []);
 
   const onPress = () => {
     console.log('no elo kurwa');
-  };
-
-  const clickSave = async () => {
-    // const filteredArray = cardsData.filter((item) => {
-    //   return item.id == props.id;
-    // });
-    // let filteredArray = [];
-    // if (cardsData.length > 1) filteredArray = cardsData.splice(index, 1);
-
-    unsaveOffer(auth.currentUser.uid, props.id);
-    setLoading(true);
-  };
-
-  const renderSaveButton = () => {
-    return (
-      <TouchableOpacity
-        style={[
-          {
-            borderRadius: 3,
-            marginRight: 16,
-
-            height: 30,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#0082FF',
-            width: 90,
-          },
-        ]}
-        onPress={() => clickSave()}>
-        <Text
-          style={[
-            {
-              fontSize: 16,
-              fontWeight: '700',
-              color: '#121212',
-            },
-          ]}>
-          Saved
-        </Text>
-        <IconMI
-          name={'check-bold'}
-          size={18}
-          color='#121212'
-          style={{ marginLeft: 6, bottom: 1 }}
-        />
-      </TouchableOpacity>
-    );
   };
 
   const fillPhotosArray = (array) => {
@@ -187,58 +131,7 @@ export function CardSavedOffers({ props, setCardsData, cardsData, index }) {
             )}
           />
         </Modal>
-
         <View style={styles.cardContent}>
-          <View style={stylesCard.top}>
-            <View
-              style={{
-                backgroundColor: '#404040',
-                height: '100%',
-                paddingVertical: 8,
-                paddingHorizontal: 12,
-                borderTopLeftRadius: 3,
-                borderBottomLeftRadius: 3,
-                marginRight: 10,
-              }}>
-              <Image
-                style={{ width: 28, height: 21 }}
-                source={{
-                  uri: `https://flagcdn.com/160x120/${owner.countryCode}.png`,
-                }}
-              />
-            </View>
-            <Text style={[globalStyles.titleText, { color: 'white' }]}>
-              {owner.name}
-            </Text>
-            <View style={stylesCard.profileParams}>
-              <Image
-                source={reputation_icon}
-                style={{ height: 26, width: 22.9, marginRight: 6 }}
-              />
-              <Text
-                style={{
-                  color: '#f4f4f4',
-                  fontSize: 18,
-                  fontWeight: '700',
-                  marginRight: 20,
-                }}>
-                {owner.reputation}
-              </Text>
-              <Image
-                source={collection_icon}
-                style={{
-                  height: 19,
-                  width: 16,
-                  marginRight: 6,
-                }}
-              />
-              <Text
-                style={{ color: '#f4f4f4', fontWeight: '700', fontSize: 18 }}>
-                {owner.collectionSize}
-              </Text>
-            </View>
-          </View>
-
           <View style={stylesCard.body}>
             <TouchableOpacity
               onPress={() => {
@@ -249,7 +142,6 @@ export function CardSavedOffers({ props, setCardsData, cardsData, index }) {
                 source={{ uri: photosArray[0].url }}
               />
             </TouchableOpacity>
-
             <View style={stylesCard.description}>
               <View
                 style={{
@@ -280,7 +172,6 @@ export function CardSavedOffers({ props, setCardsData, cardsData, index }) {
                     </Text>
                   </View>
                 )}
-
                 <View
                   style={{
                     flexDirection: 'row',
@@ -306,7 +197,6 @@ export function CardSavedOffers({ props, setCardsData, cardsData, index }) {
                   </Text>
                 </View>
               </View>
-
               <View
                 style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
                 <View
@@ -444,8 +334,33 @@ export function CardSavedOffers({ props, setCardsData, cardsData, index }) {
               style={{
                 flexDirection: 'row',
               }}>
-              {renderSaveButton()}
+              <TouchableOpacity
+                style={{
+                  width: 76,
+                  height: 30,
+                  marginRight: 10,
 
+                  alignItems: 'center',
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+
+                  borderColor: '#5c5c5c',
+                  borderRadius: 3,
+                  borderWidth: 2,
+                }}
+                onPress={() => {
+                  setModal(true);
+                  setId(props.id);
+                }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '700',
+                    color: '#5c5c5c',
+                  }}>
+                  Delete
+                </Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={{
                   width: 76,
@@ -457,14 +372,20 @@ export function CardSavedOffers({ props, setCardsData, cardsData, index }) {
                   backgroundColor: '#0082FF',
                   borderRadius: 3,
                 }}
-                onPress={onPress}>
+                onPress={() =>
+                  navigation.navigate('EditCard', {
+                    props,
+                    photosArray,
+                    setModal,
+                  })
+                }>
                 <Text
                   style={{
                     fontSize: 16,
                     fontWeight: '700',
                     color: '#121212',
                   }}>
-                  Buy
+                  Edit
                 </Text>
               </TouchableOpacity>
             </View>

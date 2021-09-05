@@ -7,117 +7,270 @@ import {
   ScrollView,
   Button,
   TouchableOpacity,
+  FlatList,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 
-import { MaterialIcons } from '@expo/vector-icons';
-
+import { globalStyles, images } from '../styles/global';
 import IconMI from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import { CardHome } from '../shared/cards/cardHome';
-import BigCard from '../shared/cards/bigCard';
+import {
+  fetchCards,
+  fetchSavedOffersId,
+  fetchMoreBigCards,
+} from '../authContext';
 
-import { globalStyles, images } from '../styles/global';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 
-// import venusaur from './../assets/venusaur.png';
-// import reputation_icon from './../assets/reputation_icon.png';
-// import collection_icon from './../assets/collection_icon.png';
+import PickerModal from './../shared/pickerModal';
+import pikachu from '../assets/pikachu.png';
 
-import { fetchCards, fetchBigCards } from '../authContext';
+import BigCardHome from './../shared/cards/bigCardHome';
+import { CardHome } from './../shared/cards/cardHome';
+import { TabRouter } from 'react-navigation';
 
-export default function Home({ navigation }) {
-  // const [cardState, setCard] = useState(null);
-  // const [pokemonId, setPID] = useState('base1-4');
-  // const [offerSave, setSaveOffer] = useState(false);
-  // const [reputationScore, setReputation] = useState('21');
-  // const [collectionSize, setCollection] = useState('64');
+export default function Home({
+  bigCardsData,
+  loadingState,
+  setPickerValue,
+  setLoading,
+  pickerValue,
+  pageNumber,
+  setPageNumber,
+  nativeInputValue,
+  setBigCardsData,
+}) {
+  const [id, setId] = useState(null);
+  const [cardsData, setCardsData] = useState([]);
 
-  const [cardsData, setCardsData] = useState(null);
-  const [bigCardsData, setBigCardsData] = useState(null);
-  const [loadingState, setLoading] = useState(true);
+  const isFocused = useIsFocused();
+  const [savedOffersId, setSavedOffersId] = useState(null);
+  const [pickerModal, setPickerModal] = useState(false);
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     const dowloads = async () => {
       setCardsData(await fetchCards());
-      // const a = await fetchBigCards();
-      // a.forEach((card) => {
-      //   console.log(card.name);
-      // });
-
-      // // console.log(a);
-      setBigCardsData(await fetchBigCards());
-      setLoading(false);
     };
 
     dowloads();
-
-    // bigCardsData.forEach((card) => {
-    //   console.log(card.name);
-    // });
-
-    // console.log(bigCardsData[0].name);
   }, []);
 
+  useEffect(() => {
+    if (!isFocused) {
+      setSavedOffersId(null);
+      setLoading(true);
+    }
+    if (isFocused) {
+      fetchSavedOffersId(setSavedOffersId, setLoading);
+    }
+  }, [isFocused]);
+
+  useEffect(() => {
+    const resolvePromises = async () => {
+      if (id !== undefined || null || []) {
+        setCardsData(await fetchCards(id));
+      }
+    };
+    resolvePromises();
+  }, [id]);
+
+  const stateHandler = (variant) => {
+    if (variant == 'pikachu') {
+      if (loadingState) return false;
+      if (cardsData === null || undefined) return true;
+      if (bigCardsData === null || undefined) return true;
+      if (cardsData.length > 1) return false;
+      if (bigCardsData.length > 1) return false;
+
+      return true;
+    }
+    if (variant == 'list') {
+      if (loadingState) return false;
+      if (cardsData === null || undefined) return false;
+      if (bigCardsData === null || undefined) return false;
+      if (cardsData.length >= 1) return false;
+      if (bigCardsData.length < 1) return false;
+
+      return true;
+    }
+    if (variant == 'secondList') {
+      if (loadingState) return false;
+      if (cardsData === null || undefined) return false;
+      if (cardsData.length >= 1) return true;
+    }
+    if (variant == 'indicator') {
+      if (loadingState) return true;
+      return false;
+    }
+    if (variant == 'topBar') {
+      if (loadingState) return false;
+      if (cardsData.length >= 1) return false;
+      return true;
+    }
+    if (variant == 'goBackBar') {
+      if (cardsData.length >= 1) return true;
+      return false;
+    }
+  };
+
   return (
-    <ScrollView style={globalStyles.container}>
-      {/* <View style={styles.AANF}>
-        <MaterialIcons
-          name='add'
-          size={24}
-          color='#f4f4f4'
-          style={{ position: 'absolute', left: '25%' }}
-          onPress={() => setModalOpen(true)}
-        />
-        <Text
+    <View style={[globalStyles.container, { paddingLeft: 0 }]}>
+      <PickerModal
+        setValue={setPickerValue}
+        propsArry={[
+          // 'Price Ascending',
+          // 'Price Declining',
+          'Rarity Ascending',
+          'Rarity Declining',
+        ]}
+        visible={pickerModal}
+        setVisible={setPickerModal}
+      />
+      <View style={{ flex: 1, backgroundColor: '#1b1b1b' }}>
+        <View
           style={{
-            color: '#f4f4f4',
-            fontWeight: '700',
-            fontSize: 15,
-            marginRight: 8,
+            backgroundColor: '#121212',
+
+            borderTopColor: '#5c5c5c',
+            borderTopWidth: 1.5,
+            flexDirection: 'column',
+            justifyContent: 'space-between',
           }}>
-          {'Add a new Offer'}
-        </Text>
+          {stateHandler('topBar') ? (
+            <View style={{ flexDirection: 'row', marginVertical: 12 }}>
+              <TouchableOpacity
+                style={{
+                  borderRadius: 4,
+
+                  marginLeft: 8,
+                  marginTop: 4,
+
+                  height: 32,
+                  paddingHorizontal: 14,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#1b1b1b',
+                }}
+                onPress={() => setPickerModal(true)}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '700',
+                    color: '#f4f4f4',
+                  }}>
+                  {' Sort by :  '}
+                  <Text style={{ color: '#0082ff' }}>{pickerValue}</Text>
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
+          {stateHandler('goBackBar') ? (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 12,
+                marginVertical: 12,
+
+                height: 30,
+                width: 120,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 2,
+                borderColor: '#777777',
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+              }}
+              onPress={() => setCardsData([])}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '700',
+                  color: '#777777',
+                }}>
+                {'Go back'}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+
+        {stateHandler('pikachu') ? (
+          <View
+            style={{
+              flex: 1,
+
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingBottom: 30,
+            }}>
+            <Image
+              source={pikachu}
+              style={{
+                aspectRatio: 651 / 522,
+                width: '80%',
+                height: undefined,
+              }}
+            />
+            <Text
+              style={{
+                color: '#434343',
+                fontSize: 20,
+                fontWeight: '600',
+                marginTop: 30,
+                fontWeight: '700',
+              }}>
+              {'No cards found '}
+            </Text>
+          </View>
+        ) : null}
+
+        {stateHandler('list') ? (
+          <FlatList
+            style={{ paddingHorizontal: 8 }}
+            data={bigCardsData}
+            renderItem={({ item }) => {
+              return <BigCardHome props={item} setId={setId} />;
+            }}
+            keyExtractor={(item, index) => index.toString()}
+            onEndReached={async () => {
+              await fetchMoreBigCards(
+                nativeInputValue,
+                pickerValue,
+                pageNumber,
+                bigCardsData,
+                setBigCardsData
+              );
+              setPageNumber(pageNumber + 1);
+            }}
+            onEndReachedThreshold={4}
+          />
+        ) : null}
+
+        {stateHandler('secondList') ? (
+          <FlatList
+            data={cardsData}
+            renderItem={({ item }) => {
+              return <CardHome props={item} isSavedState={savedOffersId} />;
+            }}
+            keyExtractor={(item, index) => index.toString()}
+          />
+        ) : null}
+
+        {stateHandler('indicator') ? (
+          <View
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <ActivityIndicator size='large' color='#0082ff' />
+          </View>
+        ) : null}
       </View>
-
-      {cardsData.map((item, i) => {
-        return <CardHome props={item} />;
-      })} */}
-
-      {/* 
-      {!loadingState
-        ? cardsData.map((item, i) => {
-            return <CardHome props={item} key={i} />;
-          })
-        : null} */}
-
-      {!loadingState
-        ? bigCardsData.map((item, i) => {
-            return <BigCard props={item} key={i} />;
-          })
-        : null}
-
-      {/* <BigCard /> */}
-    </ScrollView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  AANF: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    backgroundColor: '#121212',
-    paddingVertical: 10,
-    marginBottom: 6,
-  },
-  AANFText: {
-    fontWeight: '600',
-  },
-  modalClose: {
-    marginTop: 20,
-    marginBottom: 0,
-  },
-  modalContent: {
-    flex: 1,
-  },
-});

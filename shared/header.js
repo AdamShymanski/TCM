@@ -12,17 +12,172 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import IconF from 'react-native-vector-icons/Feather';
 
-export default function Header({ version }) {
+import { fetchBigCards } from '../authContext';
+
+export default function Header({
+  version,
+  setBigCardsData,
+  setPageNumber,
+  setInputValue,
+  inputValue,
+  pickerValue,
+  setLoading,
+}) {
   const [inputState, setInput] = useState('Seach for a card');
 
-  const navigation = useNavigation();
+  const searchForCard = async () => {
+    setBigCardsData(null);
+    setBigCardsData(await fetchBigCards(inputValue, pickerValue, setLoading));
+    setPageNumber(2);
+  };
 
+  const navigation = useNavigation();
   const openMenu = () => {
     navigation.openDrawer();
   };
 
-  if (version == 'noSearchBar') {
+  if (version == 'savedOffers') {
+    return (
+      <View
+        style={{
+          width: '100%',
+          height: '100%',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+        <MaterialIcons
+          name='menu'
+          size={28}
+          color={'#f4f4f4'}
+          onPress={() => {
+            openMenu();
+          }}
+          style={{
+            color: '#f4f4f4',
+            marginLeft: 16,
+          }}
+        />
+        <View
+          style={{
+            flexDirection: 'row',
+          }}>
+          <Text
+            style={{
+              color: '#f4f4f4',
+              fontWeight: '700',
+              fontSize: 21,
+              marginRight: 4,
+            }}>
+            {'Saved Offers'}
+          </Text>
+          <Icon
+            name='bookmark'
+            color={'#0082ff'}
+            size={30}
+            style={{ marginRight: 8 }}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  if (version == 'settings') {
+    return (
+      <View
+        style={{
+          width: '100%',
+          height: '100%',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+        <MaterialIcons
+          name='menu'
+          size={28}
+          color={'#f4f4f4'}
+          onPress={() => {
+            openMenu();
+          }}
+          style={{
+            color: '#f4f4f4',
+            marginLeft: 16,
+          }}
+        />
+        <View
+          style={{
+            flexDirection: 'row',
+          }}>
+          <Text
+            style={{
+              color: '#f4f4f4',
+              fontWeight: '700',
+              fontSize: 21,
+              marginRight: 8,
+            }}>
+            {'Settings'}
+          </Text>
+          <IconF
+            name='settings'
+            color={'#0082ff'}
+            size={30}
+            style={{ marginRight: 8 }}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  if (version == 'orders') {
+    return (
+      <View
+        style={{
+          width: '100%',
+          height: '100%',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+        <MaterialIcons
+          name='menu'
+          size={28}
+          color={'#f4f4f4'}
+          onPress={() => {
+            openMenu();
+          }}
+          style={{
+            color: '#f4f4f4',
+            marginLeft: 16,
+          }}
+        />
+        <View
+          style={{
+            flexDirection: 'row',
+          }}>
+          <Text
+            style={{
+              color: '#f4f4f4',
+              fontWeight: '700',
+              fontSize: 21,
+              marginRight: 8,
+            }}>
+            {'Orders'}
+          </Text>
+          <Icon
+            name='cart-outline'
+            color={'#0082ff'}
+            size={30}
+            style={{ marginRight: 8 }}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  if (version == 'collection') {
     return (
       <View style={styles.header}>
         <MaterialIcons
@@ -34,9 +189,42 @@ export default function Header({ version }) {
           }}
           style={styles.icon}
         />
+        <View style={styles.headerTitle}>
+          <TextInput
+            mode='outlined'
+            placeholderTextColor={'#5c5c5c'}
+            outlineColor={'#121212'}
+            onEndEditing={() => {
+              searchForCard();
+            }}
+            value={inputValue}
+            onChangeText={(text) => setInputValue(text)}
+            placeholder={inputState}
+            onFocus={() => setInput('')}
+            onBlur={() => setInput('Seach for a card')}
+            style={{
+              width: 260,
+              height: 40,
+              marginBottom: 5,
+              borderColor: '#121212',
+              backgroundColor: '#1b1b1b',
+              borderWidth: 2,
+              borderRadius: 5,
+              paddingLeft: 10,
+              color: '#f4f4f4',
+            }}
+          />
+          <MaterialIcons
+            name='search'
+            size={26}
+            color={'#f4f4f4'}
+            style={{ position: 'absolute', right: 14, top: 8 }}
+          />
+        </View>
       </View>
     );
   }
+
   return (
     <View style={styles.header}>
       <MaterialIcons
@@ -51,12 +239,18 @@ export default function Header({ version }) {
       <View style={styles.headerTitle}>
         <TextInput
           mode='outlined'
-          placeholder={inputState}
           placeholderTextColor={'#5c5c5c'}
+          outlineColor={'#121212'}
+          onEndEditing={() => {
+            searchForCard();
+          }}
+          value={inputValue}
+          onChangeText={(text) => setInputValue(text)}
+          placeholder={inputState}
           onFocus={() => setInput('')}
           onBlur={() => setInput('Seach for a card')}
           style={{
-            width: 280,
+            width: 260,
             height: 40,
             marginBottom: 5,
             borderColor: '#121212',

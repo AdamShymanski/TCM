@@ -39,12 +39,12 @@ export async function fetchGlobalData(email, password) {
   return ' fetchGlobalData';
 }
 
-export async function addCard(values, gradingSwitch, photoState) {
-  const cnArray = values.cardNumber.split('/');
-  const cnOutput = cnArray[0] + '-' + cnArray[1];
+export async function fetchUserData() {
+  const response = await db.collection('users').doc(auth.currentUser.uid).get();
+  return response.data();
+}
 
-  const price = parseInt(values.price);
-
+export async function addCard(values, gradingSwitch, photoState, cardId) {
   let condition;
 
   if (values.condition) condition = parseInt(values.condition);
@@ -53,13 +53,48 @@ export async function addCard(values, gradingSwitch, photoState) {
   db.collection(`cards`)
     .add({
       ...values,
-      price: price,
-      condition,
       isGraded: gradingSwitch,
       owner: auth.currentUser.uid,
+      cardId: cardId,
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     })
     .then(async (docRef) => {
+      db.collection('cardsData')
+        .doc(cardId)
+        .get()
+        .then((doc) => {
+          if (doc.exists) {
+            const actualPriceH = parseFloat(doc.data().highestPrice);
+            const actualPriceL = parseFloat(doc.data().lowestPrice);
+            const newPrice = parseFloat(values.price);
+
+            const keysOrder = ['offersNumber', 'highestPrice', 'lowestPrice'];
+
+            let updateObj = {
+              [keysOrder[0]]: doc.data().offersNumber + 1,
+              [keysOrder[1]]: doc.data().highestPrice,
+              [keysOrder[2]]: doc.data().lowestPrice,
+            };
+
+            if (actualPriceH < newPrice) {
+              updateObj[keysOrder[1]] = values.price;
+            }
+            if (actualPriceL > newPrice) {
+              updateObj[keysOrder[2]] = values.price;
+            }
+
+            db.collection('cardsData').doc(cardId).update(updateObj);
+          } else {
+            db.collection('cardsData').doc(cardId).set({
+              offersNumber: 1,
+              highestPrice: values.price,
+              lowestPrice: values.price,
+            });
+          }
+        })
+        .catch((error) => {
+          console.log('Error getting document:', error);
+        });
       const storageRef = firebase.storage().ref(`cards/${docRef.id}`);
 
       photoState.map(async (photo, i) => {
@@ -79,9 +114,11 @@ export async function fetchPhotos(offerId) {
     for (let i = 0; i < 3; i++) {
       var pathReference = storage.ref(path + i);
 
-      await pathReference.getDownloadURL().then((url) => {
-        pathsArray.push(url);
-      });
+      try {
+        await pathReference.getDownloadURL().then((url) => {
+          pathsArray.push(url);
+        });
+      } catch (error) {}
     }
 
     return pathsArray;
@@ -89,20 +126,299 @@ export async function fetchPhotos(offerId) {
     console.log(error);
   }
 }
-export async function fetchBigCards() {
+
+export async function updateCard(id, outValues, initValues, valuesOrder) {
+  try {
+    if (!outValues[7]) {
+      outValues[1] = '';
+      outValues[2] = '';
+      outValues[3] = '';
+    } else {
+      outValues[4] = '';
+    }
+
+    let cardUpdateObj = {};
+
+    outValues.forEach((item, index) => {
+      const keyName = valuesOrder[index];
+      if (item !== initValues[index]) cardUpdateObj[keyName] = item;
+    });
+    await db.collection('cards').doc(id).update(cardUpdateObj);
+
+    const doc = await db.collection('cardsData').doc(id).get();
+
+    const actualPriceH = parseFloat(doc.data().highestPrice);
+    const actualPriceL = parseFloat(doc.data().lowestPrice);
+    const newPrice = parseFloat(outValues[0]);
+
+    const keysOrder = ['highestPrice', 'lowestPrice'];
+
+    if (actualPriceH < newPrice) {
+      updateObj[keysOrder[0]] = values.price;
+    }
+    if (actualPriceL > newPrice) {
+      updateObj[keysOrder[1]] = values.price;
+    }
+
+    let updateObj = {
+      [keysOrder[0]]: doc.data().highestPrice,
+      [keysOrder[1]]: doc.data().lowestPrice,
+    };
+
+    await db.collection('cardsData').doc(id).update(updateObj);
+  } catch (error) {
+    console.log(error);
+  }
+}
+export async function deleteCard(id) {
+  try {
+    await db.collection('cards').doc(id).delete();
+
+    const doc = await db.collection('cardsData').doc(id).get();
+    const actualPriceH = parseFloat(doc.data().highestPrice);
+    const actualPriceL = parseFloat(doc.data().lowestPrice);
+    const keysOrder = ['offersNumber', 'highestPrice', 'lowestPrice'];
+
+    let updateObj = {
+      [keysOrder[0]]: doc.data().offersNumber - 1,
+      [keysOrder[1]]: doc.data().highestPrice,
+      [keysOrder[2]]: doc.data().lowestPrice,
+    };
+
+    if (doc.data().offersNumber === 1) {
+      updateObj[keysOrder[1]] = 0;
+    }
+    if (actualPriceL > newPrice) {
+      updateObj[keysOrder[2]] = 0;
+    }
+
+    db.collection('cardsData').doc(cardId).update(updateObj);
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchBigCards(arg, pickerValue, setLoading) {
+  try {
+    pokemon.configure({ apiKey: '3c362cd9-2286-48d4-989a-0d2a65b9d5a8' });
+
+    setLoading(true);
+
+    let initArray = [];
+
+    if (pickerValue === 'Rarity Declining') {
+      pickerValue = '-rarity';
+    }
+    if (pickerValue === 'Rarity Ascending') {
+      pickerValue = '+rarity';
+    }
+
+    if (arg) {
+      const sArg = arg.split(' ');
+
+      if (!/\d/.test(arg)) {
+        if (arg.split(' ').length > 1) {
+          let parsedArg;
+          arg.split(' ').forEach((item, index) => {
+            if (index == 0) {
+              parsedArg = item + '*';
+              return;
+            }
+            if (index == arg.split(' ').length - 1) {
+              parsedArg = parsedArg + item;
+              return;
+            }
+            parsedArg = parsedArg + item + '*';
+          });
+
+          try {
+            const result = await pokemon.card.where({
+              q: `name:${parsedArg}`,
+              pageSize: 10,
+              page: 1,
+              orderBy: pickerValue,
+            });
+
+            initArray = [...initArray, ...result.data];
+          } catch (error) {
+            console.log(error);
+          }
+        } else {
+          try {
+            const result = await pokemon.card.where({
+              q: `name:${sArg}`,
+              pageSize: 10,
+              page: 1,
+              orderBy: pickerValue,
+            });
+
+            initArray = [...initArray, ...result.data];
+          } catch (error) {
+            console.log(error);
+          }
+        }
+
+        if (arg.split(' ').length > 1) {
+          try {
+            const result1 = await pokemon.card.where({
+              q: `name:${sArg[1]} subtypes:${sArg[0]}`,
+              pageSize: 5,
+              page: 1,
+              orderBy: pickerValue,
+            });
+
+            initArray = [...initArray, ...result1.data];
+          } catch (error) {
+            console.log(error);
+          }
+
+          try {
+            const result2 = await pokemon.card.where({
+              q: `name:${sArg[0]} subtypes:${sArg[1]}`,
+              pageSize: 5,
+              page: 1,
+              orderBy: pickerValue,
+            });
+
+            initArray = [...initArray, ...result2.data];
+          } catch (error) {
+            console.log(error);
+          }
+        }
+      } else {
+        const sArg = arg.split('/');
+        try {
+          const result = await pokemon.card.where({
+            q: `number:${sArg[0]} set.printedTotal:${sArg[1]}`,
+            pageSize: 5,
+            page: 1,
+            orderBy: pickerValue,
+          });
+          initArray = [...initArray, ...result.data];
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    }
+
+    setLoading(false);
+    return initArray;
+  } catch (error) {
+    console.log(error);
+    setLoading(false);
+  }
+}
+export async function fetchMoreBigCards(
+  arg,
+  pickerValue,
+  pageNumber,
+  bigCardsData,
+  setBigCardsData
+) {
   try {
     pokemon.configure({ apiKey: '6aa1ef65-fa80-4ea4-b35f-9466d2add1a6' });
 
-    const result = await pokemon.card.where({
-      q: 'number:30 set.printedTotal:111',
-    });
-    
-    // .then((result) => {
-    //   console.log(result.data[0].images.large);
-    //   setImage(result.data[0].images.large);
-    // });
+    let initArray = [...bigCardsData];
 
-    return result.data;
+    if (pickerValue === 'Rarity Declining') {
+      pickerValue = '-rarity';
+    }
+    if (pickerValue === 'Rarity Ascending') {
+      pickerValue = '+rarity';
+    }
+
+    if (!/\d/.test(arg)) {
+      const result = await pokemon.card.where({
+        q: `name:${arg}`,
+        pageSize: 5,
+        page: pageNumber,
+        orderBy: pickerValue,
+      });
+
+      initArray = [...initArray, ...result.data];
+
+      if (arg.split(' ').length > 1) {
+        const sArg = arg.split(' ');
+
+        const result1 = await pokemon.card.where({
+          q: `name:${sArg[1]} subtypes:${sArg[0]}`,
+          pageSize: 5,
+          page: pageNumber,
+          orderBy: pickerValue,
+        });
+
+        initArray = [...initArray, ...result1.data];
+
+        const result2 = await pokemon.card.where({
+          q: `name:${sArg[0]} subtypes:${sArg[1]}`,
+          pageSize: 5,
+          page: pageNumber,
+          orderBy: pickerValue,
+        });
+
+        initArray = [...initArray, ...result2.data];
+
+        const result3 = await pokemon.card.where({
+          q: `name:${arg} rarity:${parseRarity(sArg[0])}`,
+          pageSize: 5,
+          page: pageNumber,
+          orderBy: pickerValue,
+        });
+
+        initArray = [...initArray, ...result3.data];
+
+        const result4 = await pokemon.card.where({
+          q: `name:${arg} rarity:${parseRarity(sArg[1])}`,
+          pageSize: 5,
+          page: pageNumber,
+          orderBy: pickerValue,
+        });
+
+        initArray = [...initArray, ...result4.data];
+
+        const result5 = await pokemon.card.where({
+          q: `name:${arg} rarity:${parseRarity(sArg[1] + sArg[2])}`,
+          pageSize: 5,
+          page: pageNumber,
+          orderBy: pickerValue,
+        });
+
+        initArray = [...initArray, ...result5.data];
+
+        const result6 = await pokemon.card.where({
+          q: `name:${arg} rarity:${parseRarity(sArg[2])}`,
+          pageSize: 5,
+          page: pageNumber,
+          orderBy: pickerValue,
+        });
+
+        initArray = [...initArray, ...result6.data];
+      }
+    } else {
+      const sArg = arg.split('/');
+      const result = await pokemon.card.where({
+        q: `number:${sArg[0]} set.printedTotal:${sArg[1]}`,
+        pageSize: 5,
+        page: pageNumber,
+        orderBy: pickerValue,
+      });
+      initArray = [...initArray, ...result.data];
+    }
+
+    //! Look for dupliactes
+    const idsArray = [];
+    initArray.forEach((item, index, array) => {
+      idsArray.forEach((id) => {
+        if (id == item.id) {
+          array.splice(index, 1);
+          console.log('SPLICE FUNCTION ACTIVATED');
+        } else {
+          idsArray.push(item.id);
+        }
+      });
+    });
+
+    setBigCardsData([...initArray]);
   } catch (error) {
     console.log(error);
   }
@@ -354,7 +670,15 @@ export async function fetchOwnerData(ownerId) {
   ];
 
   try {
-    let name, reputation, collectionSize, country, savedOffers, countryCode;
+    let name,
+      reputation,
+      collectionSize,
+      country,
+      savedOffers,
+      countryCode,
+      instagramContact,
+      discordContact,
+      whatsAppContact;
     await db
       .collection('users')
       .doc(ownerId)
@@ -365,6 +689,11 @@ export async function fetchOwnerData(ownerId) {
         collectionSize = doc.data().collectionSize;
         savedOffers = doc.data().savedOffers;
         country = doc.data().country;
+
+        //? Contact
+        instagramContact = doc.data().instagramContact;
+        discordContact = doc.data().discordContact;
+        whatsAppContact = doc.data().whatsAppContact;
 
         countryCodes.forEach((item, i) => {
           if (item.Name == country) {
@@ -379,25 +708,64 @@ export async function fetchOwnerData(ownerId) {
       country,
       savedOffers,
       countryCode,
+      instagramContact,
+      discordContact,
+      whatsAppContact,
     };
   } catch (error) {
     console.log(errorCode, errorMessage);
   }
 }
-
-export async function saveOffer(ownerId, offerId) {
+export async function reauthenticate(password) {
   try {
-    await db
-      .collection('users')
-      .doc(ownerId)
-      .update({
-        savedOffers: firebase.firestore.FieldValue.arrayUnion(offerId),
-      });
+    const credential = firebase.auth.EmailAuthProvider.credential(
+      auth.currentUser.email,
+      password.trim()
+    );
+
+    await auth.currentUser.reauthenticateWithCredential(credential);
+
+    return true;
   } catch (error) {
-    console.log(errorCode, errorMessage);
+    console.log(error);
+    return false;
   }
 }
 
+export async function login(email, password) {
+  try {
+    await auth.signInWithEmailAndPassword(email.trim(), password.trim());
+  } catch (error) {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    console.log(errorCode, errorMessage);
+  }
+}
+export async function register(email, password, nick, country) {
+  await auth
+    .createUserWithEmailAndPassword(email, password)
+    .then(async (userCredential) => {
+      const user = userCredential.user;
+
+      await db.collection('users').doc(user.uid).set({
+        nick: nick.trim(),
+        country: country.trim(),
+        reputation: 0,
+        collectionSize: 0,
+        savedOffers: [],
+        whatsAppContact: '',
+        instagramContact: '',
+        discordContact: '',
+      });
+
+      await login(email.trim(), password.trim());
+    })
+    .catch((error) => {
+      var errorCode = error.code;
+      var errorMessage = error.message;
+      console.log(errorCode, errorMessage);
+    });
+}
 export async function unsaveOffer(ownerId, offerId) {
   try {
     await db
@@ -406,16 +774,98 @@ export async function unsaveOffer(ownerId, offerId) {
       .update({
         savedOffers: firebase.firestore.FieldValue.arrayRemove(offerId),
       });
+    return true;
   } catch (error) {
     console.log(errorCode, errorMessage);
+    return false;
   }
 }
+export async function fetchSavedCards(setSavedCards, setLoading) {
+  try {
+    const outputArray = [];
+    const doc = await db.collection('users').doc(auth.currentUser.uid).get();
 
-export async function fetchCards(cardNumber) {
+    //! Delete ids of not existing offers
+
+    const arrLength = doc.data().savedOffers.length;
+
+    const promise = new Promise((resolve, reject) => {
+      doc.data().savedOffers.forEach(async (item, index) => {
+        const cardDoc = await db.collection('cards').doc(item).get();
+        const cardData = cardDoc.data();
+        cardData.id = cardDoc.id;
+        outputArray.push(cardData);
+
+        if (index === arrLength - 1) resolve();
+      });
+    });
+
+    await promise;
+    setSavedCards(outputArray);
+    setLoading(false);
+  } catch (error) {
+    console.log(error);
+  }
+}
+export async function saveOffer(ownerId, offerId) {
+  try {
+    await db
+      .collection('users')
+      .doc(ownerId)
+      .update({
+        savedOffers: firebase.firestore.FieldValue.arrayUnion(offerId),
+      });
+    return true;
+  } catch (error) {
+    console.log(errorCode, errorMessage);
+    return false;
+  }
+}
+export async function fetchCards(id) {
   try {
     let arr = [];
 
-    const docArr = await db.collection('cards').get();
+    if (id) {
+      const docArr = await db
+        .collection('cards')
+        .where('cardId', '==', id)
+        .get();
+
+      docArr.forEach((doc) => {
+        let cardObj = doc.data();
+        cardObj.id = doc.id;
+        arr.push(cardObj);
+      });
+
+      return arr;
+    } else return [];
+  } catch (error) {
+    console.log(error);
+  }
+}
+export async function fetchBigCardsDetails(id, setDetails) {
+  try {
+    const doc = await db.collection('cardsData').doc(id).get();
+
+    if (doc.data() !== undefined) {
+      setDetails([
+        doc.data().offersNumber,
+        doc.data().highestPrice,
+        doc.data().lowestPrice,
+      ]);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+export async function fetchUsersCards() {
+  try {
+    let arr = [];
+
+    const docArr = await db
+      .collection('cards')
+      .where('owner', '==', auth.currentUser.uid)
+      .get();
 
     docArr.forEach((doc) => {
       let cardObj = doc.data();
@@ -428,73 +878,31 @@ export async function fetchCards(cardNumber) {
     console.log(error);
   }
 }
-
-export const fetchSavedCards = async () => {
+export async function fetchSavedOffersId(setSavedOffersId, setLoading) {
   try {
-    let arr = [];
-
-    const doc = await db.collection('users').doc(auth.currentUser.uid).get();
-    const length = await doc.data().savedOffers.length;
-
-    const promise = new Promise((resolve, reject) => {
-      doc.data().savedOffers.forEach(async (item, i) => {
-        const innerDoc = await db.collection('cards').doc(item).get();
-        const obj = innerDoc.data();
-        obj.id = innerDoc.id;
-        arr.push(obj);
-
-        if (i + 1 === length) resolve();
+    db.collection('users')
+      .doc(auth.currentUser.uid)
+      .onSnapshot(async (doc) => {
+        setSavedOffersId(doc.data().savedOffers);
+        setLoading(false);
       });
-    });
-
-    return promise.then(() => {
-      return arr;
-    });
   } catch (error) {
     console.log(error);
   }
-};
-
-export async function login(email, password) {
+}
+export async function updateUserData(initValues, outValues, valuesOrder) {
   try {
-    await auth.signInWithEmailAndPassword(email, password);
+    let updateObj = {};
+    outValues.forEach((item, index) => {
+      const keyName = valuesOrder[index];
+      if (item !== initValues[index]) updateObj[keyName] = item;
+    });
+    await db.collection('users').doc(auth.currentUser.uid).update(updateObj);
   } catch (error) {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    console.log(errorCode, errorMessage);
+    console.log(error);
   }
 }
 
-export async function register(
-  email,
-  password,
-  nick,
-  address,
-  postalCode,
-  country,
-  phoneNumber
-) {
-  await auth
-    .createUserWithEmailAndPassword(email, password)
-    .then(async (userCredential) => {
-      const user = userCredential.user;
-
-      await db.collection('users').doc(user.uid).set({
-        nick: nick,
-        address: address,
-        country: country,
-        postalCode: postalCode,
-        phoneNumber: phoneNumber,
-        reputation: 0,
-        collectionSize: 0,
-        savedOffers: [],
-      });
-
-      await login(email, password);
-    })
-    .catch((error) => {
-      var errorCode = error.code;
-      var errorMessage = error.message;
-      console.log(errorCode, errorMessage);
-    });
+function parseRarity(inputString) {
+  return `Rare ${inputString}`;
 }
