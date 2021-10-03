@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 
 import ImageViewer from 'react-native-image-zoom-viewer';
+import { fetchBigCardsDetails } from '../../authContext';
 
 export default function CardAcp({ props, setId, closeModal }) {
   const [imageViewerState, setImageViewer] = useState(false);
@@ -26,6 +27,15 @@ export default function CardAcp({ props, setId, closeModal }) {
       props: {},
     },
   ]);
+
+  const [details, setDetails] = useState([0, 0, 0]);
+
+  useEffect(() => {
+    const resolvePromise = async () => {
+      await fetchBigCardsDetails(props.id, setDetails);
+    };
+    resolvePromise();
+  }, []);
 
   return (
     <View style={{ flexDirection: 'column', marginBottom: 30 }}>
@@ -146,14 +156,14 @@ export default function CardAcp({ props, setId, closeModal }) {
           <View style={{ marginTop: 22 }}>
             <Text style={{ flexDirection: 'row', color: '#f4f4f4' }}>
               Price <Text style={{ color: '#5c5c5c' }}> from </Text>
-              <Text style={styles.text2}> $523</Text>{' '}
+              <Text style={styles.text2}> ${details[2]}</Text>{' '}
               <Text style={{ color: '#5c5c5c' }}> up to </Text>
-              <Text style={styles.text2}> $5223</Text>
+              <Text style={styles.text2}> ${details[1]}</Text>
             </Text>
           </View>
           <View style={{ marginTop: 8 }}>
             <Text style={{ flexDirection: 'row', color: '#f4f4f4' }}>
-              Offers Number : <Text style={styles.text2}> 232</Text>
+              Offers Number : <Text style={styles.text2}> {details[0]}</Text>
             </Text>
           </View>
         </View>

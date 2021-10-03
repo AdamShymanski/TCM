@@ -15,9 +15,13 @@ import { register } from './../authContext';
 import { CountryPickerModal } from '../shared/countryPickerModal';
 
 const strongPasswordRegEx =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&].{8,}$/;
-const onlyLettersRegEx =
-  /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$/u;
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&].{8,}$/;
+
+// const strongPasswordRegEx =
+//   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&].{8,}$/;
+
+// const onlyLettersRegEx =
+//   /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$/u;
 const firstCapitalLetter = /^[A-Z].*/;
 
 const nickRegEx = /^[_A-z0-9]*((-|\s)*[_A-z0-9])*$/g;
@@ -35,19 +39,16 @@ const reviewSchema = yup.object({
   password: yup
     .string('Wrong format!')
     .required('Password is required!')
-    .min(7, 'Password must be longer then 7 charts!')
+    .min(6, 'Password must be longer then 7 charts!')
     .matches(
       strongPasswordRegEx,
-      'At least one number, capital letter, lower letter and symbol!'
+      'At least one number, capital & lower letter!'
     ),
   confirmPassword: yup.string().when('password', {
     is: (val) => (val && val.length > 0 ? true : false),
     then: yup
       .string()
-      .oneOf(
-        [yup.ref('password')],
-        "Passwords aren't the same!                  "
-      )
+      .oneOf([yup.ref('password')], "Passwords aren't the same! ")
       .required('Confirm Password is required!                  '),
   }),
   // address: yup.string('Wrong format!').required('Address is required!'),
@@ -300,9 +301,9 @@ export default function Register({ auth }) {
                     fontWeight: '700',
                   }}>
                   {msg}
-                  {props.values.confirmPassword == props.values.password
+                  {/* {props.values.confirmPassword == props.values.password
                     ? ''
-                    : (msg = 'Passwords must match!')}
+                    : (msg = 'Passwords must match!')} */}
                 </Text>
               )}
             </ErrorMessage>

@@ -596,7 +596,7 @@ export default function EditCard({ route }) {
               return true;
             }
           };
-          
+
           if (detectChanges()) {
             await updateCard(
               route.params.props.id,

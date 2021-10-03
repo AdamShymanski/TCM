@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
 import PTCGM from '../assets/PTCGM.png';
+import GoogleButton from '../assets/google_button.png';
 
 import { useNavigation } from '@react-navigation/native';
 
@@ -19,9 +20,6 @@ export default function Welcome() {
         source={PTCGM}
         style={{
           aspectRatio: 568.78 / 292.37,
-
-          // height: 292.37,
-          // width: 538.78,
           height: undefined,
           width: '85%',
 

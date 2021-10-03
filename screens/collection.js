@@ -114,7 +114,13 @@ export default function Collection() {
                 />
               );
             }
-            return <CardCollection props={item} />;
+            return (
+              <CardCollection
+                props={item}
+                setModal={setModalState}
+                setId={setId}
+              />
+            );
           }}
           keyExtractor={(item, index) => index.toString()}
         />

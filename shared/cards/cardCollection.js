@@ -13,15 +13,12 @@ import {
 
 import IconMI from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import reputation_icon from './../../assets/reputation_icon.png';
-import collection_icon from './../../assets/collection_icon.png';
 import language_icon from './../../assets/language.png';
 import condition_icon from './../../assets/condition.png';
 
 import grade_icon from './../../assets/grade.png';
 import go_icon from './../../assets/gradingOrganization.png';
 import cn_icon from './../../assets/CN.png';
-import pricetag_icon from './../../assets/pricetag.png';
 
 import { fetchPhotos } from '../../authContext';
 
@@ -42,7 +39,6 @@ export function CardCollection({ props, setModal, setId }) {
 
   const [loadingState, setLoading] = useState(true);
   const [imageViewerState, setImageViewer] = useState(false);
-  const [isSaved, setSaveOffer] = useState(false);
   const [photosArray, setPhotosArray] = useState([
     {
       // Simplest usage.
@@ -69,10 +65,6 @@ export function CardCollection({ props, setModal, setId }) {
 
     resolvePromises();
   }, []);
-
-  const onPress = () => {
-    console.log('no elo kurwa');
-  };
 
   const fillPhotosArray = (array) => {
     let outArray = [];

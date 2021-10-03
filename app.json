@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "ptcg_marketplace",
+    "userInterfaceStyle": "automatic",
+    "name": "PTCG Marketplace",
     "slug": "ptcg_marketplace",
-    "version": "1.0.0",
+    "version": "7",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -13,14 +14,18 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "app.ptcg.marketplace"
     },
     "android": {
-      "package": "app.ptcg.marketplace"
+      "package": "app.ptcg.marketplace",
+      "versionCode": 7,
+      "userInterfaceStyle": "automatic",
+      "config": {
+        "googleMobileAdsAppId": "ca-app-pub-2637485113454186~8246765572"
+      }
     }
   }
 }

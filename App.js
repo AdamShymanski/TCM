@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Button, View, Text, TouchableOpacity, Image } from 'react-native';
+import { AppearanceProvider } from 'react-native-appearance';
 
 import CustomHeader from './shared/header';
 import CustomDrawer from './shared/customDrawer';
@@ -24,7 +25,12 @@ import Orders from './screens/orders';
 import { ContactInfo } from './screens/contactInfo';
 
 import globalState from './global.js';
-import { auth, fetchGlobalData } from './authContext.js';
+import { auth } from './authContext.js';
+
+import {
+  AdMobBanner,
+  setTestDeviceIDAsync,
+} from 'expo-ads-admob';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -127,6 +133,7 @@ function SavedOffersStack() {
     </Stack.Navigator>
   );
 }
+
 function SettingsStack() {
   return (
     <Stack.Navigator>
@@ -143,6 +150,7 @@ function SettingsStack() {
     </Stack.Navigator>
   );
 }
+
 function OrdersStack() {
   return (
     <Stack.Navigator>
@@ -159,6 +167,7 @@ function OrdersStack() {
     </Stack.Navigator>
   );
 }
+
 function CollectionStack() {
   const [bigCardsData, setBigCardsData] = useState(null);
   const [inputValue, setInputValue] = useState('');
@@ -352,8 +361,6 @@ function CollectionStack() {
 
 export default function App() {
   const [loading, setLoading] = useState(true);
-  const [userData, setUserData] = useState(null);
-  const [globalData, setGlobalData] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
@@ -362,9 +369,7 @@ export default function App() {
       globalState.userObject = currentUser;
 
       if (user) {
-        await fetchGlobalData();
-        // globalState.globalData = await fetchGlobalData();
-        // globalState.userData = await fetchUserData(user.uid);
+        await setTestDeviceIDAsync('EMULATOR');
       }
       setLoading(false);
     });
@@ -372,120 +377,132 @@ export default function App() {
     return unsubscribe;
   }, []);
 
-  // useEffect(() => {}, []);
-
-  if (loading)
+  if (loading) {
     return (
       <View>
         <View />
       </View>
     );
+  }
 
-  if (currentUser)
-    //! Home component
+  if (currentUser) {
     return (
-      <NavigationContainer>
-        <Drawer.Navigator
-          style={{ backgroundColor: '#82ff00' }}
-          drawerContent={({ navigation }) => (
-            <CustomDrawer navigation={navigation} />
-          )}>
-          <Drawer.Screen name='Home' component={HomeStack} />
-          <Drawer.Screen name='Settings' component={SettingsStack} />
-          <Drawer.Screen name='Collection' component={CollectionStack} />
-          <Drawer.Screen name='Orders' component={OrdersStack} />
-          <Drawer.Screen name='SavedOffers' component={SavedOffersStack} />
-        </Drawer.Navigator>
-      </NavigationContainer>
+      <AppearanceProvider>
+        <NavigationContainer>
+          <Drawer.Navigator
+            style={{ backgroundColor: '#82ff00' }}
+            drawerContent={({ navigation }) => (
+              <CustomDrawer navigation={navigation} />
+            )}>
+            <Drawer.Screen name='Home' component={HomeStack} />
+            <Drawer.Screen name='Settings' component={SettingsStack} />
+            <Drawer.Screen name='Collection' component={CollectionStack} />
+            <Drawer.Screen name='Orders' component={OrdersStack} />
+            <Drawer.Screen name='SavedOffers' component={SavedOffersStack} />
+          </Drawer.Navigator>
+          <AdMobBanner
+            bannerSize='smartBannerPortrait'
+            adUnitID='ca-app-pub-2637485113454186/2096785031'
+            //ca-app-pub-3940256099942544/6300978111
+            servePersonalizedAds // true or false
+            onDidFailToReceiveAdWithError={(error) => {
+              console.log(error);
+            }}
+          />
+        </NavigationContainer>
+      </AppearanceProvider>
     );
+  }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          options={{
-            headerShown: false,
-          }}
-          name='Welcome'
-          component={Welcome}
-        />
-        <Stack.Screen
-          options={({ navigation, route }) => ({
-            headerLeft: () => (
-              <TouchableOpacity
-                style={{
-                  borderRadius: 3,
-                  marginLeft: 22,
-
-                  height: 30,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 2,
-                  borderColor: '#777777',
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                }}
-                onPress={() => navigation.navigate('Welcome')}>
-                <Text
+    <AppearanceProvider>
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen
+            options={{
+              headerShown: false,
+            }}
+            name='Welcome'
+            component={Welcome}
+          />
+          <Stack.Screen
+            options={({ navigation, route }) => ({
+              headerLeft: () => (
+                <TouchableOpacity
                   style={{
-                    fontSize: 16,
-                    fontWeight: '700',
-                    color: '#777777',
-                  }}>
-                  {'Go back'}
-                </Text>
-              </TouchableOpacity>
-            ),
-            headerTintColor: '#121212',
-            headerTitle: '',
-            headerStyle: {
-              backgroundColor: '#121212',
-            },
-          })}
-          // initialParams={{ auth: firebase.auth() }}
-          name='Register'
-          component={Register}
-        />
-        <Stack.Screen
-          options={({ navigation, route }) => ({
-            headerLeft: () => (
-              <TouchableOpacity
-                style={{
-                  borderRadius: 3,
-                  marginLeft: 22,
+                    borderRadius: 3,
+                    marginLeft: 22,
 
-                  height: 30,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 2,
-                  borderColor: '#777777',
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                }}
-                onPress={() => navigation.navigate('Welcome')}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '700',
-                    color: '#777777',
+                    height: 30,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 2,
+                    borderColor: '#777777',
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
                   }}
                   onPress={() => navigation.navigate('Welcome')}>
-                  {'Go back'}
-                </Text>
-              </TouchableOpacity>
-            ),
-            headerTintColor: '#121212',
-            headerTitle: '',
-            headerStyle: {
-              backgroundColor: '#121212',
-            },
-          })}
-          name='Login'
-          component={Login}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '700',
+                      color: '#777777',
+                    }}>
+                    {'Go back'}
+                  </Text>
+                </TouchableOpacity>
+              ),
+              headerTintColor: '#121212',
+              headerTitle: '',
+              headerStyle: {
+                backgroundColor: '#121212',
+              },
+            })}
+            // initialParams={{ auth: firebase.auth() }}
+            name='Register'
+            component={Register}
+          />
+          <Stack.Screen
+            options={({ navigation, route }) => ({
+              headerLeft: () => (
+                <TouchableOpacity
+                  style={{
+                    borderRadius: 3,
+                    marginLeft: 22,
+
+                    height: 30,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 2,
+                    borderColor: '#777777',
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                  }}
+                  onPress={() => navigation.navigate('Welcome')}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '700',
+                      color: '#777777',
+                    }}
+                    onPress={() => navigation.navigate('Welcome')}>
+                    {'Go back'}
+                  </Text>
+                </TouchableOpacity>
+              ),
+              headerTintColor: '#121212',
+              headerTitle: '',
+              headerStyle: {
+                backgroundColor: '#121212',
+              },
+            })}
+            name='Login'
+            component={Login}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </AppearanceProvider>
   );
 }

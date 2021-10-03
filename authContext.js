@@ -1,5 +1,3 @@
-import React, { useState, useEffect } from 'react';
-
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import 'firebase/storage';
@@ -23,32 +21,18 @@ export const db = firebase.firestore();
 export const auth = firebase.auth();
 export const storage = firebase.storage();
 
-export async function fetchGlobalData(email, password) {
-  // auth
-  //   .signInWithEmailAndPassword(email, password)
-  //   .then((userCredential) => {
-  //     // Signed in
-  //     userState = userCredential.user;
-
-  //     // ...
-  //   })
-  //   .catch((error) => {
-  //     var errorCode = error.code;
-  //     var errorMessage = error.message;
-  //   });
-  return ' fetchGlobalData';
-}
-
 export async function fetchUserData() {
   const response = await db.collection('users').doc(auth.currentUser.uid).get();
   return response.data();
 }
-
 export async function addCard(values, gradingSwitch, photoState, cardId) {
   let condition;
 
   if (values.condition) condition = parseInt(values.condition);
   else condition = null;
+
+  //parse price
+  values.price = parseFloat(values.price);
 
   db.collection(`cards`)
     .add({
@@ -62,11 +46,11 @@ export async function addCard(values, gradingSwitch, photoState, cardId) {
       db.collection('cardsData')
         .doc(cardId)
         .get()
-        .then((doc) => {
+        .then(async (doc) => {
           if (doc.exists) {
-            const actualPriceH = parseFloat(doc.data().highestPrice);
-            const actualPriceL = parseFloat(doc.data().lowestPrice);
-            const newPrice = parseFloat(values.price);
+            const actualPriceH = doc.data().highestPrice;
+            const actualPriceL = doc.data().lowestPrice;
+            const newPrice = values.price;
 
             const keysOrder = ['offersNumber', 'highestPrice', 'lowestPrice'];
 
@@ -91,6 +75,15 @@ export async function addCard(values, gradingSwitch, photoState, cardId) {
               lowestPrice: values.price,
             });
           }
+          const user = await db
+            .collection('users')
+            .doc(auth.currentUser.uid)
+            .get();
+
+          let update = user.data();
+          update.collectionSize = update.collectionSize + 1;
+
+          await db.collection('users').doc(auth.currentUser.uid).set(update);
         })
         .catch((error) => {
           console.log('Error getting document:', error);
@@ -104,7 +97,6 @@ export async function addCard(values, gradingSwitch, photoState, cardId) {
       });
     });
 }
-
 export async function fetchPhotos(offerId) {
   try {
     const pathsArray = [];
@@ -126,7 +118,6 @@ export async function fetchPhotos(offerId) {
     console.log(error);
   }
 }
-
 export async function updateCard(id, outValues, initValues, valuesOrder) {
   try {
     if (!outValues[7]) {
@@ -138,11 +129,13 @@ export async function updateCard(id, outValues, initValues, valuesOrder) {
     }
 
     let cardUpdateObj = {};
-
     outValues.forEach((item, index) => {
       const keyName = valuesOrder[index];
       if (item !== initValues[index]) cardUpdateObj[keyName] = item;
     });
+
+    outValues[0] = parseFloat(outValues[0]);
+
     await db.collection('cards').doc(id).update(cardUpdateObj);
 
     const doc = await db.collection('cardsData').doc(id).get();
@@ -154,10 +147,10 @@ export async function updateCard(id, outValues, initValues, valuesOrder) {
     const keysOrder = ['highestPrice', 'lowestPrice'];
 
     if (actualPriceH < newPrice) {
-      updateObj[keysOrder[0]] = values.price;
+      updateObj[keysOrder[0]] = parseFloat(values.price);
     }
     if (actualPriceL > newPrice) {
-      updateObj[keysOrder[1]] = values.price;
+      updateObj[keysOrder[1]] = parseFloat(values.price);
     }
 
     let updateObj = {
@@ -172,32 +165,114 @@ export async function updateCard(id, outValues, initValues, valuesOrder) {
 }
 export async function deleteCard(id) {
   try {
+    let user = await db.collection('users').doc(auth.currentUser.uid).get();
+    await db
+      .collection('users')
+      .doc(auth.currentUser.uid)
+      .update({ collectionSize: user.data().collectionSize - 1 });
+
+    async function handleOtherChanges() {
+      const offert = await db.collection('cards').doc(id).get();
+      const doc = await db
+        .collection('cardsData')
+        .doc(offert.data().cardId)
+        .get();
+
+      const recentPriceH = doc.data().highestPrice;
+      const recentPriceL = doc.data().lowestPrice;
+
+      const offersNumber = doc.data().offersNumber - 1;
+
+      let updateObj = {
+        offersNumber: offersNumber,
+        highestPrice: recentPriceH,
+        lowestPrice: recentPriceL,
+      };
+
+      async function searchForNewHighestPrice() {
+        const result = await db
+          .collection('cards')
+          .where('cardId', '==', offert.data().cardId)
+          .get();
+
+        let newPrice = [0, 0];
+        // 0- price, 1- index
+        const arr = [];
+
+        result.forEach((doc) => {
+          arr.push(doc.data());
+        });
+
+        arr.forEach((item, index) => {
+          if (item.price < recentPriceH) {
+            if (index === 0) {
+              newPrice = [item.price, index];
+            } else {
+              if (item.price > newPrice[0]) {
+                newPrice = [item.price, index];
+              }
+            }
+          }
+        });
+
+        return arr[newPrice[1]].price;
+      }
+
+      async function searchForNewLowestPrice() {
+        const result = await db
+          .collection('cards')
+          .where('cardId', '==', offert.data().cardId)
+          .get();
+
+        let newPrice = [0, 0];
+        // 0- price, 1- index
+        const arr = [];
+
+        result.forEach((doc) => {
+          arr.push(doc.data());
+        });
+
+        arr.forEach((item, index) => {
+          if (item.price > recentPriceH) {
+            if (index === 0) {
+              newPrice = [item.price, index];
+            } else {
+              if (item.price < newPrice[0]) {
+                newPrice = [item.price, index];
+              }
+            }
+          }
+        });
+
+        return arr[newPrice[1]].price;
+      }
+
+      if (doc.data().offersNumber === 1) {
+        updateObj.highestPrice = 0;
+        updateObj.lowestPrice = 0;
+      } else {
+        if (recentPriceL == offert.data().price) {
+          const result = await searchForNewLowestPrice();
+          updateObj.lowestPrice = result;
+        }
+        if (recentPriceH == offert.data().price) {
+          const result = await searchForNewHighestPrice();
+          updateObj.highestPrice = result;
+        }
+      }
+      await db
+        .collection('cardsData')
+        .doc(offert.data().cardId)
+        .update(updateObj);
+    }
+
+    await handleOtherChanges();
+
     await db.collection('cards').doc(id).delete();
-
-    const doc = await db.collection('cardsData').doc(id).get();
-    const actualPriceH = parseFloat(doc.data().highestPrice);
-    const actualPriceL = parseFloat(doc.data().lowestPrice);
-    const keysOrder = ['offersNumber', 'highestPrice', 'lowestPrice'];
-
-    let updateObj = {
-      [keysOrder[0]]: doc.data().offersNumber - 1,
-      [keysOrder[1]]: doc.data().highestPrice,
-      [keysOrder[2]]: doc.data().lowestPrice,
-    };
-
-    if (doc.data().offersNumber === 1) {
-      updateObj[keysOrder[1]] = 0;
-    }
-    if (actualPriceL > newPrice) {
-      updateObj[keysOrder[2]] = 0;
-    }
-
-    db.collection('cardsData').doc(cardId).update(updateObj);
   } catch (error) {
     console.log(error);
   }
 }
-
 export async function fetchBigCards(arg, pickerValue, setLoading) {
   try {
     pokemon.configure({ apiKey: '3c362cd9-2286-48d4-989a-0d2a65b9d5a8' });
@@ -423,7 +498,6 @@ export async function fetchMoreBigCards(
     console.log(error);
   }
 }
-
 export async function fetchOwnerData(ownerId) {
   const countryCodes = [
     { Code: 'AF', Name: 'Afghanistan' },
@@ -731,14 +805,14 @@ export async function reauthenticate(password) {
     return false;
   }
 }
-
-export async function login(email, password) {
+export async function login(email, password, setError) {
   try {
     await auth.signInWithEmailAndPassword(email.trim(), password.trim());
   } catch (error) {
     const errorCode = error.code;
     const errorMessage = error.message;
     console.log(errorCode, errorMessage);
+    setError('Wrong Credentials!');
   }
 }
 export async function register(email, password, nick, country) {
