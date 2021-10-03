@@ -12,8 +12,13 @@ import { TextInput } from 'react-native-paper';
 import { Formik, ErrorMessage } from 'formik';
 import * as yup from 'yup';
 
-import { fetchUserData, updateUserData } from '../authContext';
-import { indexOf } from 'lodash';
+import {
+  fetchUserData,
+  updateUserData,
+  deleteAccount,
+  resetPassword,
+  changeEmail,
+} from '../authContext';
 
 import ReauthenticationModal from '../shared/reauthenticationModal';
 import { CountryPickerModal } from '../shared/countryPickerModal';
@@ -46,6 +51,7 @@ export default function Settings() {
   const [userData, setUserData] = useState(true);
   const [modalState, setModal] = useState(false);
   const [reauthenticationResult, setReauthenticationResult] = useState(null);
+  const [actionType, setActionType] = useState(null);
 
   const [countryPickerState, setCountryPickerState] = useState(false);
   const [countryValue, setCountryValue] = useState(null);
@@ -54,10 +60,7 @@ export default function Settings() {
   const [accountFormError, setAccountFormError] = useState('');
 
   const valuesOrder = [
-    // 'phoneNumber',
     'nick',
-    // 'address',
-    // 'postalCode',
     'country',
     'whatsAppContact',
     'discordContact',
@@ -87,9 +90,22 @@ export default function Settings() {
   useEffect(() => {
     const resolvePromises = async () => {
       if (reauthenticationResult) {
-        await updateUserData(initValues, outValues, valuesOrder);
+        if (actionType == 'deleteAccount') {
+          console.log('deleting account i elo');
+          await deleteAccount();
+        }
+        if (actionType == 'resetPassword') {
+          await resetPassword();
+        }
+        if (actionType == 'changeEmail') {
+          await changeEmail();
+        }
+        if (actionType == null) {
+          await updateUserData(initValues, outValues, valuesOrder);
+        }
 
         setModal(false);
+        setActionType(null);
         setReauthenticationResult(false);
       }
     };
@@ -134,10 +150,7 @@ export default function Settings() {
           }}>
           <Formik
             initialValues={{
-              // phoneNumber: userData.phoneNumber,
               nick: userData.nick,
-              // address: userData.address,
-              // postalCode: userData.postalCode,
               country: userData.country,
             }}
             validationSchema={reviewSchema}
@@ -168,6 +181,7 @@ export default function Settings() {
                 }
                 setAccountFormError('No change detected');
               };
+
               if (detectChanges()) {
                 setModal(true);
               }
@@ -229,90 +243,6 @@ export default function Settings() {
                     </Text>
                   )}
                 </ErrorMessage>
-                {/* <TextInput
-                  mode={'outlined'}
-                  value={props.values.address}
-                  onChangeText={props.handleChange('address')}
-                  label='Address'
-                  outlineColor={'#5c5c5c'}
-                  error={
-                    props.touched.address && props.errors.address ? true : false
-                  }
-                  style={{
-                    width: '80%',
-                    backgroundColor: '#121212',
-                    color: '#f4f4f4',
-                    marginTop: 20,
-                  }}
-                  theme={{
-                    colors: {
-                      primary: '#0082ff',
-                      placeholder: '#5c5c5c',
-                      background: 'transparent',
-                      text: '#f4f4f4',
-                    },
-                  }}
-                />
-                <ErrorMessage component='div' name='address'>
-                  {(msg) => (
-                    <Text
-                      style={{
-                        width: '80%',
-                        marginTop: 8,
-                        marginBottom: 18,
-                        height: 20,
-                        flexDirection: 'row',
-                        justifyContent: 'flex-end',
-                        color: '#b40424',
-                        fontWeight: '700',
-                      }}>
-                      {msg}
-                    </Text>
-                  )}
-                </ErrorMessage> */}
-                {/* <TextInput
-                  mode={'outlined'}
-                  value={props.values.postalCode}
-                  onChangeText={props.handleChange('postalCode')}
-                  label='Postal or Zip Code'
-                  outlineColor={'#5c5c5c'}
-                  error={
-                    props.touched.postalCode && props.errors.postalCode
-                      ? true
-                      : false
-                  }
-                  style={{
-                    width: '80%',
-                    backgroundColor: '#121212',
-                    color: '#f4f4f4',
-                    marginTop: 20,
-                  }}
-                  theme={{
-                    colors: {
-                      primary: '#0082ff',
-                      placeholder: '#5c5c5c',
-                      background: 'transparent',
-                      text: '#f4f4f4',
-                    },
-                  }}
-                />
-                <ErrorMessage component='div' name='postalCode'>
-                  {(msg) => (
-                    <Text
-                      style={{
-                        width: '80%',
-                        marginTop: 8,
-                        marginBottom: 18,
-                        height: 20,
-                        flexDirection: 'row',
-                        justifyContent: 'flex-end',
-                        color: '#b40424',
-                        fontWeight: '700',
-                      }}>
-                      {msg}
-                    </Text>
-                  )}
-                </ErrorMessage> */}
                 <TouchableOpacity
                   style={{ width: '80%' }}
                   onPress={() => setCountryPickerState(true)}>
@@ -360,49 +290,6 @@ export default function Settings() {
                     </Text>
                   )}
                 </ErrorMessage>
-                {/* <TextInput
-                  mode={'outlined'}
-                  value={props.values.phoneNumber}
-                  onChangeText={props.handleChange('phoneNumber')}
-                  label='Phone Number'
-                  outlineColor={'#5c5c5c'}
-                  error={
-                    props.touched.phoneNumber && props.errors.phoneNumber
-                      ? true
-                      : false
-                  }
-                  style={{
-                    width: '80%',
-                    backgroundColor: '#121212',
-                    color: '#f4f4f4',
-                    marginTop: 20,
-                  }}
-                  theme={{
-                    colors: {
-                      primary: '#0082ff',
-                      placeholder: '#5c5c5c',
-                      background: 'transparent',
-                      text: '#f4f4f4',
-                    },
-                  }}
-                />
-                <ErrorMessage component='div' name='phoneNumber'>
-                  {(msg) => (
-                    <Text
-                      style={{
-                        width: '80%',
-                        marginTop: 8,
-                        marginBottom: -10,
-                        height: 20,
-                        flexDirection: 'row',
-                        justifyContent: 'flex-end',
-                        color: '#b40424',
-                        fontWeight: '700',
-                      }}>
-                      {msg}
-                    </Text>
-                  )}
-                </ErrorMessage> */}
 
                 <View
                   style={{
@@ -442,6 +329,103 @@ export default function Settings() {
                     }}>
                     {accountFormError}
                   </Text>
+                </View>
+                <View
+                  style={{
+                    width: '80%',
+                    flexDirection: 'row-reverse',
+                    alignItems: 'center',
+
+                    borderTopWidth: 2,
+                    borderColor: '#5c5c5c',
+                  }}>
+                  <TouchableOpacity
+                    style={{
+                      height: 30,
+                      marginTop: 20,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+
+                      backgroundColor: '#0082FF',
+                      borderRadius: 3,
+                      paddingHorizontal: 20,
+                    }}
+                    onPress={() => {
+                      setActionType('changeEmail');
+                      setModal(true);
+                    }}>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: '700',
+                        color: '#121212',
+                      }}>
+                      Change Email
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={{
+                      height: 30,
+                      marginTop: 20,
+                      marginRight: 14,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+
+                      backgroundColor: '#0082FF',
+                      borderRadius: 3,
+                      paddingHorizontal: 20,
+                    }}
+                    onPress={() => {
+                      setActionType('resetPassword');
+                      setModal(true);
+                    }}>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: '700',
+                        color: '#121212',
+                      }}>
+                      Reset Password
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <View
+                  style={{
+                    width: '80%',
+                    flexDirection: 'row-reverse',
+                    marginBottom: 20,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  <TouchableOpacity
+                    style={{
+                      height: 30,
+                      marginTop: 20,
+
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+
+                      backgroundColor: '#0082FF',
+                      borderRadius: 3,
+                      paddingHorizontal: 20,
+                    }}
+                    onPress={() => {
+                      setActionType('deleteAccount');
+                      setModal(true);
+                    }}>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: '700',
+                        color: '#121212',
+                      }}>
+                      Delete Account
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             )}

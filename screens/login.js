@@ -22,10 +22,8 @@ const reviewSchema = yup.object({
 });
 
 export default function Login() {
-  const [emailState, setEmail] = useState(null);
-  const [passwordState, setPassword] = useState(null);
+  const [error, setError] = useState('');
 
-  let textE, textP;
   return (
     <ScrollView style={{ backgroundColor: '#1b1b1b', flex: 1 }}>
       <View style={{ alignItems: 'center', width: '100%' }}>
@@ -60,7 +58,7 @@ export default function Login() {
         }}
         validationSchema={reviewSchema}
         onSubmit={(values, actions) => {
-          login(values.email, values.password);
+          login(values.email, values.password, setError);
         }}
         style={{
           flex: 1,
@@ -168,6 +166,7 @@ export default function Login() {
                 width: '70%',
                 flexDirection: 'row-reverse',
                 marginBottom: 40,
+                alignItems: 'center',
               }}
               onPress={props.submitForm}>
               <TouchableOpacity
@@ -192,6 +191,15 @@ export default function Login() {
                   Submit
                 </Text>
               </TouchableOpacity>
+              <Text
+                style={{
+                  color: '#b40424',
+                  fontWeight: '700',
+                  marginTop: 20,
+                  marginRight: 14,
+                }}>
+                {error}
+              </Text>
             </View>
           </View>
         )}

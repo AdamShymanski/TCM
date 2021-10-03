@@ -1,14 +1,14 @@
 import React from 'react';
-import { Image, View, Text, TouchableOpacity } from 'react-native';
+import { Image, View, Text, TouchableOpacity, Clipboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import discordIcon from '../assets/discordIcon.png';
 import instagramIcon from '../assets/instagramIcon.png';
 import whatsAppIcon from '../assets/whatsAppIcon.png';
+import copyIcon from '../assets/copy_icon.png';
 
 export const ContactInfo = ({ route }) => {
   const navigation = useNavigation();
-  console.log(route.params);
 
   const discordContact = route.params.discordContact;
   const instagramContact = route.params.instagramContact;
@@ -71,6 +71,20 @@ export const ContactInfo = ({ route }) => {
                 {discordContact}
               </Text>
             </View>
+            <TouchableOpacity
+              onPress={() => {
+                Clipboard.setString(discordContact);
+              }}>
+              <Image
+                source={copyIcon}
+                style={{
+                  aspectRatio: 63 / 63,
+                  width: 30,
+                  height: undefined,
+                  marginLeft: 20,
+                }}
+              />
+            </TouchableOpacity>
           </View>
         ) : null}
         {instagramContact ? (
@@ -101,6 +115,20 @@ export const ContactInfo = ({ route }) => {
                 {instagramContact}
               </Text>
             </View>
+            <TouchableOpacity
+              onPress={() => {
+                Clipboard.setString(discordContact);
+              }}>
+              <Image
+                source={copyIcon}
+                style={{
+                  aspectRatio: 63 / 63,
+                  width: 30,
+                  height: undefined,
+                  marginLeft: 20,
+                }}
+              />
+            </TouchableOpacity>
           </View>
         ) : null}
         {whatsAppContact ? (
@@ -131,6 +159,20 @@ export const ContactInfo = ({ route }) => {
                 {whatsAppContact}
               </Text>
             </View>
+            <TouchableOpacity
+              onPress={() => {
+                Clipboard.setString(whatsAppContact);
+              }}>
+              <Image
+                source={copyIcon}
+                style={{
+                  aspectRatio: 63 / 63,
+                  width: 30,
+                  height: undefined,
+                  marginLeft: 20,
+                }}
+              />
+            </TouchableOpacity>
           </View>
         ) : null}
       </View>

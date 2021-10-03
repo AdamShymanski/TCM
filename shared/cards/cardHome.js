@@ -265,7 +265,7 @@ export function CardHome({ props, isSavedState }) {
               {owner.name}
             </Text>
             <View style={stylesCard.profileParams}>
-              <Image
+              {/* <Image
                 source={reputation_icon}
                 style={{ height: 26, width: 22.9, marginRight: 6 }}
               />
@@ -277,7 +277,7 @@ export function CardHome({ props, isSavedState }) {
                   marginRight: 20,
                 }}>
                 {owner.reputation}
-              </Text>
+              </Text> */}
               <Image
                 source={collection_icon}
                 style={{

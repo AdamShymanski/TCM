@@ -31,7 +31,7 @@ import PickerModal from '../shared/pickerModal';
 
 export default function AddCard() {
   const navigation = useNavigation();
-  // .matches(/^\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})$/, 'Wrong price format!'),
+
   const reviewSchema = yup.object({
     price: yup
       .string('Wrong format!')
@@ -378,7 +378,7 @@ export default function AddCard() {
           <View
             style={{
               backgroundColor: '#121212',
-              height: showFilters ? null : 40,
+
               borderTopColor: '#5c5c5c',
               borderTopWidth: 1.5,
               marginBottom: 12,
@@ -387,36 +387,35 @@ export default function AddCard() {
               paddingBottom: 8,
               paddingTop: 8,
             }}>
-            {showFilters ? (
-              <View style={{ flexDirection: 'row' }}>
-                <TouchableOpacity
+            <View style={{ flexDirection: 'row' }}>
+              <TouchableOpacity
+                style={{
+                  borderRadius: 4,
+
+                  marginLeft: 8,
+                  marginTop: 4,
+
+                  height: 32,
+                  paddingHorizontal: 14,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#1B1B1B',
+                }}
+                onPress={() => setPickerModal(true)}>
+                <Text
                   style={{
-                    borderRadius: 4,
+                    fontSize: 14,
+                    fontWeight: '700',
+                    color: '#f4f4f4',
+                  }}>
+                  {' Sort by :  '}
+                  <Text style={{ color: '#0082ff' }}>{pickerValue}</Text>
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-                    marginLeft: 8,
-                    marginTop: 4,
-
-                    height: 32,
-                    paddingHorizontal: 14,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#1B1B1B',
-                  }}
-                  onPress={() => setPickerModal(true)}>
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      fontWeight: '700',
-                      color: '#f4f4f4',
-                    }}>
-                    {' Sort by :  '}
-                    <Text style={{ color: '#0082ff' }}>{pickerValue}</Text>
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            ) : null}
-            <View
+            {/* <View
               style={{
                 width: '100%',
                 flexDirection: 'row',
@@ -443,7 +442,7 @@ export default function AddCard() {
                   }}
                 />
               )}
-            </View>
+            </View> */}
           </View>
 
           {stateHandler('pikachu') ? (
