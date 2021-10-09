@@ -1,9 +1,9 @@
 {
   "expo": {
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "name": "PTCG Marketplace",
     "slug": "ptcg_marketplace",
-    "version": "7",
+    "version": "12",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -21,8 +21,8 @@
     },
     "android": {
       "package": "app.ptcg.marketplace",
-      "versionCode": 7,
-      "userInterfaceStyle": "automatic",
+      "versionCode": 12,
+      "userInterfaceStyle": "light",
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-2637485113454186~8246765572"
       }
