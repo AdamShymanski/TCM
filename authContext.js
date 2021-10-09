@@ -273,6 +273,42 @@ export async function deleteCard(id) {
     console.log(error);
   }
 }
+export async function deleteAccount() {
+  try {
+    let arr = [];
+
+    const result = await db
+      .collection('cards')
+      .where('owner', '==', auth.currentUser.uid)
+      .get();
+
+    result.forEach((doc) => {
+      let cardObj = doc.data();
+      cardObj.id = doc.id;
+      arr.push(cardObj);
+    });
+
+    if (arr.length > 0) {
+      const promise = new Promise(async (resolve, reject) => {
+        arr.forEach(async (doc, index) => {
+          await deleteCard(doc.id);
+          if (arr.length == index + 1) resolve();
+        });
+      });
+      await promise.then(async () => {
+        await db.collection('users').doc(auth.currentUser.uid).delete();
+        await auth.currentUser.delete();
+        auth.signOut();
+      });
+    } else {
+      await db.collection('users').doc(auth.currentUser.uid).delete();
+      await auth.currentUser.delete();
+      auth.signOut();
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
 export async function fetchBigCards(arg, pickerValue, setLoading) {
   try {
     pokemon.configure({ apiKey: '3c362cd9-2286-48d4-989a-0d2a65b9d5a8' });

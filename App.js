@@ -27,10 +27,7 @@ import { ContactInfo } from './screens/contactInfo';
 import globalState from './global.js';
 import { auth } from './authContext.js';
 
-import {
-  AdMobBanner,
-  setTestDeviceIDAsync,
-} from 'expo-ads-admob';
+import { AdMobBanner, setTestDeviceIDAsync } from 'expo-ads-admob';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -400,15 +397,15 @@ export default function App() {
             <Drawer.Screen name='Orders' component={OrdersStack} />
             <Drawer.Screen name='SavedOffers' component={SavedOffersStack} />
           </Drawer.Navigator>
-          <AdMobBanner
+          {/* <AdMobBanner
             bannerSize='smartBannerPortrait'
             adUnitID='ca-app-pub-2637485113454186/2096785031'
             //ca-app-pub-3940256099942544/6300978111
             servePersonalizedAds // true or false
             onDidFailToReceiveAdWithError={(error) => {
-              console.log(error);
+              // console.log(error);
             }}
-          />
+          /> */}
         </NavigationContainer>
       </AppearanceProvider>
     );

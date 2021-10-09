@@ -14,8 +14,10 @@ import * as yup from 'yup';
 import { register } from './../authContext';
 import { CountryPickerModal } from '../shared/countryPickerModal';
 
+// const strongPasswordRegEx =
+//   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&].{8,}$/;
 const strongPasswordRegEx =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&].{8,}$/;
+  /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{7,}$/;
 
 // const strongPasswordRegEx =
 //   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&].{8,}$/;
@@ -39,7 +41,7 @@ const reviewSchema = yup.object({
   password: yup
     .string('Wrong format!')
     .required('Password is required!')
-    .min(6, 'Password must be longer then 7 charts!')
+    .min(7, 'Password must be longer then 6 charts!')
     .matches(
       strongPasswordRegEx,
       'At least one number, capital & lower letter!'
@@ -68,6 +70,7 @@ const reviewSchema = yup.object({
 export default function Register({ auth }) {
   const [countryPickerState, setCountryPickerState] = useState('');
   const [countryValue, setCountryValue] = useState('');
+  const [countryInputTouched, setCountryInputTouched] = useState(false);
 
   return (
     <ScrollView style={{ backgroundColor: '#1b1b1b', flex: 1 }}>
@@ -311,27 +314,32 @@ export default function Register({ auth }) {
               style={{ width: '70%' }}
               onPress={() => {
                 setCountryPickerState(true);
+                setCountryInputTouched(true);
               }}>
               <TextInput
                 mode={'outlined'}
                 value={props.values.country}
                 onChangeText={props.handleChange('country')}
                 label='Country'
-                outlineColor={props.errors.country ? '#b40424' : '#5c5c5c'}
+                outlineColor={
+                  props.errors.country && countryInputTouched
+                    ? '#b40424'
+                    : '#5c5c5c'
+                }
                 style={{
                   width: '100%',
                   backgroundColor: '#1b1b1b',
                   marginTop:
-                    props.touched.confirmPassword &&
-                    props.errors.confirmPassword
-                      ? 0
-                      : 20,
+                    props.errors.country && countryInputTouched ? 0 : 20,
                 }}
                 disabled={true}
                 theme={{
                   colors: {
                     text: '#fff',
-                    disabled: props.errors.country ? '#b40424' : '#5c5c5c',
+                    disabled:
+                      props.errors.country && countryInputTouched
+                        ? '#b40424'
+                        : '#5c5c5c',
                     background: 'transparent',
                   },
                 }}

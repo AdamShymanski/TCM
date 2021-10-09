@@ -91,7 +91,6 @@ export default function Settings() {
     const resolvePromises = async () => {
       if (reauthenticationResult) {
         if (actionType == 'deleteAccount') {
-          console.log('deleting account i elo');
           await deleteAccount();
         }
         if (actionType == 'resetPassword') {
@@ -133,17 +132,19 @@ export default function Settings() {
             setModal={setModal}
           />
         ) : null}
-        <View
+
+        <Text
           style={{
-            backgroundColor: '#1b1b1b',
-            marginTop: 16,
-            marginLeft: 12,
-            marginBottom: 4,
+            color: '#f4f4f4',
+            fontWeight: '700',
+            fontSize: 22,
+
+            paddingTop: 12,
+            paddingLeft: 12,
+            backgroundColor: '#121212',
           }}>
-          <Text style={{ color: '#f4f4f4', fontWeight: '700', fontSize: 22 }}>
-            Account
-          </Text>
-        </View>
+          Account
+        </Text>
         <View
           style={{
             backgroundColor: '#121212',
@@ -431,17 +432,19 @@ export default function Settings() {
             )}
           </Formik>
         </View>
-        <View
+
+        <Text
           style={{
-            backgroundColor: '#1b1b1b',
-            marginTop: 16,
-            marginLeft: 12,
-            marginBottom: 4,
+            color: '#f4f4f4',
+            fontWeight: '700',
+            fontSize: 22,
+
+            paddingTop: 12,
+            paddingLeft: 12,
+            backgroundColor: '#121212',
           }}>
-          <Text style={{ color: '#f4f4f4', fontWeight: '700', fontSize: 22 }}>
-            Contact Info for Buyers
-          </Text>
-        </View>
+          Contact Info for Buyers
+        </Text>
         <View
           style={{
             backgroundColor: '#121212',
@@ -683,21 +686,6 @@ export default function Settings() {
             )}
           </Formik>
         </View>
-        <View
-          style={{
-            backgroundColor: '#1b1b1b',
-            marginTop: 16,
-            marginLeft: 12,
-            marginBottom: 4,
-          }}>
-          <Text style={{ color: '#f4f4f4', fontWeight: '700', fontSize: 22 }}>
-            About
-          </Text>
-        </View>
-        <View
-          style={{
-            backgroundColor: '#121212',
-          }}></View>
       </ScrollView>
     );
   }

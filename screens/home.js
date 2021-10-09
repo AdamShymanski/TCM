@@ -59,6 +59,10 @@ export default function Home({
   }, []);
 
   useEffect(() => {
+    if (cardsData.length >= 1) setCardsData([]);
+  }, [bigCardsData]);
+
+  useEffect(() => {
     if (!isFocused) {
       setSavedOffersId(null);
       setLoading(true);
