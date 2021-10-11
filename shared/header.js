@@ -177,7 +177,7 @@ export default function Header({
     );
   }
 
-  if (version == 'collection') {
+  if (version == 'yourOffers') {
     return (
       <View style={styles.header}>
         <MaterialIcons
