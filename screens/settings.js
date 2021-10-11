@@ -16,11 +16,11 @@ import {
   fetchUserData,
   updateUserData,
   deleteAccount,
-  resetPassword,
   changeEmail,
 } from '../authContext';
 
 import ReauthenticationModal from '../shared/reauthenticationModal';
+import ChangePasswordModal from '../shared/changePasswordModal';
 import { CountryPickerModal } from '../shared/countryPickerModal';
 
 const onlyLettersRegEx =
@@ -52,6 +52,8 @@ export default function Settings() {
   const [modalState, setModal] = useState(false);
   const [reauthenticationResult, setReauthenticationResult] = useState(null);
   const [actionType, setActionType] = useState(null);
+
+  const [changePasswordModal, setChangePasswordModal] = useState(false);
 
   const [countryPickerState, setCountryPickerState] = useState(false);
   const [countryValue, setCountryValue] = useState(null);
@@ -93,9 +95,6 @@ export default function Settings() {
         if (actionType == 'deleteAccount') {
           await deleteAccount();
         }
-        if (actionType == 'resetPassword') {
-          await resetPassword();
-        }
         if (actionType == 'changeEmail') {
           await changeEmail();
         }
@@ -132,6 +131,9 @@ export default function Settings() {
             setModal={setModal}
           />
         ) : null}
+        {changePasswordModal ? (
+          <ChangePasswordModal setModal={setChangePasswordModal} />
+        ) : null}
 
         <Text
           style={{
@@ -141,13 +143,12 @@ export default function Settings() {
 
             paddingTop: 12,
             paddingLeft: 12,
-            backgroundColor: '#121212',
           }}>
           Account
         </Text>
         <View
           style={{
-            backgroundColor: '#121212',
+            backgroundColor: '#1B1B1B',
           }}>
           <Formik
             initialValues={{
@@ -214,7 +215,7 @@ export default function Settings() {
                   error={props.touched.nick && props.errors.nick ? true : false}
                   style={{
                     width: '80%',
-                    backgroundColor: '#121212',
+                    backgroundColor: '#1B1B1B',
                     color: '#f4f4f4',
                     marginTop: 20,
                   }}
@@ -260,7 +261,7 @@ export default function Settings() {
                     }
                     style={{
                       width: '100%',
-                      backgroundColor: '#121212',
+                      backgroundColor: '#1B1B1B',
                       marginTop: 20,
                     }}
                     disabled={true}
@@ -336,11 +337,64 @@ export default function Settings() {
                     width: '80%',
                     flexDirection: 'row-reverse',
                     alignItems: 'center',
+                    justifyContent: 'space-between',
 
                     borderTopWidth: 2,
                     borderColor: '#5c5c5c',
+                    marginBottom: 20,
                   }}>
                   <TouchableOpacity
+                    style={{
+                      height: 30,
+                      marginTop: 20,
+
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+
+                      backgroundColor: '#0082FF',
+                      borderRadius: 3,
+                      paddingHorizontal: 12,
+                    }}
+                    onPress={() => {
+                      setChangePasswordModal(true);
+                    }}>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: '700',
+                        color: '#121212',
+                      }}>
+                      Change Password
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={{
+                      height: 30,
+                      marginTop: 20,
+
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+
+                      backgroundColor: '#0082FF',
+                      borderRadius: 3,
+                      paddingHorizontal: 12,
+                    }}
+                    onPress={() => {
+                      setActionType('deleteAccount');
+                      setModal(true);
+                    }}>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: '700',
+                        color: '#121212',
+                      }}>
+                      Delete Account
+                    </Text>
+                  </TouchableOpacity>
+                  {/* <TouchableOpacity
                     style={{
                       height: 30,
                       marginTop: 20,
@@ -364,36 +418,9 @@ export default function Settings() {
                       }}>
                       Change Email
                     </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={{
-                      height: 30,
-                      marginTop: 20,
-                      marginRight: 14,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-
-                      backgroundColor: '#0082FF',
-                      borderRadius: 3,
-                      paddingHorizontal: 20,
-                    }}
-                    onPress={() => {
-                      setActionType('resetPassword');
-                      setModal(true);
-                    }}>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: '700',
-                        color: '#121212',
-                      }}>
-                      Reset Password
-                    </Text>
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                 </View>
-                <View
+                {/* <View
                   style={{
                     width: '80%',
                     flexDirection: 'row-reverse',
@@ -427,7 +454,7 @@ export default function Settings() {
                       Delete Account
                     </Text>
                   </TouchableOpacity>
-                </View>
+                </View> */}
               </View>
             )}
           </Formik>
@@ -441,13 +468,12 @@ export default function Settings() {
 
             paddingTop: 12,
             paddingLeft: 12,
-            backgroundColor: '#121212',
           }}>
           Contact Info for Buyers
         </Text>
         <View
           style={{
-            backgroundColor: '#121212',
+            backgroundColor: '#1B1B1B',
           }}>
           <Formik
             initialValues={{
@@ -526,7 +552,7 @@ export default function Settings() {
                   }
                   style={{
                     width: '80%',
-                    backgroundColor: '#121212',
+                    backgroundColor: '#1B1B1B',
                     color: '#f4f4f4',
                     marginTop: 20,
                   }}
@@ -569,7 +595,7 @@ export default function Settings() {
                   }
                   style={{
                     width: '80%',
-                    backgroundColor: '#121212',
+                    backgroundColor: '#1B1B1B',
                     color: '#f4f4f4',
                     marginTop: 20,
                   }}
@@ -613,7 +639,7 @@ export default function Settings() {
                   }
                   style={{
                     width: '80%',
-                    backgroundColor: '#121212',
+                    backgroundColor: '#1B1B1B',
                     color: '#f4f4f4',
                     marginTop: 20,
                   }}

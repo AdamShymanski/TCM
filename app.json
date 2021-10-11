@@ -1,9 +1,9 @@
 {
   "expo": {
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "name": "PTCG Marketplace",
     "slug": "ptcg_marketplace",
-    "version": "12",
+    "version": "13",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -12,7 +12,9 @@
       "backgroundColor": "#1b1b1b"
     },
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 300,
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -21,8 +23,8 @@
     },
     "android": {
       "package": "app.ptcg.marketplace",
-      "versionCode": 12,
-      "userInterfaceStyle": "light",
+      "versionCode": 13,
+      "userInterfaceStyle": "dark",
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-2637485113454186~8246765572"
       }

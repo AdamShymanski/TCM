@@ -29,22 +29,25 @@ import pikachu from '../assets/pikachu.png';
 
 import PickerModal from '../shared/pickerModal';
 
+import { LanguagePickerModal } from './../shared/languagePickerModal';
+
 export default function AddCard() {
   const navigation = useNavigation();
+
+  const priceRegEx = /^\d{1,3}(?:[.,]\d{2})*(?:[.,]\d{2})*$/g;
+  const gradeRegEx = /^[1-9]|10*$/g;
 
   const reviewSchema = yup.object({
     price: yup
       .string('Wrong format!')
+      .matches(priceRegEx, 'Wrong format!')
       .required('Price is required!')
-      .max(10, 'Price is too long!'),
+      .max(12, 'Price is too long!'),
     condition: yup
       .string('Wrong format!')
+      .matches(gradeRegEx, 'Wrong format!')
       .required('Condition is required!')
       .max(2, 'Wrong format'),
-    languageVersion: yup
-      .string('Wrong format!')
-      .required('Language Version is required!')
-      .min(4, 'Wrong format'),
     languageVersion: yup
       .string('Wrong format!')
       .required('Language Version is required!')
@@ -57,13 +60,13 @@ export default function AddCard() {
   const reviewSchemaWithGrading = yup.object({
     price: yup
       .string('Wrong format!')
+      .matches(priceRegEx, 'Wrong format!')
       .required('Price is required!')
       .max(10, 'Grading Organization is too long!'),
     languageVersion: yup
       .string('Wrong format!')
       .required('Language Version is required!')
-      .min(4, 'Wrong format')
-      .max(12, 'Wrong format'),
+      .min(4, 'Wrong format'),
     grade: yup
       .string('Wrong format!')
       .required('Grading Score is required!')
@@ -77,6 +80,7 @@ export default function AddCard() {
       .required('Description is required!')
       .max(60, 'Description is too long!'),
   });
+
   const ImagePlaceHolder = () => {
     if (photoState === null || undefined) {
       return (
@@ -212,6 +216,8 @@ export default function AddCard() {
   const submitForm = async (values) => {
     if (cardId) {
       if (photoState) {
+        values.price = values.price.replace(/,/g, '.').replace(/ /g, '');
+
         await addCard(values, gradingSwitch, photoState, cardId);
         navigation.reset({
           index: 0,
@@ -222,36 +228,12 @@ export default function AddCard() {
       setScError(true);
     }
   };
-
-  const [photoState, setPhoto] = useState(null);
-  const [gradingSwitch, setGrading] = useState(true);
-
-  const [modalState, setModal] = useState(false);
-  const [scError, setScError] = useState(false);
-
-  const [cardId, setId] = useState(null);
-
-  const [loadingState, setLoading] = useState(false);
-  const [bigCardsData, setBigCardsData] = useState(null);
-
-  const [nativeInputValue, setNativeInputValue] = useState('');
-  const [inputPlaceholderState, setInputPlaceholder] = useState(
-    'Number or Name of Card'
-  );
-
-  const [showFilters, setShowFiletrs] = useState(true);
-
-  const [pickerValue, setPickerValue] = useState('Rarity Declining');
-  const [pickerModal, setPickerModal] = useState(false);
-  const [pageNumber, setPageNumber] = useState(2);
-
   const searchForCard = async () => {
     setBigCardsData(
       await fetchBigCards(nativeInputValue, pickerValue, setLoading)
     );
     setPageNumber(2);
   };
-
   const stateHandler = (variant) => {
     if (variant == 'pikachu') {
       if (loadingState) return false;
@@ -279,13 +261,38 @@ export default function AddCard() {
       return false;
     }
   };
-
   const closeModal = () => {
     setModal(false);
     setNativeInputValue('');
     setBigCardsData(null);
     setPageNumber(2);
   };
+
+  const [photoState, setPhoto] = useState(null);
+  const [gradingSwitch, setGrading] = useState(true);
+
+  const [modalState, setModal] = useState(false);
+  const [scError, setScError] = useState(false);
+
+  const [cardId, setId] = useState(null);
+
+  const [loadingState, setLoading] = useState(false);
+  const [bigCardsData, setBigCardsData] = useState(null);
+
+  const [nativeInputValue, setNativeInputValue] = useState('');
+  const [inputPlaceholderState, setInputPlaceholder] = useState(
+    'Number or Name of Card'
+  );
+
+  const [pickerValue, setPickerValue] = useState('Rarity Declining');
+  const [pickerModal, setPickerModal] = useState(false);
+  const [pageNumber, setPageNumber] = useState(2);
+
+  const [languagePickerState, setLanguagePickerState] = useState(false);
+  const [languageInputTouched, setLanguageInputTouched] = useState(false);
+
+  //state exclusively for Language Version
+  const [submitClicked, setSubmitClicked] = useState(false);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: '#1b1b1b', padding: 20 }}>
@@ -556,7 +563,6 @@ export default function AddCard() {
       <Formik
         style={{ flex: 1 }}
         initialValues={{
-          // cardNumber: '',
           price: '',
           grade: '',
           gradingOrganization: '',
@@ -573,6 +579,14 @@ export default function AddCard() {
         }}>
         {(props) => (
           <View>
+            {languagePickerState ? (
+              <LanguagePickerModal
+                setValue={(value) => {
+                  props.setFieldValue('languageVersion', value);
+                }}
+                setVisible={setLanguagePickerState}
+              />
+            ) : null}
             <View style={{ flexDirection: 'row' }}>
               <ImagePlaceHolder />
             </View>
@@ -685,32 +699,44 @@ export default function AddCard() {
                   </Text>
                 )}
               </ErrorMessage>
-              <TextInput
-                mode={'outlined'}
-                value={props.values.languageVersion}
-                onChangeText={props.handleChange('languageVersion')}
-                label='Language Version'
-                outlineColor={'#5c5c5c'}
-                error={
-                  props.touched.languageVersion && props.errors.languageVersion
-                    ? true
-                    : false
-                }
-                style={{
-                  width: '85%',
-                  backgroundColor: '#1b1b1b',
-                  color: '#f4f4f4',
-                  marginTop: 20,
-                }}
-                theme={{
-                  colors: {
-                    primary: '#0082ff',
-                    placeholder: '#5c5c5c',
-                    background: 'transparent',
-                    text: '#f4f4f4',
-                  },
-                }}
-              />
+              <TouchableOpacity
+                style={{ width: '70%' }}
+                onPress={() => {
+                  setLanguagePickerState(true);
+                  setLanguageInputTouched(true);
+                }}>
+                <TextInput
+                  mode={'outlined'}
+                  value={props.values.languageVersion}
+                  onChangeText={props.handleChange('languageVersion')}
+                  label='Language Version'
+                  outlineColor={
+                    props.errors.languageVersion &&
+                    (languageInputTouched || submitClicked)
+                      ? '#b40424'
+                      : '#5c5c5c'
+                  }
+                  style={{
+                    width: '85%',
+                    backgroundColor: '#1b1b1b',
+                    color: '#f4f4f4',
+                    marginTop: 20,
+                  }}
+                  disabled={true}
+                  theme={{
+                    colors: {
+                      text: '#f4f4f4',
+                      disabled:
+                        props.errors.languageVersion &&
+                        (languageInputTouched || submitClicked)
+                          ? '#b40424'
+                          : '#5c5c5c',
+                      background: 'transparent',
+                    },
+                  }}
+                />
+              </TouchableOpacity>
+
               <ErrorMessage component='div' name='languageVersion'>
                 {(msg) => (
                   <Text
@@ -1006,6 +1032,7 @@ export default function AddCard() {
                   paddingHorizontal: 20,
                 }}
                 onPress={() => {
+                  setSubmitClicked(true);
                   props.submitForm();
                   if (!cardId) {
                     setScError(true);

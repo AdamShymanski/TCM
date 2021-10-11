@@ -121,8 +121,8 @@ export const CountryPickerModal = ({ setValue, setVisible }) => {
     { Code: 'KZ', Name: 'Kazakhstan' },
     { Code: 'KE', Name: 'Kenya' },
     { Code: 'KI', Name: 'Kiribati' },
-    { Code: 'KP', Name: "Korea, Democratic People's Republic of" },
-    { Code: 'KR', Name: 'Korea, Republic of' },
+    { Code: 'KP', Name: 'North Korea' },
+    { Code: 'KR', Name: 'South Korea' },
     { Code: 'KW', Name: 'Kuwait' },
     { Code: 'KG', Name: 'Kyrgyzstan' },
     { Code: 'LA', Name: "Lao People's Democratic Republic" },
@@ -274,7 +274,7 @@ export const CountryPickerModal = ({ setValue, setVisible }) => {
         <View
           style={{
             width: '90%',
-            height: '90%',
+            height: '80%',
             backgroundColor: '#121212',
             borderRadius: 8,
             paddingVertical: 10,

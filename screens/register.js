@@ -69,7 +69,6 @@ const reviewSchema = yup.object({
 
 export default function Register({ auth }) {
   const [countryPickerState, setCountryPickerState] = useState('');
-  const [countryValue, setCountryValue] = useState('');
   const [countryInputTouched, setCountryInputTouched] = useState(false);
 
   return (
@@ -102,7 +101,7 @@ export default function Register({ auth }) {
       <Formik
         initialValues={{
           nick: '',
-          country: countryValue,
+          country: '',
           email: '',
           password: '',
           confirmPassword: '',

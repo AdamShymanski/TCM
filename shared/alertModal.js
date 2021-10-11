@@ -47,7 +47,7 @@ export const AlertModal = ({ setModal }) => {
               marginTop: 12,
               marginLeft: 10,
             }}>
-            You must firstly add contact info four buyers in Settings Tab.
+            You must firstly add contact info for buyers in Settings Tab.
           </Text>
           <View style={{ flexDirection: 'row-reverse', marginTop: 20 }}>
             <TouchableOpacity

@@ -217,6 +217,7 @@ export default function Home({
                 aspectRatio: 651 / 522,
                 width: '80%',
                 height: undefined,
+                zIndex: 3,
               }}
             />
             <Text

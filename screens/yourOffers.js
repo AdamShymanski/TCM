@@ -5,7 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 import { DeleteCardModal } from '../shared/deleteCardModal';
-import { CardCollection } from './../shared/cards/cardCollection';
+import { CardCollection } from '../shared/cards/cardCollection';
 import { fetchUsersCards, fetchOwnerData, auth } from '../authContext';
 
 import { globalStyles } from '../styles/global';

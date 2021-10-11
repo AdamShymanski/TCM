@@ -61,12 +61,12 @@ export default function CustomDrawer({ navigation }) {
             </View>
 
             <View style={styles.row}>
-              <View style={styles.section}>
+              {/* <View style={styles.section}>
                 <Paragraph style={[styles.paragraph, styles.caption]}>
                   {owner.reputation}
                 </Paragraph>
                 <Caption style={styles.caption}>Reputation</Caption>
-              </View>
+              </View> */}
               <View style={styles.section}>
                 <Paragraph style={[styles.paragraph, styles.caption]}>
                   {owner.collectionSize}
@@ -112,9 +112,9 @@ export default function CustomDrawer({ navigation }) {
                 <Icon name='cards-outline' color={'#f4f4f4'} size={size} />
               )}
               labelStyle={{ color: '#f4f4f4' }}
-              label='Your Collection'
+              label='Your Offers'
               onPress={() => {
-                navigation.navigate('Collection');
+                navigation.navigate('YourOffers');
               }}
             />
             <DrawerItem
