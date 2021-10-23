@@ -10,6 +10,7 @@ import {
 import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import IconM from 'react-native-vector-icons/MaterialIcons';
 import IconF from 'react-native-vector-icons/Feather';
 
 import { fetchOwnerData, auth } from '../authContext';
@@ -115,6 +116,20 @@ export default function CustomDrawer({ navigation }) {
               label='Your Offers'
               onPress={() => {
                 navigation.navigate('YourOffers');
+              }}
+            />
+            <DrawerItem
+              icon={({ color, size }) => (
+                <IconM
+                  name='chat-bubble-outline'
+                  color={'#f4f4f4'}
+                  size={size - 2}
+                />
+              )}
+              labelStyle={{ color: '#f4f4f4' }}
+              label='Chat'
+              onPress={() => {
+                navigation.navigate('Chat');
               }}
             />
             <DrawerItem

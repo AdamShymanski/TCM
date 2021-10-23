@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-  StyleSheet,
   View,
   Text,
   Image,
-  ScrollView,
-  Button,
   TouchableOpacity,
   FlatList,
-  TextInput,
   ActivityIndicator,
 } from 'react-native';
 
@@ -23,11 +19,11 @@ import {
 
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 
-import PickerModal from './../shared/pickerModal';
+import PickerModal from '../shared/pickerModal';
 import pikachu from '../assets/pikachu.png';
 
-import BigCardHome from './../shared/cards/bigCardHome';
-import { CardHome } from './../shared/cards/cardHome';
+import BigCardHome from '../shared/cards/bigCardHome';
+import { CardHome } from '../shared/cards/cardHome';
 import { TabRouter } from 'react-navigation';
 
 export default function Home({

@@ -29,13 +29,18 @@ import PickerModal from '../shared/pickerModal';
 export default function EditCard({ route }) {
   const navigation = useNavigation();
 
+  const priceRegEx = /^\d{1,3}(?:[.,]\d{2})*(?:[.,]\d{2})*$/g;
+  const gradeRegEx = /^[1-9]|10*$/g;
+
   const reviewSchema = yup.object({
     price: yup
       .string('Wrong format!')
+      .matches(priceRegEx, 'Wrong format!')
       .required('Price is required!')
-      .max(10, 'Price is too long!'),
+      .max(12, 'Price is too long!'),
     condition: yup
       .string('Wrong format!')
+      .matches(gradeRegEx, 'Wrong format!')
       .required('Condition is required!')
       .max(2, 'Wrong format'),
     languageVersion: yup
@@ -50,13 +55,13 @@ export default function EditCard({ route }) {
   const reviewSchemaWithGrading = yup.object({
     price: yup
       .string('Wrong format!')
+      .matches(priceRegEx, 'Wrong format!')
       .required('Price is required!')
       .max(10, 'Grading Organization is too long!'),
     languageVersion: yup
       .string('Wrong format!')
       .required('Language Version is required!')
-      .min(4, 'Wrong format')
-      .max(12, 'Wrong format'),
+      .min(4, 'Wrong format'),
     grade: yup
       .string('Wrong format!')
       .required('Grading Score is required!')
@@ -461,13 +466,16 @@ export default function EditCard({ route }) {
             </View>
           ) : null}
 
-          {stateHandler('list') ? (
+          {/* {stateHandler('list') ? (
             <FlatList
               style={{ paddingHorizontal: 8 }}
               data={bigCardsData}
               renderItem={({ item }) => {
                 return (
-                  <CardAcp props={item} setId={setId} closeModal={closeModal} />
+                  <CardAcp
+                    props={item}
+                    setId={setId}
+                    closeModal={closeModal}></CardAcp>
                 );
               }}
               keyExtractor={(item, index) => index.toString()}
@@ -483,7 +491,7 @@ export default function EditCard({ route }) {
               }}
               onEndReachedThreshold={4}
             />
-          ) : null}
+          ) : null} */}
 
           {stateHandler('indicator') ? (
             <View
@@ -587,6 +595,7 @@ export default function EditCard({ route }) {
 
           const detectChanges = () => {
             let change = false;
+
             outValues.forEach((item, index) => {
               if (item !== initValues[index]) {
                 change = true;
@@ -596,8 +605,13 @@ export default function EditCard({ route }) {
               return true;
             }
           };
-
+          detectChanges();
           if (detectChanges()) {
+            console.log(outValues[0]);
+            outValues[0] = outValues[0].replace(/,/g, '.').replace(/ /g, '');
+            outValues[0] = parseFloat(outValues[0]);
+            console.log(outValues[0]);
+
             await updateCard(
               route.params.props.id,
               outValues,
@@ -686,7 +700,7 @@ export default function EditCard({ route }) {
 
               <TextInput
                 mode={'outlined'}
-                value={props.values.price}
+                value={props.values.price.toString()}
                 onChangeText={props.handleChange('price')}
                 label='Price ($)'
                 outlineColor={'#5c5c5c'}

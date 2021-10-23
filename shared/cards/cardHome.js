@@ -299,7 +299,12 @@ export function CardHome({ props, isSavedState }) {
                 setImageViewer(true);
               }}>
               <Image
-                style={{ width: 105, height: 140 }}
+                style={{
+                  width: 105,
+                  height: 140,
+                  marginLeft: 12,
+                  borderRadius: 3,
+                }}
                 source={{ uri: photosArray[0].url }}
               />
             </TouchableOpacity>
@@ -478,7 +483,14 @@ export function CardHome({ props, isSavedState }) {
               width: '100%',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginTop: 10,
+              backgroundColor: '#121212',
+
+              borderBottomLeftRadius: 7,
+              borderBottomRightRadius: 7,
+
+              paddingVertical: 5,
+              paddingHorizontal: 8,
+              paddingBottom: 9,
             }}>
             <Text
               style={{
@@ -488,10 +500,16 @@ export function CardHome({ props, isSavedState }) {
                 borderRadius: 4,
                 color: '#f4f4f4',
                 fontWeight: '700',
-                fontSize: 20,
+                fontSize: 18,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}>
-              <Text style={{ color: '#0082ff' }}>{'$ '}</Text>
+              <Text style={{ color: '#0082ff', fontSize: 14 }}>
+                {'Price    '}
+              </Text>
               {price}
+              <Text style={{ color: '#CDCDCD', fontSize: 14 }}>{'  USD'}</Text>
             </Text>
 
             <View
@@ -510,6 +528,7 @@ export function CardHome({ props, isSavedState }) {
 
                   backgroundColor: '#0082FF',
                   borderRadius: 3,
+                  marginRight: 5,
                 }}
                 onPress={() => navigation.navigate('ContactInfo', owner)}>
                 <Text
@@ -517,6 +536,7 @@ export function CardHome({ props, isSavedState }) {
                     fontSize: 16,
                     fontWeight: '700',
                     color: '#121212',
+                    marginRight: 5,
                   }}>
                   Buy
                 </Text>
@@ -558,11 +578,14 @@ const stylesCard = StyleSheet.create({
   body: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    backgroundColor: '#121212',
+    paddingVertical: 12,
+
     borderRadius: 6,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   description: {
-    backgroundColor: '#121212',
-    marginLeft: 10,
     height: '100%',
     flex: 1,
 
@@ -587,13 +610,11 @@ const stylesCard = StyleSheet.create({
     marginBottom: 8,
   },
   bottom: {
-    marginTop: 10,
     flexDirection: 'row',
     backgroundColor: '#121212',
     height: 60,
     width: '100%',
     paddingVertical: 12,
-    borderRadius: 5,
     justifyContent: 'space-evenly',
     paddingHorizontal: 8,
   },

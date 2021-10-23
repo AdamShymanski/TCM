@@ -1,12 +1,55 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
 import PTCGM from '../assets/PTCGM.png';
 import GoogleButton from '../assets/google_button.png';
 
-import { useNavigation } from '@react-navigation/native';
+import * as Google from 'expo-google-app-auth';
+
+import { googleSignIn } from '../authContext';
 
 export default function Welcome() {
-  const navigation = useNavigation();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const resolvePromises = async () => {};
+    resolvePromises();
+  }, []);
+
+  // const GoogleSignIn = async () => {
+  //   const { type, accessToken, user } = await Google.logInAsync({
+  //     androidClientId: `352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com`,
+  //     androidStandaloneAppClientId: `352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com`,
+  //   });
+
+  //   if (type === 'success') {
+  //     /* `accessToken` is now valid and can be used to get data from the Google API with HTTP requests */
+  //     console.log(result.accessToken);
+  //   }
+  // };
+
+  async function signInWithGoogleAsync() {
+    try {
+      const result = await Google.logInAsync({
+        androidClientId:
+          '352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com',
+        androidStandaloneAppClientId: `352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com`,
+        scopes: ['profile', 'email'],
+      });
+
+      if (result.type === 'success') {
+        await googleSignIn(result);
+      } else {
+        return { cancelled: true };
+      }
+    } catch (e) {
+      if (e.code == 'auth/email-already-in-use') {
+        console.log('Duplicated emails has been detected');
+      } else {
+        console.log(e);
+      }
+    }
+  }
+
   return (
     <View
       style={{
@@ -19,12 +62,12 @@ export default function Welcome() {
       <Image
         source={PTCGM}
         style={{
-          aspectRatio: 568.78 / 292.37,
+          aspectRatio: 500 / 180,
           height: undefined,
           width: '85%',
 
           position: 'absolute',
-          top: 40,
+          top: 80,
         }}
       />
       <Text
@@ -90,6 +133,17 @@ export default function Welcome() {
           navigation.navigate('Register');
         }}>
         <Text style={styles.buttonText}>Register</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => {
+          signInWithGoogleAsync();
+        }}
+        style={{ marginTop: 70 }}>
+        <Image
+          source={GoogleButton}
+          style={{ width: '55%', aspectRatio: 382 / 92, height: undefined }}
+        />
       </TouchableOpacity>
     </View>
   );

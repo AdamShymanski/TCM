@@ -8,8 +8,6 @@ import { DeleteCardModal } from '../shared/deleteCardModal';
 import { CardCollection } from '../shared/cards/cardCollection';
 import { fetchUsersCards, fetchOwnerData, auth } from '../authContext';
 
-import { globalStyles } from '../styles/global';
-
 import { AlertModal } from '../shared/alertModal';
 
 export default function Collection() {
@@ -58,7 +56,13 @@ export default function Collection() {
     resolvePromises();
   }, [modalState]);
   return (
-    <View style={globalStyles.container}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: '#1b1b1b',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}>
       {modalState ? <DeleteCardModal setModal={setModalState} id={id} /> : null}
       {alertModal ? <AlertModal setModal={setAlertModal} /> : null}
       {!loadingState ? (
@@ -67,10 +71,10 @@ export default function Collection() {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '90%',
+            width: '96%',
             backgroundColor: '#121212',
             paddingVertical: 10,
-            marginLeft: 10,
+            marginHorizontal: '4%',
             marginTop: 10,
             marginBottom: 6,
             borderRadius: 4,
@@ -87,7 +91,7 @@ export default function Collection() {
             size={24}
             color='#f4f4f4'
             style={{ position: 'absolute', left: '25%' }}
-            onPress={() => setModalOpen(true)}
+            onPress={() => setAlertModal(true)}
           />
           <Text
             style={{

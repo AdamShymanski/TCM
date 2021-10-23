@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "442180761659",
+    "project_id": "ptcg-marketpla",
+    "storage_bucket": "ptcg-marketpla.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:442180761659:android:9e3dc8a1e6038bd382041e",
+        "android_client_info": {
+          "package_name": "app.ptcg.marketplace"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "442180761659-tdhp7kcqs3dmqvam9b7ef2m60cn6cjv4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.ptcg.marketplace",
+            "certificate_hash": "5dbe00c60847b52146d4a8b9e5db92f86388459a"
+          }
+        },
+        {
+          "client_id": "442180761659-d8gpds50nqm1464ftuqufa972ppl2iti.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApAxP3vVd4ncvm_sVIoLEDupJzUcrYUXI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "442180761659-d8gpds50nqm1464ftuqufa972ppl2iti.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
