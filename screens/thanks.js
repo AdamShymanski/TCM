@@ -50,11 +50,11 @@ const Thanks = () => {
           backgroundColor: '#0082ff',
         }}
         onPress={() => {
-          navigator.navigate('Home', { screen: 'Home' });
           navigator.reset({
             index: 0,
             routes: [{ name: 'Collection' }],
           });
+          navigator.navigate('Home', { screen: 'Home' });
         }}>
         <Text
           style={{

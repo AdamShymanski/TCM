@@ -11,7 +11,7 @@ import { TextInput } from 'react-native-paper';
 import { Formik, ErrorMessage } from 'formik';
 import * as yup from 'yup';
 
-import { register } from './../authContext';
+import { register } from '../authContext';
 import { CountryPickerModal } from '../shared/countryPickerModal';
 
 // const strongPasswordRegEx =

@@ -5,15 +5,17 @@ import 'firebase/auth';
 
 import pokemon from 'pokemontcgsdk';
 
+import FinishGoogleRegister from './screens/FinishGoogleRegister';
+
 if (firebase.apps.length === 0) {
   firebase.initializeApp({
-    apiKey: 'AIzaSyBYXMfnN1cLq2NyAIrQn88ifogby7uq0tc',
-    authDomain: 'ptcg-marketplace.firebaseapp.com',
-    projectId: 'ptcg-marketplace',
-    storageBucket: 'ptcg-marketplace.appspot.com',
-    messagingSenderId: '304927127181',
-    appId: '1:304927127181:web:d3b78fa4817b4dd65e94c4',
-    measurementId: 'G-82QFXZ4BJR',
+    apiKey: 'AIzaSyA0rTGml4Zi9yozBmgQ5k74jUMmWCxEE2I',
+    authDomain: 'ptcg-marketpla.firebaseapp.com',
+    projectId: 'ptcg-marketpla',
+    storageBucket: 'ptcg-marketpla.appspot.com',
+    messagingSenderId: '442180761659',
+    appId: '1:442180761659:web:d15b3d500793744982041e',
+    measurementId: 'G-1HB5T78SQS',
   });
 }
 
@@ -28,7 +30,7 @@ export async function fetchUserData() {
 export async function addCard(values, gradingSwitch, photoState, cardId) {
   let condition;
 
-  if (values.condition) condition = parseInt(values.condition);
+  if (values.condition) condition = parseFloat(values.condition);
   else condition = null;
 
   //parse price
@@ -134,7 +136,11 @@ export async function updateCard(id, outValues, initValues, valuesOrder) {
       if (item !== initValues[index]) cardUpdateObj[keyName] = item;
     });
 
-    outValues[0] = parseFloat(outValues[0]);
+    // console.log(outValues[0]);
+
+    // outValues[0] = parseFloat(outValues[0]);
+
+    // console.log(outValues[0]);
 
     await db.collection('cards').doc(id).update(cardUpdateObj);
 
@@ -534,6 +540,15 @@ export async function fetchMoreBigCards(
     console.log(error);
   }
 }
+export async function fetchName(id) {
+  try {
+    const result = await db.collection('users').doc(id).get();
+
+    return result.data().nick;
+  } catch (error) {
+    console.log(errorCode, errorMessage);
+  }
+}
 export async function fetchOwnerData(ownerId) {
   const countryCodes = [
     { Code: 'AF', Name: 'Afghanistan' },
@@ -794,11 +809,11 @@ export async function fetchOwnerData(ownerId) {
       .doc(ownerId)
       .get()
       .then((doc) => {
-        name = doc.data().nick;
         reputation = doc.data().reputation;
         collectionSize = doc.data().collectionSize;
         savedOffers = doc.data().savedOffers;
         country = doc.data().country;
+        name = doc.data().nick;
 
         //? Contact
         instagramContact = doc.data().instagramContact;
@@ -823,7 +838,7 @@ export async function fetchOwnerData(ownerId) {
       whatsAppContact,
     };
   } catch (error) {
-    console.log(errorCode, errorMessage);
+    console.log(error);
   }
 }
 export async function reauthenticate(password) {
@@ -1008,6 +1023,56 @@ export async function updateUserData(initValues, outValues, valuesOrder) {
       if (item !== initValues[index]) updateObj[keyName] = item;
     });
     await db.collection('users').doc(auth.currentUser.uid).update(updateObj);
+  } catch (error) {
+    console.log(error);
+  }
+}
+export async function createChat(secondUser) {
+  db.collection('chats').add({
+    messages: [],
+    notificationFor: '',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    members: [auth.currentUser.uid, secondUser],
+  });
+}
+export async function sendMessage(id, msg) {
+  try {
+    await db
+      .collection('chats')
+      .doc(id)
+      .update({
+        messages: firebase.firestore.FieldValue.arrayUnion({
+          contect: msg,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          uid: auth.currentUser.uid,
+        }),
+        // notificationFor: '',
+      });
+  } catch (err) {}
+}
+export async function setChatListeners(setListenerData) {
+  const secondUserUid = (doc) => {
+    if (doc.data().members[0] == auth.currentUser.uid) {
+      return doc.data().members[1];
+    } else return doc.data().members[0];
+  };
+  db.collection('chats')
+    .where('members', 'array-contains', auth.currentUser.uid)
+    .onSnapshot((doc) => {
+      const array = [];
+      doc.forEach((doc) => {
+        array.push({ data: doc.data(), uid: secondUserUid(doc), id: doc.id });
+      });
+      setListenerData(array);
+    });
+}
+export async function googleSignIn(logInResult) {
+  try {
+    const credential = firebase.auth.GoogleAuthProvider.credential(
+      logInResult.idToken,
+      logInResult.accessToken
+    );
+    await firebase.auth().signInWithCredential(credential);
   } catch (error) {
     console.log(error);
   }

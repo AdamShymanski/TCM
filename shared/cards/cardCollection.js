@@ -130,7 +130,12 @@ export function CardCollection({ props, setModal, setId }) {
                 setImageViewer(true);
               }}>
               <Image
-                style={{ width: 105, height: 140 }}
+                style={{
+                  width: 105,
+                  height: 140,
+                  marginLeft: 12,
+                  borderRadius: 3,
+                }}
                 source={{ uri: photosArray[0].url }}
               />
             </TouchableOpacity>
@@ -152,7 +157,11 @@ export function CardCollection({ props, setModal, setId }) {
                     }}>
                     <Image
                       source={condition_icon}
-                      style={{ width: 20, height: 20, marginRight: 10 }}
+                      style={{
+                        width: 20,
+                        height: 20,
+                        marginRight: 10,
+                      }}
                     />
                     <Text
                       style={{
@@ -200,7 +209,7 @@ export function CardCollection({ props, setModal, setId }) {
                     borderRadius: 3,
                     backgroundColor: '#1b1b1b',
                     width: 210,
-                    height: 66,
+                    height: 90,
                   }}>
                   <Text
                     style={{
@@ -306,7 +315,14 @@ export function CardCollection({ props, setModal, setId }) {
               width: '100%',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginTop: 10,
+              backgroundColor: '#121212',
+
+              borderBottomLeftRadius: 7,
+              borderBottomRightRadius: 7,
+
+              paddingVertical: 5,
+              paddingHorizontal: 8,
+              paddingBottom: 9,
             }}>
             <Text
               style={{
@@ -316,10 +332,16 @@ export function CardCollection({ props, setModal, setId }) {
                 borderRadius: 4,
                 color: '#f4f4f4',
                 fontWeight: '700',
-                fontSize: 20,
+                fontSize: 18,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}>
-              <Text style={{ color: '#0082ff' }}>{'$ '}</Text>
+              <Text style={{ color: '#0082ff', fontSize: 14 }}>
+                {'Price    '}
+              </Text>
               {price}
+              <Text style={{ color: '#CDCDCD', fontSize: 14 }}>{'  USD'}</Text>
             </Text>
 
             <View
@@ -363,6 +385,8 @@ export function CardCollection({ props, setModal, setId }) {
 
                   backgroundColor: '#0082FF',
                   borderRadius: 3,
+
+                  marginRight: 5,
                 }}
                 onPress={() =>
                   navigation.navigate('EditCard', {
@@ -393,12 +417,12 @@ export function CardCollection({ props, setModal, setId }) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: 'transparent',
-    marginHorizontal: 4,
-    marginVertical: 6,
-    marginRight: 20,
+    width: '90%',
+    marginRight: '2%',
+    marginLeft: '2.3%',
   },
   cardContent: {
-    marginVertical: 20,
+    paddingVertical: 20,
   },
 });
 
@@ -416,16 +440,19 @@ const stylesCard = StyleSheet.create({
   body: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    backgroundColor: '#121212',
+    paddingVertical: 12,
+
     borderRadius: 6,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   description: {
-    backgroundColor: '#121212',
-    marginLeft: 10,
     height: '100%',
     flex: 1,
 
     paddingLeft: 12,
-    paddingTop: 10,
+    // paddingTop: 10,
     borderRadius: 5,
   },
   rightText: {
@@ -445,13 +472,11 @@ const stylesCard = StyleSheet.create({
     marginBottom: 8,
   },
   bottom: {
-    marginTop: 10,
     flexDirection: 'row',
     backgroundColor: '#121212',
     height: 60,
     width: '100%',
     paddingVertical: 12,
-    borderRadius: 5,
     justifyContent: 'space-evenly',
     paddingHorizontal: 8,
   },

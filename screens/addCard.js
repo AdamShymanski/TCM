@@ -29,7 +29,7 @@ import pikachu from '../assets/pikachu.png';
 
 import PickerModal from '../shared/pickerModal';
 
-import { LanguagePickerModal } from './../shared/languagePickerModal';
+import { LanguagePickerModal } from '../shared/languagePickerModal';
 
 export default function AddCard() {
   const navigation = useNavigation();

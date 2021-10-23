@@ -13,6 +13,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import IconM from 'react-native-vector-icons/MaterialIcons';
 import IconF from 'react-native-vector-icons/Feather';
 
 import { fetchBigCards } from '../authContext';
@@ -168,6 +169,98 @@ export default function Header({
           </Text>
           <Icon
             name='cart-outline'
+            color={'#0082ff'}
+            size={30}
+            style={{ marginRight: 8 }}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  if (version == 'chatConversations') {
+    return (
+      <View
+        style={{
+          width: '100%',
+          height: '100%',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+        <MaterialIcons
+          name='menu'
+          size={28}
+          color={'#f4f4f4'}
+          onPress={() => {
+            openMenu();
+          }}
+          style={{
+            color: '#f4f4f4',
+            marginLeft: 16,
+          }}
+        />
+        <View
+          style={{
+            flexDirection: 'row',
+          }}>
+          <Text
+            style={{
+              color: '#f4f4f4',
+              fontWeight: '700',
+              fontSize: 21,
+              marginRight: 8,
+            }}>
+            {'Chat'}
+          </Text>
+          <IconM
+            name='chat-bubble-outline'
+            color={'#0082ff'}
+            size={30}
+            style={{ marginRight: 8 }}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  if (version == 'chat') {
+    return (
+      <View
+        style={{
+          width: '100%',
+          height: '100%',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+        <MaterialIcons
+          name='menu'
+          size={28}
+          color={'#f4f4f4'}
+          onPress={() => {
+            openMenu();
+          }}
+          style={{
+            color: '#f4f4f4',
+            marginLeft: 16,
+          }}
+        />
+        <View
+          style={{
+            flexDirection: 'row',
+          }}>
+          <Text
+            style={{
+              color: '#f4f4f4',
+              fontWeight: '700',
+              fontSize: 21,
+              marginRight: 8,
+            }}>
+            {'Chat'}
+          </Text>
+          <IconM
+            name='chat-bubble-outline'
             color={'#0082ff'}
             size={30}
             style={{ marginRight: 8 }}

@@ -10,6 +10,7 @@ import {
 
 export const LanguagePickerModal = ({ setValue, setVisible }) => {
   const countryCodes = [
+    { Code: 'PL', Name: 'Polish' },
     { Code: 'JP', Name: 'Japanese' },
     { Code: 'GB', Name: 'English' },
     { Code: 'BE', Name: 'Dutch' },
@@ -21,7 +22,6 @@ export const LanguagePickerModal = ({ setValue, setVisible }) => {
     { Code: 'KR', Name: 'Korean' },
     { Code: 'CN', Name: 'Traditional Chinese' },
     { Code: 'RU', Name: 'Russian' },
-    { Code: 'PL', Name: 'Polish' },
   ];
 
   return (

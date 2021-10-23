@@ -1,3 +1,4 @@
+// @refresh reset
 import React, { useState, useEffect } from 'react';
 
 import { NavigationContainer } from '@react-navigation/native';
@@ -9,24 +10,28 @@ import CustomDrawer from './shared/customDrawer';
 
 import { createStackNavigator } from '@react-navigation/stack';
 
-import Home from './screens/home.js';
-import SavedOffers from './screens/savedOffers.js';
-import Settings from './screens/settings.js';
-import YourOffers from './screens/yourOffers.js';
-import AddCard from './screens/addCard.js';
-import EditCard from './screens/editCard.js';
-import Welcome from './screens/welcome.js';
-import Register from './screens/register.js';
-import Login from './screens/login.js';
-import ImageBrowser from './screens/imageBrowser';
-import Thanks from './screens/thanks';
-import Orders from './screens/orders';
-import { ContactInfo } from './screens/contactInfo';
+import Home from './screens/Home.js';
+import SavedOffers from './screens/SavedOffers.js';
+import Settings from './screens/Settings.js';
+import YourOffers from './screens/YourOffers.js';
+import AddCard from './screens/AddCard.js';
+import EditCard from './screens/EditCard.js';
+import Welcome from './screens/Welcome.js';
+import Register from './screens/Register.js';
+import Login from './screens/Login.js';
+import ImageBrowser from './screens/ImageBrowser';
+import Thanks from './screens/Thanks';
+import Orders from './screens/Orders';
+import { ChatConversations } from './screens/ChatConverstations';
+import Chat from './screens/Chat';
+
+import { ContactInfo } from './screens/ContactInfo';
 
 import globalState from './global.js';
-import { auth } from './authContext.js';
+import { db, auth, setChatListeners, finishRegister } from './authContext.js';
 
 import { AdMobBanner, setTestDeviceIDAsync } from 'expo-ads-admob';
+import FinishGoogleRegister from './screens/FinishGoogleRegister';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -164,6 +169,69 @@ function OrdersStack() {
   );
 }
 
+function ChatStack() {
+  const [listenerData, setListenerData] = useState([]);
+
+  useEffect(() => {
+    const resolvePromises = async () => {
+      await setChatListeners(setListenerData);
+    };
+    resolvePromises();
+  }, []);
+
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name='ChatConversations'
+        children={() => <ChatConversations listenerData={listenerData} />}
+        options={{
+          headerTitle: () => <CustomHeader version={'chatConversations'} />,
+          headerStyle: {
+            backgroundColor: '#121212',
+          },
+        }}
+      />
+      <Stack.Screen
+        name='Chat'
+        component={Chat}
+        options={({ navigation, route }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 12,
+
+                height: 30,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 2,
+                borderColor: '#777777',
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+              }}
+              onPress={() => navigation.goBack()}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '700',
+                  color: '#777777',
+                }}>
+                {'Go back'}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerTintColor: '#121212',
+          headerTitle: '',
+          headerStyle: {
+            backgroundColor: '#121212',
+          },
+        })}
+      />
+    </Stack.Navigator>
+  );
+}
+
 function YourOffersStack() {
   const [bigCardsData, setBigCardsData] = useState(null);
   const [inputValue, setInputValue] = useState('');
@@ -193,6 +261,7 @@ function YourOffersStack() {
           },
         }}
       />
+
       <Stack.Screen
         name='ImageBrowser'
         component={ImageBrowser}
@@ -358,17 +427,31 @@ function YourOffersStack() {
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [finishRegisterProcess, setFinishRegisterProcess] = useState(null);
+
+  const [userName, setUserName] = useState('Rarity Declining');
+
+  // auth.signOut();
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      setCurrentUser(user);
-      globalState.userObject = currentUser;
-
       if (user) {
         await setTestDeviceIDAsync('EMULATOR');
+        const usersDoc = await db
+          .collection('users')
+          .doc(auth.currentUser.uid)
+          .get();
+
+        if (!usersDoc.exists) {
+          setFinishRegisterProcess(true);
+        } else {
+          //setListenerOnUsersDoc
+        }
       }
-      setLoading(false);
+      setCurrentUser(user);
     });
+
+    setLoading(false);
 
     return unsubscribe;
   }, []);
@@ -382,6 +465,56 @@ export default function App() {
   }
 
   if (currentUser) {
+    if (finishRegisterProcess) {
+      return (
+        <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen
+              name='setFinishRegisterProcess'
+              children={() => (
+                <FinishGoogleRegister
+                  callback={setFinishRegisterProcess}
+                  name={currentUser.displayName}
+                />
+              )}
+              options={({ navigation, route }) => ({
+                headerLeft: () => (
+                  <TouchableOpacity
+                    style={{
+                      borderRadius: 3,
+                      marginLeft: 12,
+
+                      height: 30,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderWidth: 2,
+                      borderColor: '#777777',
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                    }}
+                    onPress={() => auth.signOut()}>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: '700',
+                        color: '#777777',
+                      }}>
+                      {'Go back'}
+                    </Text>
+                  </TouchableOpacity>
+                ),
+                headerTintColor: '#121212',
+                headerTitle: '',
+                headerStyle: {
+                  backgroundColor: '#121212',
+                },
+              })}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      );
+    }
     return (
       <NavigationContainer>
         <Drawer.Navigator
@@ -392,18 +525,19 @@ export default function App() {
           <Drawer.Screen name='Home' component={HomeStack} />
           <Drawer.Screen name='Settings' component={SettingsStack} />
           <Drawer.Screen name='YourOffers' component={YourOffersStack} />
+          <Drawer.Screen name='Chat' component={ChatStack} />
           <Drawer.Screen name='Orders' component={OrdersStack} />
           <Drawer.Screen name='SavedOffers' component={SavedOffersStack} />
         </Drawer.Navigator>
-        {/* <AdMobBanner
+        <AdMobBanner
           bannerSize='smartBannerPortrait'
           adUnitID='ca-app-pub-2637485113454186/2096785031'
           //ca-app-pub-3940256099942544/6300978111
           servePersonalizedAds // true or false
           onDidFailToReceiveAdWithError={(error) => {
-            // console.log(error);
+            console.log(error);
           }}
-        /> */}
+        />
       </NavigationContainer>
     );
   }
@@ -416,7 +550,7 @@ export default function App() {
             headerShown: false,
           }}
           name='Welcome'
-          component={Welcome}
+          children={() => <Welcome setUserName={setFinishRegisterProcess} />}
         />
         <Stack.Screen
           options={({ navigation, route }) => ({
@@ -493,6 +627,43 @@ export default function App() {
           })}
           name='Login'
           component={Login}
+        />
+        <Stack.Screen
+          options={({ navigation, route }) => ({
+            headerLeft: () => (
+              <TouchableOpacity
+                style={{
+                  borderRadius: 3,
+                  marginLeft: 22,
+
+                  height: 30,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 2,
+                  borderColor: '#777777',
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                }}
+                onPress={() => navigation.navigate('Welcome')}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '700',
+                    color: '#777777',
+                  }}>
+                  {'Go back'}
+                </Text>
+              </TouchableOpacity>
+            ),
+            headerTintColor: '#121212',
+            headerTitle: '',
+            headerStyle: {
+              backgroundColor: '#121212',
+            },
+          })}
+          name='FinishGoogleRegister'
+          component={FinishGoogleRegister}
         />
       </Stack.Navigator>
     </NavigationContainer>

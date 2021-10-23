@@ -10,7 +10,7 @@ import {
 import * as yup from 'yup';
 
 import { TextInput } from 'react-native-paper';
-import { login } from './../authContext';
+import { login } from '../authContext';
 import { Formik, ErrorMessage } from 'formik';
 
 const reviewSchema = yup.object({

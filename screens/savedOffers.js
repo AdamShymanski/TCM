@@ -19,10 +19,6 @@ import IconMI from 'react-native-vector-icons/MaterialCommunityIcons';
 import { CardSavedOffers } from '../shared/cards/cardSavedOffers';
 import { globalStyles, images } from '../styles/global';
 
-// import venusaur from './../assets/venusaur.png';
-// import reputation_icon from './../assets/reputation_icon.png';
-// import collection_icon from './../assets/collection_icon.png';
-
 import { fetchSavedCards } from '../authContext';
 import pokemon from 'pokemontcgsdk';
 import Condition from 'yup/lib/Condition';
@@ -44,7 +40,13 @@ export default function SavedOffers({ navigation }) {
   }, [isFocused]);
 
   return (
-    <View style={globalStyles.container}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: '#1b1b1b',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}>
       {!loadingState ? (
         <FlatList
           data={cardsData}
