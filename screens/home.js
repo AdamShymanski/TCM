@@ -8,8 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-import { globalStyles, images } from '../styles/global';
-import IconMI from 'react-native-vector-icons/MaterialCommunityIcons';
+import { globalStyles } from '../styles/global';
 
 import {
   fetchCards,
@@ -24,7 +23,6 @@ import pikachu from '../assets/pikachu.png';
 
 import BigCardHome from '../shared/cards/BigCardHome';
 import { CardHome } from '../shared/cards/CardHome';
-import { TabRouter } from 'react-navigation';
 
 export default function Home({
   bigCardsData,

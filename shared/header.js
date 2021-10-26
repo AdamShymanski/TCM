@@ -18,7 +18,7 @@ import IconF from 'react-native-vector-icons/Feather';
 
 import { fetchBigCards } from '../authContext';
 
-export default function Header({
+export default function CustomHeader({
   version,
   setBigCardsData,
   setPageNumber,

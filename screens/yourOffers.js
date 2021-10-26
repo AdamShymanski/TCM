@@ -6,7 +6,7 @@ import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import { DeleteCardModal } from '../shared/DeleteCardModal';
+import DeleteCardModal from '../shared/DeleteCardModal';
 import { CardCollection } from '../shared/cards/CardCollection';
 import { fetchUsersCards, fetchOwnerData, auth } from '../authContext';
 

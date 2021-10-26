@@ -10,7 +10,7 @@ import {
 
 import { deleteCard } from '../authContext';
 
-export const DeleteCardModal = ({ setModal, id }) => {
+export default function DeleteCardModal({ setModal, id }) {
   return (
     <Modal
       style={{
@@ -48,8 +48,8 @@ export const DeleteCardModal = ({ setModal, id }) => {
               width: '90%',
               marginTop: 10,
             }}>
-            If you choose to delete this card, you will not be able to
-            recover the lost data later.
+            If you choose to delete this card, you will not be able to recover
+            the lost data later.
           </Text>
           <View style={{ flexDirection: 'row-reverse', marginTop: 32 }}>
             <TouchableOpacity
@@ -108,4 +108,4 @@ export const DeleteCardModal = ({ setModal, id }) => {
       </TouchableOpacity>
     </Modal>
   );
-};
+}
