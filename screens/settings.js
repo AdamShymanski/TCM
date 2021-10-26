@@ -17,11 +17,13 @@ import {
   updateUserData,
   deleteAccount,
   changeEmail,
+  auth,
 } from '../authContext';
 
-import ReauthenticationModal from '../shared/reauthenticationModal';
-import ChangePasswordModal from '../shared/changePasswordModal';
-import { CountryPickerModal } from '../shared/countryPickerModal';
+import ReauthenticationModal from '../shared/ReauthenticationModal';
+import ChangePasswordModal from '../shared/ChangePasswordModal';
+import { CountryPickerModal } from '../shared/CountryPickerModal';
+import { AreYouSureModal } from '../shared/AreYouSureModal';
 
 const onlyLettersRegEx =
   /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$/u;
@@ -31,24 +33,22 @@ const reviewSchema = yup.object({
   nick: yup
     .string('Wrong format!')
     .min(4, 'Name must be longer then 4 charts!'),
-  // address: yup.string('Wrong format!').required('Address is required!'),
-  // postalCode: yup
-  //   .string('Wrong format!')
-  //   .required('Postal or Zip Code is required!'),
   country: yup
     .string('Wrong format!')
     .required('Country is required!')
     .matches(firstCapitalLetter, 'Wrong country name!')
     .matches(onlyLettersRegEx, 'Name cannot contain numbers or symbols!'),
-  // phoneNumber: yup
-  //   .string('Wrong format!')
-  //   .required('Phone Number is required!')
-  //   .min(9, 'Phone number is too short!'),
 });
 
 export default function Settings() {
   const [loading, setLoading] = useState(true);
-  const [userData, setUserData] = useState(true);
+  const [userData, setUserData] = useState({
+    nick: '',
+    country: '',
+    whatsAppContact: '',
+    instagramContact: '',
+    discordContact: '',
+  });
   const [modalState, setModal] = useState(false);
   const [reauthenticationResult, setReauthenticationResult] = useState(null);
   const [actionType, setActionType] = useState(null);
@@ -69,16 +69,16 @@ export default function Settings() {
     'instagramContact',
   ];
   const initValues = [
-    // userData.phoneNumber,
     userData.nick,
-    // userData.address,
-    // userData.postalCode,
     userData.country,
     userData.whatsAppContact,
     userData.discordContact,
     userData.instagramContact,
   ];
+
   const [outValues, setOutValues] = useState(null);
+
+  const [areYouSureModal, setAreYouSureModal] = useState(false);
 
   useEffect(() => {
     const resolvePromises = async () => {
@@ -100,6 +100,7 @@ export default function Settings() {
         }
         if (actionType == null) {
           await updateUserData(initValues, outValues, valuesOrder);
+          setUserData(await fetchUserData());
         }
 
         setModal(false);
@@ -129,6 +130,12 @@ export default function Settings() {
           <ReauthenticationModal
             setReauthenticationResult={setReauthenticationResult}
             setModal={setModal}
+          />
+        ) : null}
+        {areYouSureModal ? (
+          <AreYouSureModal
+            setReauthenticationResult={setReauthenticationResult}
+            setModal={setAreYouSureModal}
           />
         ) : null}
         {changePasswordModal ? (
@@ -343,31 +350,35 @@ export default function Settings() {
                     borderColor: '#5c5c5c',
                     marginBottom: 20,
                   }}>
-                  <TouchableOpacity
-                    style={{
-                      height: 30,
-                      marginTop: 20,
-
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-
-                      backgroundColor: '#0082FF',
-                      borderRadius: 3,
-                      paddingHorizontal: 12,
-                    }}
-                    onPress={() => {
-                      setChangePasswordModal(true);
-                    }}>
-                    <Text
+                  {auth.currentUser?.providerData[0].providerId !=
+                  'google.com' ? (
+                    <TouchableOpacity
                       style={{
-                        fontSize: 16,
-                        fontWeight: '700',
-                        color: '#121212',
+                        height: 30,
+                        marginTop: 20,
+
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+
+                        backgroundColor: '#0082FF',
+                        borderRadius: 3,
+                        paddingHorizontal: 12,
+                      }}
+                      onPress={() => {
+                        setChangePasswordModal(true);
                       }}>
-                      Change Password
-                    </Text>
-                  </TouchableOpacity>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: '700',
+                          color: '#121212',
+                        }}>
+                        Change Password
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
+
                   <TouchableOpacity
                     style={{
                       height: 30,
@@ -382,8 +393,16 @@ export default function Settings() {
                       paddingHorizontal: 12,
                     }}
                     onPress={() => {
-                      setActionType('deleteAccount');
-                      setModal(true);
+                      if (
+                        auth.currentUser?.providerData[0].providerId !=
+                        'google.com'
+                      ) {
+                        setActionType('deleteAccount');
+                        setModal(true);
+                      } else {
+                        setActionType('deleteAccount');
+                        setAreYouSureModal(true);
+                      }
                     }}>
                     <Text
                       style={{
@@ -394,67 +413,7 @@ export default function Settings() {
                       Delete Account
                     </Text>
                   </TouchableOpacity>
-                  {/* <TouchableOpacity
-                    style={{
-                      height: 30,
-                      marginTop: 20,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-
-                      backgroundColor: '#0082FF',
-                      borderRadius: 3,
-                      paddingHorizontal: 20,
-                    }}
-                    onPress={() => {
-                      setActionType('changeEmail');
-                      setModal(true);
-                    }}>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: '700',
-                        color: '#121212',
-                      }}>
-                      Change Email
-                    </Text>
-                  </TouchableOpacity> */}
                 </View>
-                {/* <View
-                  style={{
-                    width: '80%',
-                    flexDirection: 'row-reverse',
-                    marginBottom: 20,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                  <TouchableOpacity
-                    style={{
-                      height: 30,
-                      marginTop: 20,
-
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-
-                      backgroundColor: '#0082FF',
-                      borderRadius: 3,
-                      paddingHorizontal: 20,
-                    }}
-                    onPress={() => {
-                      setActionType('deleteAccount');
-                      setModal(true);
-                    }}>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: '700',
-                        color: '#121212',
-                      }}>
-                      Delete Account
-                    </Text>
-                  </TouchableOpacity>
-                </View> */}
               </View>
             )}
           </Formik>
@@ -483,10 +442,7 @@ export default function Settings() {
             }}
             onSubmit={async (values, actions) => {
               setOutValues([
-                // userData.phoneNumber,
                 userData.nick,
-                // userData.address,
-                // userData.postalCode,
                 userData.country,
                 values.whatsAppContact,
                 values.instagramContact,
@@ -496,10 +452,7 @@ export default function Settings() {
               const detectChanges = () => {
                 let change = false;
                 [
-                  // userData.phoneNumber,
                   userData.nick,
-                  // userData.address,
-                  // userData.postalCode,
                   userData.country,
                   values.whatsAppContact,
                   values.instagramContact,

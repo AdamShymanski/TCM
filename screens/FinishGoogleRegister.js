@@ -13,7 +13,7 @@ import * as yup from 'yup';
 
 import { db, auth } from '../authContext';
 
-import { CountryPickerModal } from '../shared/countryPickerModal';
+import { CountryPickerModal } from '../shared/CountryPickerModal';
 
 const firstCapitalLetter = /^[A-Z].*/;
 const reviewSchema = yup.object({

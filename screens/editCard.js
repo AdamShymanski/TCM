@@ -18,13 +18,13 @@ import {
 } from 'react-native';
 import { Switch, TextInput } from 'react-native-paper';
 
-import CardAcp from '../shared/cards/cardAcp';
+import CardAcp from '../shared/cards/CardAcp';
 import { useNavigation } from '@react-navigation/native';
 import { fetchBigCards, fetchMoreBigCards, updateCard } from '../authContext';
 
 import pikachu from '../assets/pikachu.png';
 
-import PickerModal from '../shared/pickerModal';
+import PickerModal from '../shared/PickerModal';
 
 export default function EditCard({ route }) {
   const navigation = useNavigation();

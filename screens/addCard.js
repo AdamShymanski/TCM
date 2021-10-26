@@ -20,16 +20,16 @@ import { Switch, TextInput } from 'react-native-paper';
 
 // import { Picker } from '@react-native-picker/picker';
 
-import CardAcp from '../shared/cards/cardAcp';
+import CardAcp from '../shared/cards/CardAcp';
 
 import { useNavigation } from '@react-navigation/native';
 import { addCard, fetchBigCards, fetchMoreBigCards } from '../authContext';
 
 import pikachu from '../assets/pikachu.png';
 
-import PickerModal from '../shared/pickerModal';
+import PickerModal from '../shared/PickerModal';
 
-import { LanguagePickerModal } from '../shared/languagePickerModal';
+import { LanguagePickerModal } from '../shared/LanguagePickerModal';
 
 export default function AddCard() {
   const navigation = useNavigation();

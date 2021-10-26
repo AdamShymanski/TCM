@@ -62,12 +62,6 @@ export default function CustomDrawer({ navigation }) {
             </View>
 
             <View style={styles.row}>
-              {/* <View style={styles.section}>
-                <Paragraph style={[styles.paragraph, styles.caption]}>
-                  {owner.reputation}
-                </Paragraph>
-                <Caption style={styles.caption}>Reputation</Caption>
-              </View> */}
               <View style={styles.section}>
                 <Paragraph style={[styles.paragraph, styles.caption]}>
                   {owner.collectionSize}
@@ -142,7 +136,7 @@ export default function CustomDrawer({ navigation }) {
                 navigation.navigate('Settings');
               }}
             />
-            <DrawerItem
+            {/* <DrawerItem
               icon={({ color, size }) => (
                 <Icon
                   name='account-check-outline'
@@ -155,7 +149,7 @@ export default function CustomDrawer({ navigation }) {
               onPress={() => {
                 // props.navigation.navigate('SupportScreen');
               }}
-            />
+            /> */}
           </Drawer.Section>
         </View>
       </DrawerContentScrollView>
