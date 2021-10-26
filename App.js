@@ -1,12 +1,12 @@
 // @refresh reset
 import React, { useState, useEffect } from 'react';
-
+import * as Updates from 'expo-updates';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Button, View, Text, TouchableOpacity, Image } from 'react-native';
 
-import CustomHeader from './shared/header';
-import CustomDrawer from './shared/customDrawer';
+import CustomHeader from './shared/Header';
+import CustomDrawer from './shared/CustomDrawer';
 
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -25,10 +25,10 @@ import Orders from './screens/Orders';
 import { ChatConversations } from './screens/ChatConverstations';
 import Chat from './screens/Chat';
 
-import { ContactInfo } from './screens/ContactInfo';
+import Buy from './screens/Buy';
+import NewBuy from './screens/NewBuy';
 
-import globalState from './global.js';
-import { db, auth, setChatListeners, finishRegister } from './authContext.js';
+import { db, auth, setChatListeners } from './authContext.js';
 
 import { AdMobBanner, setTestDeviceIDAsync } from 'expo-ads-admob';
 import FinishGoogleRegister from './screens/FinishGoogleRegister';
@@ -78,8 +78,8 @@ function HomeStack() {
         }}
       />
       <Stack.Screen
-        name='ContactInfo'
-        component={ContactInfo}
+        name='Buy'
+        component={Buy}
         options={({ navigation, route }) => ({
           headerLeft: () => (
             <TouchableOpacity
@@ -117,7 +117,6 @@ function HomeStack() {
     </Stack.Navigator>
   );
 }
-
 function SavedOffersStack() {
   return (
     <Stack.Navigator>
@@ -134,7 +133,6 @@ function SavedOffersStack() {
     </Stack.Navigator>
   );
 }
-
 function SettingsStack() {
   return (
     <Stack.Navigator>
@@ -151,7 +149,6 @@ function SettingsStack() {
     </Stack.Navigator>
   );
 }
-
 function OrdersStack() {
   return (
     <Stack.Navigator>
@@ -168,7 +165,6 @@ function OrdersStack() {
     </Stack.Navigator>
   );
 }
-
 function ChatStack() {
   const [listenerData, setListenerData] = useState([]);
 
@@ -231,7 +227,6 @@ function ChatStack() {
     </Stack.Navigator>
   );
 }
-
 function YourOffersStack() {
   const [bigCardsData, setBigCardsData] = useState(null);
   const [inputValue, setInputValue] = useState('');
@@ -247,7 +242,7 @@ function YourOffersStack() {
         options={{
           headerTitle: () => (
             <CustomHeader
-              version={'collection'}
+              version={'yourOffers'}
               setCardsData={setBigCardsData}
               setPageNumber={setPageNumber}
               setInputValue={setInputValue}
@@ -429,14 +424,10 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [finishRegisterProcess, setFinishRegisterProcess] = useState(null);
 
-  const [userName, setUserName] = useState('Rarity Declining');
-
-  // auth.signOut();
-
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        await setTestDeviceIDAsync('EMULATOR');
+        // await setTestDeviceIDAsync('EMULATOR');
         const usersDoc = await db
           .collection('users')
           .doc(auth.currentUser.uid)
@@ -448,11 +439,24 @@ export default function App() {
           //setListenerOnUsersDoc
         }
       }
+      setLoading(false);
       setCurrentUser(user);
     });
 
-    setLoading(false);
+    const resolvePromises = async () => {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          console.log('Update');
+          Updates.reloadAsync();
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    };
 
+    resolvePromises();
     return unsubscribe;
   }, []);
 
@@ -462,9 +466,7 @@ export default function App() {
         <View />
       </View>
     );
-  }
-
-  if (currentUser) {
+  } else if (currentUser) {
     if (finishRegisterProcess) {
       return (
         <NavigationContainer>
@@ -514,158 +516,159 @@ export default function App() {
           </Stack.Navigator>
         </NavigationContainer>
       );
+    } else {
+      return (
+        <NavigationContainer>
+          <Drawer.Navigator
+            style={{ backgroundColor: '#82ff00' }}
+            drawerContent={({ navigation }) => (
+              <CustomDrawer navigation={navigation} />
+            )}>
+            <Drawer.Screen name='Home' component={HomeStack} />
+            <Drawer.Screen name='Settings' component={SettingsStack} />
+            <Drawer.Screen name='YourOffers' component={YourOffersStack} />
+            <Drawer.Screen name='Chat' component={ChatStack} />
+            <Drawer.Screen name='Orders' component={OrdersStack} />
+            <Drawer.Screen name='SavedOffers' component={SavedOffersStack} />
+          </Drawer.Navigator>
+          <AdMobBanner
+            bannerSize='smartBannerPortrait'
+            adUnitID='ca-app-pub-2637485113454186/2096785031'
+            //ca-app-pub-3940256099942544/6300978111
+            servePersonalizedAds // true or false
+            onDidFailToReceiveAdWithError={(error) => {
+              console.log(error);
+            }}
+          />
+        </NavigationContainer>
+      );
     }
+  } else {
     return (
       <NavigationContainer>
-        <Drawer.Navigator
-          style={{ backgroundColor: '#82ff00' }}
-          drawerContent={({ navigation }) => (
-            <CustomDrawer navigation={navigation} />
-          )}>
-          <Drawer.Screen name='Home' component={HomeStack} />
-          <Drawer.Screen name='Settings' component={SettingsStack} />
-          <Drawer.Screen name='YourOffers' component={YourOffersStack} />
-          <Drawer.Screen name='Chat' component={ChatStack} />
-          <Drawer.Screen name='Orders' component={OrdersStack} />
-          <Drawer.Screen name='SavedOffers' component={SavedOffersStack} />
-        </Drawer.Navigator>
-        <AdMobBanner
-          bannerSize='smartBannerPortrait'
-          adUnitID='ca-app-pub-2637485113454186/2096785031'
-          //ca-app-pub-3940256099942544/6300978111
-          servePersonalizedAds // true or false
-          onDidFailToReceiveAdWithError={(error) => {
-            console.log(error);
-          }}
-        />
+        <Stack.Navigator>
+          <Stack.Screen
+            options={{
+              headerShown: false,
+            }}
+            name='Welcome'
+            children={() => <Welcome setUserName={setFinishRegisterProcess} />}
+          />
+          <Stack.Screen
+            options={({ navigation, route }) => ({
+              headerLeft: () => (
+                <TouchableOpacity
+                  style={{
+                    borderRadius: 3,
+                    marginLeft: 22,
+
+                    height: 30,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 2,
+                    borderColor: '#777777',
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                  }}
+                  onPress={() => navigation.navigate('Welcome')}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '700',
+                      color: '#777777',
+                    }}>
+                    {'Go back'}
+                  </Text>
+                </TouchableOpacity>
+              ),
+              headerTintColor: '#121212',
+              headerTitle: '',
+              headerStyle: {
+                backgroundColor: '#121212',
+              },
+            })}
+            // initialParams={{ auth: firebase.auth() }}
+            name='Register'
+            component={Register}
+          />
+          <Stack.Screen
+            options={({ navigation, route }) => ({
+              headerLeft: () => (
+                <TouchableOpacity
+                  style={{
+                    borderRadius: 3,
+                    marginLeft: 22,
+
+                    height: 30,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 2,
+                    borderColor: '#777777',
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                  }}
+                  onPress={() => navigation.navigate('Welcome')}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '700',
+                      color: '#777777',
+                    }}
+                    onPress={() => navigation.navigate('Welcome')}>
+                    {'Go back'}
+                  </Text>
+                </TouchableOpacity>
+              ),
+              headerTintColor: '#121212',
+              headerTitle: '',
+              headerStyle: {
+                backgroundColor: '#121212',
+              },
+            })}
+            name='Login'
+            component={Login}
+          />
+          <Stack.Screen
+            options={({ navigation, route }) => ({
+              headerLeft: () => (
+                <TouchableOpacity
+                  style={{
+                    borderRadius: 3,
+                    marginLeft: 22,
+
+                    height: 30,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 2,
+                    borderColor: '#777777',
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                  }}
+                  onPress={() => navigation.navigate('Welcome')}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '700',
+                      color: '#777777',
+                    }}>
+                    {'Go back'}
+                  </Text>
+                </TouchableOpacity>
+              ),
+              headerTintColor: '#121212',
+              headerTitle: '',
+              headerStyle: {
+                backgroundColor: '#121212',
+              },
+            })}
+            name='FinishGoogleRegister'
+            component={FinishGoogleRegister}
+          />
+        </Stack.Navigator>
       </NavigationContainer>
     );
   }
-
-  return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          options={{
-            headerShown: false,
-          }}
-          name='Welcome'
-          children={() => <Welcome setUserName={setFinishRegisterProcess} />}
-        />
-        <Stack.Screen
-          options={({ navigation, route }) => ({
-            headerLeft: () => (
-              <TouchableOpacity
-                style={{
-                  borderRadius: 3,
-                  marginLeft: 22,
-
-                  height: 30,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 2,
-                  borderColor: '#777777',
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                }}
-                onPress={() => navigation.navigate('Welcome')}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '700',
-                    color: '#777777',
-                  }}>
-                  {'Go back'}
-                </Text>
-              </TouchableOpacity>
-            ),
-            headerTintColor: '#121212',
-            headerTitle: '',
-            headerStyle: {
-              backgroundColor: '#121212',
-            },
-          })}
-          // initialParams={{ auth: firebase.auth() }}
-          name='Register'
-          component={Register}
-        />
-        <Stack.Screen
-          options={({ navigation, route }) => ({
-            headerLeft: () => (
-              <TouchableOpacity
-                style={{
-                  borderRadius: 3,
-                  marginLeft: 22,
-
-                  height: 30,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 2,
-                  borderColor: '#777777',
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                }}
-                onPress={() => navigation.navigate('Welcome')}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '700',
-                    color: '#777777',
-                  }}
-                  onPress={() => navigation.navigate('Welcome')}>
-                  {'Go back'}
-                </Text>
-              </TouchableOpacity>
-            ),
-            headerTintColor: '#121212',
-            headerTitle: '',
-            headerStyle: {
-              backgroundColor: '#121212',
-            },
-          })}
-          name='Login'
-          component={Login}
-        />
-        <Stack.Screen
-          options={({ navigation, route }) => ({
-            headerLeft: () => (
-              <TouchableOpacity
-                style={{
-                  borderRadius: 3,
-                  marginLeft: 22,
-
-                  height: 30,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 2,
-                  borderColor: '#777777',
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                }}
-                onPress={() => navigation.navigate('Welcome')}>
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '700',
-                    color: '#777777',
-                  }}>
-                  {'Go back'}
-                </Text>
-              </TouchableOpacity>
-            ),
-            headerTintColor: '#121212',
-            headerTitle: '',
-            headerStyle: {
-              backgroundColor: '#121212',
-            },
-          })}
-          name='FinishGoogleRegister'
-          component={FinishGoogleRegister}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
 }

@@ -106,7 +106,7 @@ const ChangePasswordModal = ({ setModal }) => {
                       : false
                   }
                   style={{
-                    width: '70%',
+                    width: '90%',
                     backgroundColor: '#121212',
                     color: '#f4f4f4',
                     marginTop:
@@ -128,7 +128,7 @@ const ChangePasswordModal = ({ setModal }) => {
                   {(msg) => (
                     <Text
                       style={{
-                        width: '70%',
+                        width: '90%',
                         marginTop: 8,
                         marginBottom: 18,
                         height: 20,
@@ -154,7 +154,7 @@ const ChangePasswordModal = ({ setModal }) => {
                       : false
                   }
                   style={{
-                    width: '70%',
+                    width: '90%',
                     backgroundColor: '#121212',
                     color: '#f4f4f4',
                     marginTop:
@@ -176,7 +176,7 @@ const ChangePasswordModal = ({ setModal }) => {
                   {(msg) => (
                     <Text
                       style={{
-                        width: '70%',
+                        width: '90%',
                         marginTop: 8,
                         marginBottom: 30,
                         height: 20,
@@ -203,7 +203,7 @@ const ChangePasswordModal = ({ setModal }) => {
                       : false
                   }
                   style={{
-                    width: '70%',
+                    width: '90%',
                     backgroundColor: '#121212',
                     color: '#f4f4f4',
                     marginTop:
@@ -224,7 +224,7 @@ const ChangePasswordModal = ({ setModal }) => {
                   {(msg) => (
                     <Text
                       style={{
-                        width: '70%',
+                        width: '90%',
                         marginTop: 8,
                         marginBottom: 18,
                         height: 20,

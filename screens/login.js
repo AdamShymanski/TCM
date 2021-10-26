@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  StyleSheet,
   View,
   Text,
   TouchableOpacity,
@@ -33,7 +32,6 @@ export default function Login() {
             color: '#f4f4f4',
             fontSize: 46,
             marginTop: 40,
-
             marginBottom: 18,
           }}>
           Login

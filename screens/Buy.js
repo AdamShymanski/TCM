@@ -7,7 +7,7 @@ import instagramIcon from '../assets/instagramIcon.png';
 import whatsAppIcon from '../assets/whatsAppIcon.png';
 import copyIcon from '../assets/copy_icon.png';
 
-export const ContactInfo = ({ route }) => {
+export default function Buy({ route }) {
   const navigation = useNavigation();
 
   const discordContact = route.params.discordContact;
@@ -47,30 +47,35 @@ export const ContactInfo = ({ route }) => {
         {discordContact ? (
           <View
             style={{
-              alignItems: 'center',
               flexDirection: 'row',
-              borderColor: '#1b1b1b',
-              borderBottomColor: '#5c5c5c',
-              paddingBottom: 16,
-              borderRadius: 2,
-              borderWidth: 2,
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: '#121212',
+
+              borderRadius: 4,
+              marginTop: 28,
+              paddingVertical: 10,
+              paddingHorizontal: 18,
             }}>
-            <Image
-              source={discordIcon}
-              style={{ width: 38, height: 38, marginRight: 18 }}
-            />
-            <View
-              style={{
-                paddingHorizontal: 10,
-                paddingVertical: 6,
-                backgroundColor: '#121212',
-                borderRadius: 3,
-              }}>
-              <Text
-                style={{ color: '#f4f4f4', fontSize: 20, fontWeight: '700' }}>
-                {discordContact}
-              </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Image
+                source={discordIcon}
+                style={{ width: 38, height: 38, marginRight: 10 }}
+              />
+              <View
+                style={{
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  backgroundColor: '#121212',
+                  borderRadius: 3,
+                }}>
+                <Text
+                  style={{ color: '#f4f4f4', fontSize: 20, fontWeight: '700' }}>
+                  {discordContact}
+                </Text>
+              </View>
             </View>
+
             <TouchableOpacity
               onPress={() => {
                 Clipboard.setString(discordContact);
@@ -81,7 +86,6 @@ export const ContactInfo = ({ route }) => {
                   aspectRatio: 63 / 63,
                   width: 30,
                   height: undefined,
-                  marginLeft: 20,
                 }}
               />
             </TouchableOpacity>
@@ -90,34 +94,38 @@ export const ContactInfo = ({ route }) => {
         {instagramContact ? (
           <View
             style={{
-              alignItems: 'center',
               flexDirection: 'row',
-              borderColor: '#1b1b1b',
-              borderBottomColor: '#5c5c5c',
-              paddingBottom: 16,
-              borderRadius: 2,
-              borderWidth: 2,
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: '#121212',
+
+              borderRadius: 4,
               marginTop: 28,
+              paddingVertical: 10,
+              paddingHorizontal: 18,
             }}>
-            <Image
-              source={instagramIcon}
-              style={{ width: 38, height: 38, marginRight: 18 }}
-            />
-            <View
-              style={{
-                paddingHorizontal: 10,
-                paddingVertical: 6,
-                backgroundColor: '#121212',
-                borderRadius: 3,
-              }}>
-              <Text
-                style={{ color: '#f4f4f4', fontSize: 20, fontWeight: '700' }}>
-                {instagramContact}
-              </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Image
+                source={instagramIcon}
+                style={{ width: 38, height: 38, marginRight: 10 }}
+              />
+              <View
+                style={{
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  backgroundColor: '#121212',
+                  borderRadius: 3,
+                }}>
+                <Text
+                  style={{ color: '#f4f4f4', fontSize: 20, fontWeight: '700' }}>
+                  {instagramContact}
+                </Text>
+              </View>
             </View>
+
             <TouchableOpacity
               onPress={() => {
-                Clipboard.setString(discordContact);
+                Clipboard.setString(instagramContact);
               }}>
               <Image
                 source={copyIcon}
@@ -125,7 +133,6 @@ export const ContactInfo = ({ route }) => {
                   aspectRatio: 63 / 63,
                   width: 30,
                   height: undefined,
-                  marginLeft: 20,
                 }}
               />
             </TouchableOpacity>
@@ -134,31 +141,35 @@ export const ContactInfo = ({ route }) => {
         {whatsAppContact ? (
           <View
             style={{
-              alignItems: 'center',
               flexDirection: 'row',
-              borderColor: '#1b1b1b',
-              borderBottomColor: '#5c5c5c',
-              paddingBottom: 16,
-              borderRadius: 2,
-              borderWidth: 2,
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: '#121212',
+
+              borderRadius: 4,
               marginTop: 28,
+              paddingVertical: 10,
+              paddingHorizontal: 18,
             }}>
-            <Image
-              source={whatsAppIcon}
-              style={{ width: 38, height: 38, marginRight: 18 }}
-            />
-            <View
-              style={{
-                paddingHorizontal: 10,
-                paddingVertical: 6,
-                backgroundColor: '#121212',
-                borderRadius: 3,
-              }}>
-              <Text
-                style={{ color: '#f4f4f4', fontSize: 20, fontWeight: '700' }}>
-                {whatsAppContact}
-              </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Image
+                source={whatsAppIcon}
+                style={{ width: 38, height: 38, marginRight: 10 }}
+              />
+              <View
+                style={{
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  backgroundColor: '#121212',
+                  borderRadius: 3,
+                }}>
+                <Text
+                  style={{ color: '#f4f4f4', fontSize: 20, fontWeight: '700' }}>
+                  {whatsAppContact}
+                </Text>
+              </View>
             </View>
+
             <TouchableOpacity
               onPress={() => {
                 Clipboard.setString(whatsAppContact);
@@ -169,7 +180,6 @@ export const ContactInfo = ({ route }) => {
                   aspectRatio: 63 / 63,
                   width: 30,
                   height: undefined,
-                  marginLeft: 20,
                 }}
               />
             </TouchableOpacity>
@@ -178,4 +188,4 @@ export const ContactInfo = ({ route }) => {
       </View>
     </View>
   );
-};
+}

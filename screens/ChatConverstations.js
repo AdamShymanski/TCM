@@ -6,34 +6,75 @@ import { fetchOwnerData } from '../authContext';
 import { useNavigation } from '@react-navigation/native';
 
 import { auth } from '../authContext';
+import IconM from 'react-native-vector-icons/MaterialIcons';
 
 export const ChatConversations = ({ listenerData }) => {
+  console.log(listenerData.length);
   return (
     <View style={{ flex: 1, backgroundColor: '#1b1b1b' }}>
-      <FlatList
-        data={listenerData}
-        renderItem={({ item, index }) => {
-          let notificationState;
-          if (
-            listenerData[index].data.notificationFor == auth.currentUser.uid
-          ) {
-            notificationState = true;
-          } else notificationState = false;
-          return (
-            <ConversationBar
-              uid={listenerData[index].uid}
-              lastMessage={listenerData[index].data?.messages[0]}
-              notificationState={notificationState}
-              data={listenerData[index]}
-            />
-          );
-        }}
-        keyExtractor={(item, index) => index.toString()}
-        onEndReached={async () => {
-          // console.log('hello');
-        }}
-        onEndReachedThreshold={4}
-      />
+      {listenerData.length !== 0 ? (
+        <FlatList
+          data={listenerData}
+          renderItem={({ item, index }) => {
+            let notificationState;
+            if (
+              listenerData[index].data.notificationFor == auth.currentUser.uid
+            ) {
+              notificationState = true;
+            } else notificationState = false;
+            return (
+              <ConversationBar
+                uid={listenerData[index].uid}
+                lastMessage={listenerData[index].data?.messages[0]}
+                notificationState={notificationState}
+                data={listenerData[index]}
+              />
+            );
+          }}
+          keyExtractor={(item, index) => index.toString()}
+          onEndReached={async () => {
+            // console.log('hello');
+          }}
+          onEndReachedThreshold={4}
+        />
+      ) : (
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#1b1b1b',
+          }}>
+          <IconM
+            name='chat-bubble'
+            color={'#0082ff'}
+            size={58}
+            style={{ marginBottom: 12 }}
+          />
+          <Text
+            style={{
+              color: '#f4f4f4',
+              fontSize: 38,
+              fontWeight: '700',
+              marginBottom: 12,
+              paddingHorizontal: 20,
+              textAlign: 'center',
+            }}>
+            Start Texting!
+          </Text>
+          <Text
+            style={{
+              color: '#4f4f4f',
+              fontSize: 15,
+              width: '88%',
+              marginBottom: 60,
+              textAlign: 'center',
+            }}>
+            If you find a sale that interests you, you can go to the seller's
+            profile and start discussing with them via chat.
+          </Text>
+        </View>
+      )}
     </View>
   );
 };

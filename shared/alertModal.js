@@ -1,12 +1,5 @@
-import React, { useEffect } from 'react';
-import {
-  Image,
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  FlatList,
-} from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, Modal } from 'react-native';
 
 export const AlertModal = ({ setModal }) => {
   return (
@@ -29,12 +22,12 @@ export const AlertModal = ({ setModal }) => {
         }}>
         <View
           style={{
-            width: '80%',
+            width: '87%',
 
             backgroundColor: '#121212',
             borderRadius: 8,
-            paddingVertical: 12,
-            paddingHorizontal: 12,
+            paddingVertical: 18,
+            paddingHorizontal: 18,
           }}>
           <Text style={{ color: '#f4f4f4', fontSize: 26, fontWeight: '700' }}>
             Alert!
@@ -44,8 +37,7 @@ export const AlertModal = ({ setModal }) => {
               color: '#5c5c5c',
               fontSize: 12,
               width: '60%',
-              marginTop: 12,
-              marginLeft: 10,
+              marginTop: 8,
             }}>
             You must firstly add contact info for buyers in Settings Tab.
           </Text>

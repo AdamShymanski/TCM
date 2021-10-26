@@ -8,10 +8,7 @@ import {
   FlatList,
 } from 'react-native';
 
-import { MaterialIcons } from '@expo/vector-icons';
-import { TextInput, ErrorMessage } from 'react-native-paper';
-import IconMI from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import { TextInput } from 'react-native-paper';
 import { reauthenticate } from '../authContext';
 
 const ReauthenticationModal = ({ setReauthenticationResult, setModal }) => {
@@ -26,15 +23,12 @@ const ReauthenticationModal = ({ setReauthenticationResult, setModal }) => {
         alignItems: 'center',
       }}
       transparent={true}>
-      <TouchableOpacity
+      <View
         style={{
           flex: 1,
           backgroundColor: 'rgba(0,0,0,0.5)',
           justifyContent: 'center',
           alignItems: 'center',
-        }}
-        onPress={() => {
-          setModal(false);
         }}>
         <View
           style={{
@@ -111,6 +105,33 @@ const ReauthenticationModal = ({ setReauthenticationResult, setModal }) => {
                 Submit
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                height: 30,
+                marginTop: 20,
+                marginRight: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+
+                borderColor: '#5c5c5c',
+                borderWidth: 2,
+
+                borderRadius: 3,
+                paddingHorizontal: 20,
+              }}
+              onPress={() => {
+                setModal(false);
+              }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '700',
+                  color: '#5c5c5c',
+                }}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
             <Text
               style={{
                 color: '#b40424',
@@ -122,7 +143,7 @@ const ReauthenticationModal = ({ setReauthenticationResult, setModal }) => {
             </Text>
           </View>
         </View>
-      </TouchableOpacity>
+      </View>
     </Modal>
   );
 };

@@ -1,16 +1,44 @@
-import React, { useEffect } from 'react';
-import {
-  Image,
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  FlatList,
-} from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, Modal } from 'react-native';
 
-import { deleteCard } from '../authContext';
+import { auth, firebaseObj } from '../authContext';
 
-export const DeleteCardModal = ({ setModal, id }) => {
+import * as Google from 'expo-google-app-auth';
+import googleReSignIn from '../authContext';
+
+export const AreYouSureModal = ({ setReauthenticationResult, setModal }) => {
+  const reSignIn = async () => {
+    try {
+      let returnStatement = false;
+      const result = await Google.logInAsync({
+        androidClientId:
+          '352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com',
+        androidStandaloneAppClientId: `352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com`,
+        scopes: ['profile', 'email'],
+      });
+
+      if (result.type === 'success') {
+        const credential = firebaseObj.auth.GoogleAuthProvider.credential(
+          result.idToken,
+          result.accessToken
+        );
+
+        auth.currentUser.reauthenticateWithCredential(credential);
+
+        returnStatement = true;
+      } else {
+        returnStatement = { cancelled: true };
+      }
+
+      return returnStatement;
+    } catch (e) {
+      if (e.code == 'auth/email-already-in-use') {
+        console.log('Duplicated emails has been detected');
+      } else {
+        console.log(e);
+      }
+    }
+  };
   return (
     <Modal
       style={{
@@ -48,7 +76,7 @@ export const DeleteCardModal = ({ setModal, id }) => {
               width: '90%',
               marginTop: 10,
             }}>
-            If you choose to delete this card, you will not be able to
+            If you choose to delete your account, you will not be able to
             recover the lost data later.
           </Text>
           <View style={{ flexDirection: 'row-reverse', marginTop: 32 }}>
@@ -64,8 +92,10 @@ export const DeleteCardModal = ({ setModal, id }) => {
                 borderRadius: 3,
               }}
               onPress={async () => {
-                await deleteCard(id);
-                setModal(false);
+                if (await reSignIn()) {
+                  setReauthenticationResult(true);
+                  setModal(false);
+                }
               }}>
               <Text
                 style={{
@@ -92,6 +122,7 @@ export const DeleteCardModal = ({ setModal, id }) => {
                 marginRight: 22,
               }}
               onPress={() => {
+                setReauthenticationResult(false);
                 setModal(false);
               }}>
               <Text

@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 
 import { MaterialIcons } from '@expo/vector-icons';
-import IconMI from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const PickerModal = ({ propsArry, setValue, visible, setVisible }) => {
   if (visible) {

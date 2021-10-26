@@ -530,7 +530,7 @@ export function CardHome({ props, isSavedState }) {
                   borderRadius: 3,
                   marginRight: 5,
                 }}
-                onPress={() => navigation.navigate('ContactInfo', owner)}>
+                onPress={() => navigation.navigate('Buy', owner)}>
                 <Text
                   style={{
                     fontSize: 16,

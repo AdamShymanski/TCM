@@ -4,8 +4,7 @@ import 'firebase/storage';
 import 'firebase/auth';
 
 import pokemon from 'pokemontcgsdk';
-
-import FinishGoogleRegister from './screens/FinishGoogleRegister';
+import * as Google from 'expo-google-app-auth';
 
 if (firebase.apps.length === 0) {
   firebase.initializeApp({
@@ -22,6 +21,7 @@ if (firebase.apps.length === 0) {
 export const db = firebase.firestore();
 export const auth = firebase.auth();
 export const storage = firebase.storage();
+export const firebaseObj = firebase;
 
 export async function fetchUserData() {
   const response = await db.collection('users').doc(auth.currentUser.uid).get();
@@ -304,11 +304,21 @@ export async function deleteAccount() {
       await promise.then(async () => {
         await db.collection('users').doc(auth.currentUser.uid).delete();
         await auth.currentUser.delete();
+
+        if (auth.currentUser?.providerData[0].providerId == 'google.com') {
+          await Google.logOutAsync();
+        }
+
         auth.signOut();
       });
     } else {
       await db.collection('users').doc(auth.currentUser.uid).delete();
       await auth.currentUser.delete();
+
+      if (auth.currentUser?.providerData[0].providerId == 'google.com') {
+        await Google.logOutAsync();
+      }
+
       auth.signOut();
     }
   } catch (error) {
@@ -1075,6 +1085,20 @@ export async function googleSignIn(logInResult) {
     await firebase.auth().signInWithCredential(credential);
   } catch (error) {
     console.log(error);
+    return false;
+  }
+}
+export async function googleReSignIn(logInResult) {
+  try {
+    const credential = firebase.auth.GoogleAuthProvider.credential(
+      logInResult.idToken,
+      logInResult.accessToken
+    );
+
+    await firebase.auth().currentUser.reauthenticateWithCredential(credential);
+  } catch (error) {
+    console.log(error);
+    return false;
   }
 }
 

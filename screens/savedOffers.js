@@ -1,27 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  Image,
-  ScrollView,
-  Button,
-  TouchableOpacity,
-  FlatList,
-} from 'react-native';
+import { View, FlatList, Text } from 'react-native';
 
-import { useIsFocused } from '@react-navigation/native';
-
-import { MaterialIcons } from '@expo/vector-icons';
-
-import IconMI from 'react-native-vector-icons/MaterialCommunityIcons';
-
-import { CardSavedOffers } from '../shared/cards/cardSavedOffers';
-import { globalStyles, images } from '../styles/global';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { fetchSavedCards } from '../authContext';
-import pokemon from 'pokemontcgsdk';
-import Condition from 'yup/lib/Condition';
+import { useIsFocused } from '@react-navigation/native';
+import { CardSavedOffers } from '../shared/cards/CardSavedOffers';
 
 export default function SavedOffers({ navigation }) {
   const [cardsData, setCardsData] = useState(null);
@@ -45,24 +29,62 @@ export default function SavedOffers({ navigation }) {
         flex: 1,
         backgroundColor: '#1b1b1b',
         flexDirection: 'column',
-        alignItems: 'center',
       }}>
-      {!loadingState ? (
-        <FlatList
-          data={cardsData}
-          renderItem={({ item, index }) => {
-            return (
-              <CardSavedOffers
-                props={item}
-                setCardsData={setCardsData}
-                cardsData={cardsData}
-                index={index}
-              />
-            );
-          }}
-          keyExtractor={(item, index) => index.toString()}
-        />
-      ) : null}
+      {cardsData !== null || cardsData?.length > 0 ? (
+        !loadingState ? (
+          <FlatList
+            data={cardsData}
+            renderItem={({ item, index }) => {
+              return (
+                <CardSavedOffers
+                  props={item}
+                  setCardsData={setCardsData}
+                  cardsData={cardsData}
+                  index={index}
+                />
+              );
+            }}
+            keyExtractor={(item, index) => index.toString()}
+          />
+        ) : null
+      ) : (
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#1b1b1b',
+          }}>
+          <Icon
+            name='bookmark'
+            color={'#0082ff'}
+            size={58}
+            style={{ marginBottom: 12 }}
+          />
+          <Text
+            style={{
+              color: '#f4f4f4',
+              fontSize: 38,
+              fontWeight: '700',
+              marginBottom: 12,
+              paddingHorizontal: 20,
+              textAlign: 'center',
+            }}>
+            Save For Later!
+          </Text>
+          <Text
+            style={{
+              fontSize: 15,
+              width: '80%',
+              color: '#4f4f4f',
+              marginBottom: 60,
+              textAlign: 'center',
+            }}>
+            You can save the offers you like and review them again later. This
+            will help you make a good decision.
+          </Text>
+        </View>
+      )}
     </View>
   );
 }

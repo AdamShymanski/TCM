@@ -19,11 +19,11 @@ import {
 
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 
-import PickerModal from '../shared/pickerModal';
+import PickerModal from '../shared/PickerModal';
 import pikachu from '../assets/pikachu.png';
 
-import BigCardHome from '../shared/cards/bigCardHome';
-import { CardHome } from '../shared/cards/cardHome';
+import BigCardHome from '../shared/cards/BigCardHome';
+import { CardHome } from '../shared/cards/CardHome';
 import { TabRouter } from 'react-navigation';
 
 export default function Home({
@@ -211,9 +211,8 @@ export default function Home({
               source={pikachu}
               style={{
                 aspectRatio: 651 / 522,
-                width: '80%',
+                width: '64%',
                 height: undefined,
-                zIndex: 3,
               }}
             />
             <Text
@@ -224,7 +223,7 @@ export default function Home({
                 marginTop: 30,
                 fontWeight: '700',
               }}>
-              {'No cards found '}
+              {'Search for a card'}
             </Text>
           </View>
         ) : null}

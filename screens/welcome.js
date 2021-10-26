@@ -4,28 +4,17 @@ import PTCGM from '../assets/PTCGM.png';
 import GoogleButton from '../assets/google_button.png';
 
 import * as Google from 'expo-google-app-auth';
-
 import { googleSignIn } from '../authContext';
 
+import { useNavigation } from '@react-navigation/native';
+
 export default function Welcome() {
-  const [user, setUser] = useState(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const resolvePromises = async () => {};
     resolvePromises();
   }, []);
-
-  // const GoogleSignIn = async () => {
-  //   const { type, accessToken, user } = await Google.logInAsync({
-  //     androidClientId: `352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com`,
-  //     androidStandaloneAppClientId: `352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com`,
-  //   });
-
-  //   if (type === 'success') {
-  //     /* `accessToken` is now valid and can be used to get data from the Google API with HTTP requests */
-  //     console.log(result.accessToken);
-  //   }
-  // };
 
   async function signInWithGoogleAsync() {
     try {
@@ -65,7 +54,6 @@ export default function Welcome() {
           aspectRatio: 500 / 180,
           height: undefined,
           width: '85%',
-
           position: 'absolute',
           top: 80,
         }}
@@ -135,7 +123,7 @@ export default function Welcome() {
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
+      {/* <TouchableOpacity
         onPress={() => {
           signInWithGoogleAsync();
         }}
@@ -144,7 +132,7 @@ export default function Welcome() {
           source={GoogleButton}
           style={{ width: '55%', aspectRatio: 382 / 92, height: undefined }}
         />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 }

@@ -52,7 +52,7 @@ const Thanks = () => {
         onPress={() => {
           navigator.reset({
             index: 0,
-            routes: [{ name: 'Collection' }],
+            routes: [{ name: 'YourOffers' }],
           });
           navigator.navigate('Home', { screen: 'Home' });
         }}>
