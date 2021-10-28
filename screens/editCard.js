@@ -13,7 +13,6 @@ import {
   Image,
   Modal,
   TextInput as TextInputNative,
-  FlatList,
   ActivityIndicator,
 } from 'react-native';
 import { Switch, TextInput } from 'react-native-paper';
@@ -235,6 +234,8 @@ export default function EditCard({ route }) {
   const [pickerValue, setPickerValue] = useState('Rarity Declining');
   const [pickerModal, setPickerModal] = useState(false);
 
+  const [loadingIndicator, setLoadingIndicator] = useState(false);
+
   const searchForCard = async () => {
     setBigCardsData(
       await fetchBigCards(nativeInputValue, pickerValue, setLoading)
@@ -312,7 +313,6 @@ export default function EditCard({ route }) {
                 borderWidth: 2,
                 borderColor: '#777777',
                 paddingHorizontal: 12,
-                paddingVertical: 8,
               }}
               onPress={() => {
                 closeModal();
@@ -465,33 +465,6 @@ export default function EditCard({ route }) {
               </Text>
             </View>
           ) : null}
-
-          {/* {stateHandler('list') ? (
-            <FlatList
-              style={{ paddingHorizontal: 8 }}
-              data={bigCardsData}
-              renderItem={({ item }) => {
-                return (
-                  <CardAcp
-                    props={item}
-                    setId={setId}
-                    closeModal={closeModal}></CardAcp>
-                );
-              }}
-              keyExtractor={(item, index) => index.toString()}
-              onEndReached={async () => {
-                await fetchMoreBigCards(
-                  nativeInputValue,
-                  pickerValue,
-                  pageNumber,
-                  bigCardsData,
-                  setBigCardsData
-                );
-                setPageNumber(pageNumber + 1);
-              }}
-              onEndReachedThreshold={4}
-            />
-          ) : null} */}
 
           {stateHandler('indicator') ? (
             <View
@@ -1072,6 +1045,16 @@ export default function EditCard({ route }) {
                   Submit
                 </Text>
               </TouchableOpacity>
+              {loadingIndicator ? (
+                <ActivityIndicator
+                  size={30}
+                  color='#0082ff'
+                  animating={loadingIndicator}
+                  style={{
+                    marginRight: 14,
+                  }}
+                />
+              ) : null}
             </View>
           </View>
         )}

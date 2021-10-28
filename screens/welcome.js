@@ -64,8 +64,8 @@ export default function Welcome() {
           color: '#f4f4f4',
           fontSize: 46,
           marginBottom: 10,
-          marginTop: 30,
-          marginTop: 120,
+
+          marginTop: 180,
         }}>
         {'Welcome'}
       </Text>
@@ -123,7 +123,7 @@ export default function Welcome() {
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
 
-      {/* <TouchableOpacity
+      <TouchableOpacity
         onPress={() => {
           signInWithGoogleAsync();
         }}
@@ -132,7 +132,7 @@ export default function Welcome() {
           source={GoogleButton}
           style={{ width: '55%', aspectRatio: 382 / 92, height: undefined }}
         />
-      </TouchableOpacity> */}
+      </TouchableOpacity>
     </View>
   );
 }

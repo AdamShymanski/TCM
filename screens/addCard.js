@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 import * as yup from 'yup';
 import { Formik, ErrorMessage } from 'formik';
@@ -16,19 +16,16 @@ import {
   FlatList,
   ActivityIndicator,
 } from 'react-native';
+
 import { Switch, TextInput } from 'react-native-paper';
-
-// import { Picker } from '@react-native-picker/picker';
-
-import CardAcp from '../shared/cards/CardAcp';
 
 import { useNavigation } from '@react-navigation/native';
 import { addCard, fetchBigCards, fetchMoreBigCards } from '../authContext';
 
 import pikachu from '../assets/pikachu.png';
 
+import CardAcp from '../shared/cards/CardAcp';
 import PickerModal from '../shared/PickerModal';
-
 import { LanguagePickerModal } from '../shared/LanguagePickerModal';
 
 export default function AddCard() {
@@ -84,7 +81,7 @@ export default function AddCard() {
   const ImagePlaceHolder = () => {
     if (photoState === null || undefined) {
       return (
-        <View style={{ flexDirection: 'row' }}>
+        <View style={{ flexDirection: 'row', paddingTop: 20 }}>
           <View
             style={{
               aspectRatio: 3 / 4,
@@ -94,7 +91,7 @@ export default function AddCard() {
               borderRadius: 8,
               borderColor: '#5c5c5c',
               borderStyle: 'dashed',
-              marginTop: 20,
+
               marginRight: 20,
             }}
           />
@@ -107,7 +104,7 @@ export default function AddCard() {
               borderRadius: 8,
               borderColor: '#5c5c5c',
               borderStyle: 'dashed',
-              marginTop: 20,
+
               marginRight: 20,
             }}
           />
@@ -120,7 +117,6 @@ export default function AddCard() {
               borderRadius: 8,
               borderColor: '#5c5c5c',
               borderStyle: 'dashed',
-              marginTop: 20,
             }}
           />
         </View>
@@ -213,6 +209,7 @@ export default function AddCard() {
       );
     }
   };
+
   const submitForm = async (values) => {
     if (cardId) {
       if (photoState) {
@@ -228,12 +225,14 @@ export default function AddCard() {
       setScError(true);
     }
   };
+
   const searchForCard = async () => {
     setBigCardsData(
       await fetchBigCards(nativeInputValue, pickerValue, setLoading)
     );
     setPageNumber(2);
   };
+
   const stateHandler = (variant) => {
     if (variant == 'pikachu') {
       if (loadingState) return false;
@@ -294,6 +293,8 @@ export default function AddCard() {
   //state exclusively for Language Version
   const [submitClicked, setSubmitClicked] = useState(false);
 
+  const [loadingIndicator, setLoadingIndicator] = useState(false);
+
   return (
     <ScrollView style={{ flex: 1, backgroundColor: '#1b1b1b', padding: 20 }}>
       <PickerModal
@@ -329,7 +330,6 @@ export default function AddCard() {
                 borderWidth: 2,
                 borderColor: '#777777',
                 paddingHorizontal: 12,
-                paddingVertical: 8,
               }}
               onPress={() => {
                 closeModal();
@@ -421,35 +421,6 @@ export default function AddCard() {
                 </Text>
               </TouchableOpacity>
             </View>
-
-            {/* <View
-              style={{
-                width: '100%',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginTop: showFilters ? 12 : null,
-              }}>
-              {showFilters ? (
-                <IconMI
-                  name={'arrow-up-drop-circle'}
-                  color={'#0082ff'}
-                  size={23}
-                  onPress={() => {
-                    setShowFiletrs(false);
-                  }}
-                />
-              ) : (
-                <IconMI
-                  name={'arrow-down-drop-circle'}
-                  color={'#0082ff'}
-                  size={23}
-                  onPress={() => {
-                    setShowFiletrs(true);
-                  }}
-                />
-              )}
-            </View> */}
           </View>
 
           {stateHandler('pikachu') ? (
@@ -574,8 +545,10 @@ export default function AddCard() {
         validationSchema={
           gradingSwitch ? reviewSchemaWithGrading : reviewSchema
         }
-        onSubmit={(values, actions) => {
-          submitForm(values);
+        onSubmit={async (values, actions) => {
+          setLoadingIndicator(true);
+          await submitForm(values);
+          setLoadingIndicator(false);
         }}>
         {(props) => (
           <View>
@@ -630,6 +603,7 @@ export default function AddCard() {
                   style={{ marginLeft: 10 }}
                 />
               </TouchableOpacity>
+
               {cardId ? (
                 <Text
                   style={{
@@ -639,7 +613,7 @@ export default function AddCard() {
                     marginLeft: 6,
                     color: '#5c5c5c',
                   }}>
-                  ID of seleceted Card:{' '}
+                  ID of seleceted Card:
                   <Text
                     style={{
                       color: '#0082FF',
@@ -1048,6 +1022,16 @@ export default function AddCard() {
                   Submit
                 </Text>
               </TouchableOpacity>
+              {loadingIndicator ? (
+                <ActivityIndicator
+                  size={30}
+                  color='#0082ff'
+                  animating={loadingIndicator}
+                  style={{
+                    marginRight: 14,
+                  }}
+                />
+              ) : null}
             </View>
           </View>
         )}
