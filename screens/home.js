@@ -181,7 +181,6 @@ export default function Home({
                 borderWidth: 2,
                 borderColor: '#777777',
                 paddingHorizontal: 12,
-                paddingVertical: 8,
               }}
               onPress={() => setCardsData([])}>
               <Text

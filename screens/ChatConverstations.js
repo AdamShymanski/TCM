@@ -8,8 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { auth } from '../authContext';
 import IconM from 'react-native-vector-icons/MaterialIcons';
 
-export const ChatConversations = ({ listenerData }) => {
-  console.log(listenerData.length);
+const ChatConversations = ({ listenerData }) => {
   return (
     <View style={{ flex: 1, backgroundColor: '#1b1b1b' }}>
       {listenerData.length !== 0 ? (
@@ -85,7 +84,7 @@ const ConversationBar = ({ uid, lastMessage, notificationState, data }) => {
 
   const navigation = useNavigation();
 
-  const hour = lastMessage.createdAt
+  const hour = lastMessage.sentAt
     .toDate()
     .toLocaleTimeString('en-US')
     .substring(0, 5);
@@ -166,16 +165,36 @@ const ConversationBar = ({ uid, lastMessage, notificationState, data }) => {
           </Text>
         </TouchableOpacity>
       </View>
-      <Text
+      <View
         style={{
+          flexDirection: 'row',
+          alignItems: 'center',
           marginTop: 12,
           marginLeft: 36,
-          fontSize: 11,
-          fontWeight: notificationState ? '700' : '500',
-          color: notificationState ? '#f4f4f4' : '#5c5c5c',
         }}>
-        {`${hour}   ${lastMessage.content}`}
-      </Text>
+        {notificationState ? (
+          <View
+            style={{
+              backgroundColor: '#ed400b',
+              width: 9,
+              height: 9,
+              borderRadius: 8,
+              marginRight: 10,
+            }}
+          />
+        ) : null}
+
+        <Text
+          style={{
+            fontSize: 11,
+            fontWeight: notificationState ? '700' : '500',
+            color: notificationState ? '#f4f4f4' : '#5c5c5c',
+          }}>
+          {`${hour}   ${lastMessage.content}`}
+        </Text>
+      </View>
     </View>
   );
 };
+
+export default ChatConversations;

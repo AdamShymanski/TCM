@@ -1,19 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  Image,
   View,
   Text,
   TouchableOpacity,
   Modal,
-  FlatList,
+  ActivityIndicator,
 } from 'react-native';
 
-import { MaterialIcons } from '@expo/vector-icons';
 import { TextInput } from 'react-native-paper';
 import { Formik, ErrorMessage } from 'formik';
 import * as yup from 'yup';
-
-import IconMI from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { auth, reauthenticate } from '../authContext';
 
@@ -39,8 +35,8 @@ const reviewSchema = yup.object({
 });
 
 const ChangePasswordModal = ({ setModal }) => {
-  const [passwordState, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loadingIndicator, setLoadingIndicator] = useState(false);
 
   return (
     <Modal
@@ -76,10 +72,13 @@ const ChangePasswordModal = ({ setModal }) => {
             }}
             validationSchema={reviewSchema}
             onSubmit={async (values, actions) => {
+              setLoadingIndicator(true);
               if (await reauthenticate(values.recentPassword)) {
                 await auth.currentUser.updatePassword(values.newPassowrd);
+                setLoadingIndicator(false);
                 setModal(false);
               } else {
+                setLoadingIndicator(false);
                 setError('Wrong recent password!');
               }
             }}
@@ -234,9 +233,6 @@ const ChangePasswordModal = ({ setModal }) => {
                         fontWeight: '700',
                       }}>
                       {msg}
-                      {/* {props.values.confirmPassword == props.values.password
-                    ? ''
-                    : (msg = 'Passwords must match!')} */}
                     </Text>
                   )}
                 </ErrorMessage>
@@ -270,6 +266,17 @@ const ChangePasswordModal = ({ setModal }) => {
                       Submit
                     </Text>
                   </TouchableOpacity>
+                  {loadingIndicator ? (
+                    <ActivityIndicator
+                      size={30}
+                      color='#0082ff'
+                      animating={loadingIndicator}
+                      style={{
+                        marginRight: 14,
+                        marginLeft: 18,
+                      }}
+                    />
+                  ) : null}
                   <TouchableOpacity
                     style={{
                       height: 30,
@@ -297,6 +304,7 @@ const ChangePasswordModal = ({ setModal }) => {
                       Cancel
                     </Text>
                   </TouchableOpacity>
+
                   <Text
                     style={{
                       color: '#b40424',

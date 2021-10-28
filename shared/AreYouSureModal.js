@@ -1,15 +1,20 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Modal } from 'react-native';
-
-import { auth, firebaseObj } from '../authContext';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  ActivityIndicator,
+} from 'react-native';
 
 import * as Google from 'expo-google-app-auth';
-import googleReSignIn from '../authContext';
+import { googleReSignIn } from '../authContext';
 
 export const AreYouSureModal = ({ setReauthenticationResult, setModal }) => {
+  const [loadingIndicator, setLoadingIndicator] = useState(false);
+
   const reSignIn = async () => {
     try {
-      let returnStatement = false;
       const result = await Google.logInAsync({
         androidClientId:
           '352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com',
@@ -17,20 +22,7 @@ export const AreYouSureModal = ({ setReauthenticationResult, setModal }) => {
         scopes: ['profile', 'email'],
       });
 
-      if (result.type === 'success') {
-        const credential = firebaseObj.auth.GoogleAuthProvider.credential(
-          result.idToken,
-          result.accessToken
-        );
-
-        auth.currentUser.reauthenticateWithCredential(credential);
-
-        returnStatement = true;
-      } else {
-        returnStatement = { cancelled: true };
-      }
-
-      return returnStatement;
+      return await googleReSignIn(result);
     } catch (e) {
       if (e.code == 'auth/email-already-in-use') {
         console.log('Duplicated emails has been detected');
@@ -47,15 +39,12 @@ export const AreYouSureModal = ({ setReauthenticationResult, setModal }) => {
         alignItems: 'center',
       }}
       transparent={true}>
-      <TouchableOpacity
+      <View
         style={{
           flex: 1,
           backgroundColor: 'rgba(0,0,0,0.5)',
           justifyContent: 'center',
           alignItems: 'center',
-        }}
-        onPress={() => {
-          setModal(null);
         }}>
         <View
           style={{
@@ -79,7 +68,12 @@ export const AreYouSureModal = ({ setReauthenticationResult, setModal }) => {
             If you choose to delete your account, you will not be able to
             recover the lost data later.
           </Text>
-          <View style={{ flexDirection: 'row-reverse', marginTop: 32 }}>
+          <View
+            style={{
+              flexDirection: 'row-reverse',
+              marginTop: 32,
+              alignItems: 'center',
+            }}>
             <TouchableOpacity
               style={{
                 width: 84,
@@ -92,10 +86,12 @@ export const AreYouSureModal = ({ setReauthenticationResult, setModal }) => {
                 borderRadius: 3,
               }}
               onPress={async () => {
+                setLoadingIndicator(true);
                 if (await reSignIn()) {
-                  setReauthenticationResult(true);
                   setModal(false);
+                  setReauthenticationResult(true);
                 }
+                setLoadingIndicator(false);
               }}>
               <Text
                 style={{
@@ -106,6 +102,17 @@ export const AreYouSureModal = ({ setReauthenticationResult, setModal }) => {
                 Submit
               </Text>
             </TouchableOpacity>
+            {loadingIndicator ? (
+              <ActivityIndicator
+                size={30}
+                color='#0082ff'
+                animating={loadingIndicator}
+                style={{
+                  marginRight: 14,
+                  marginLeft: 18,
+                }}
+              />
+            ) : null}
             <TouchableOpacity
               style={{
                 width: 76,
@@ -136,7 +143,7 @@ export const AreYouSureModal = ({ setReauthenticationResult, setModal }) => {
             </TouchableOpacity>
           </View>
         </View>
-      </TouchableOpacity>
+      </View>
     </Modal>
   );
 };

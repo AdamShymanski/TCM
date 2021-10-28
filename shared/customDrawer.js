@@ -16,8 +16,6 @@ import IconF from 'react-native-vector-icons/Feather';
 import { fetchOwnerData, auth } from '../authContext';
 
 export default function CustomDrawer({ navigation }) {
-  const [flagState, setFlagState] = useState(null);
-
   const [owner, setOwner] = useState({
     name: '',
     reputation: 0,

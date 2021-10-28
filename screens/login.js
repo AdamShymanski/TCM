@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 
 import * as yup from 'yup';
@@ -22,6 +23,7 @@ const reviewSchema = yup.object({
 
 export default function Login() {
   const [error, setError] = useState('');
+  const [loadingIndicator, setLoadingIndicator] = useState(false);
 
   return (
     <ScrollView style={{ backgroundColor: '#1b1b1b', flex: 1 }}>
@@ -55,8 +57,10 @@ export default function Login() {
           password: '',
         }}
         validationSchema={reviewSchema}
-        onSubmit={(values, actions) => {
-          login(values.email, values.password, setError);
+        onSubmit={async (values, actions) => {
+          setLoadingIndicator(true);
+          await login(values.email, values.password, setError);
+          setLoadingIndicator(false);
         }}
         style={{
           flex: 1,
@@ -189,6 +193,17 @@ export default function Login() {
                   Submit
                 </Text>
               </TouchableOpacity>
+              {loadingIndicator ? (
+                <ActivityIndicator
+                  size={30}
+                  color='#0082ff'
+                  animating={loadingIndicator}
+                  style={{
+                    marginRight: 14,
+                    marginTop: 20,
+                  }}
+                />
+              ) : null}
               <Text
                 style={{
                   color: '#b40424',

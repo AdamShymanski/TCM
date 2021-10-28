@@ -3,10 +3,7 @@ import React, { useState, useEffect } from 'react';
 import * as Updates from 'expo-updates';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { Button, View, Text, TouchableOpacity, Image } from 'react-native';
-
-import CustomHeader from './shared/Header';
-import CustomDrawer from './shared/CustomDrawer';
+import { View, Text, TouchableOpacity } from 'react-native';
 
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -22,16 +19,19 @@ import Login from './screens/Login.js';
 import ImageBrowser from './screens/ImageBrowser';
 import Thanks from './screens/Thanks';
 import Orders from './screens/Orders';
-import { ChatConversations } from './screens/ChatConverstations';
+import ChatConversations from './screens/ChatConverstations';
 import Chat from './screens/Chat';
 
 import Buy from './screens/Buy';
 import NewBuy from './screens/NewBuy';
 
-import { db, auth, setChatListeners } from './authContext.js';
+import { db, auth, setChatListeners, createChat } from './authContext.js';
 
-import { AdMobBanner, setTestDeviceIDAsync } from 'expo-ads-admob';
+import { AdMobBanner } from 'expo-ads-admob';
 import FinishGoogleRegister from './screens/FinishGoogleRegister';
+
+import CustomHeader from './shared/Header';
+import CustomDrawer from './shared/CustomDrawer';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -94,7 +94,6 @@ function HomeStack() {
                 borderWidth: 2,
                 borderColor: '#777777',
                 paddingHorizontal: 12,
-                paddingVertical: 8,
               }}
               onPress={() => navigation.goBack()}>
               <Text
@@ -179,7 +178,8 @@ function ChatStack() {
     <Stack.Navigator>
       <Stack.Screen
         name='ChatConversations'
-        children={() => <ChatConversations listenerData={listenerData} />}
+        children={() => <Chat />}
+        // children={() => <ChatConversations listenerData={listenerData} />}
         options={{
           headerTitle: () => <CustomHeader version={'chatConversations'} />,
           headerStyle: {
@@ -204,7 +204,6 @@ function ChatStack() {
                 borderWidth: 2,
                 borderColor: '#777777',
                 paddingHorizontal: 12,
-                paddingVertical: 8,
               }}
               onPress={() => navigation.goBack()}>
               <Text
@@ -274,7 +273,6 @@ function YourOffersStack() {
                 borderWidth: 2,
                 borderColor: '#777777',
                 paddingHorizontal: 12,
-                paddingVertical: 8,
               }}
               onPress={() => navigation.goBack()}>
               <Text
@@ -311,7 +309,6 @@ function YourOffersStack() {
                 borderWidth: 2,
                 borderColor: '#777777',
                 paddingHorizontal: 12,
-                paddingVertical: 8,
               }}
               onPress={() =>
                 navigation.reset({
@@ -353,7 +350,6 @@ function YourOffersStack() {
                 borderWidth: 2,
                 borderColor: '#777777',
                 paddingHorizontal: 12,
-                paddingVertical: 8,
               }}
               onPress={() =>
                 navigation.reset({
@@ -395,7 +391,6 @@ function YourOffersStack() {
                 borderWidth: 2,
                 borderColor: '#777777',
                 paddingHorizontal: 12,
-                paddingVertical: 8,
               }}
               onPress={() => navigation.navigate('AddCard')}>
               <Text
@@ -461,11 +456,7 @@ export default function App() {
   }, []);
 
   if (loading) {
-    return (
-      <View>
-        <View />
-      </View>
-    );
+    return <View />;
   } else if (currentUser) {
     if (finishRegisterProcess) {
       return (
@@ -493,7 +484,6 @@ export default function App() {
                       borderWidth: 2,
                       borderColor: '#777777',
                       paddingHorizontal: 12,
-                      paddingVertical: 8,
                     }}
                     onPress={() => auth.signOut()}>
                     <Text
@@ -569,7 +559,6 @@ export default function App() {
                     borderWidth: 2,
                     borderColor: '#777777',
                     paddingHorizontal: 12,
-                    paddingVertical: 8,
                   }}
                   onPress={() => navigation.navigate('Welcome')}>
                   <Text
@@ -607,7 +596,6 @@ export default function App() {
                     borderWidth: 2,
                     borderColor: '#777777',
                     paddingHorizontal: 12,
-                    paddingVertical: 8,
                   }}
                   onPress={() => navigation.navigate('Welcome')}>
                   <Text
@@ -645,7 +633,6 @@ export default function App() {
                     borderWidth: 2,
                     borderColor: '#777777',
                     paddingHorizontal: 12,
-                    paddingVertical: 8,
                   }}
                   onPress={() => navigation.navigate('Welcome')}>
                   <Text

@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import {
-  StyleSheet,
-  Button,
   View,
   Text,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { Formik, ErrorMessage } from 'formik';
@@ -26,6 +25,7 @@ const reviewSchema = yup.object({
 export default function FinishGoogleRegister({ callback, name }) {
   const [countryPickerState, setCountryPickerState] = useState('');
   const [countryInputTouched, setCountryInputTouched] = useState(false);
+  const [loadingIndicator, setLoadingIndicator] = useState(false);
 
   return (
     <ScrollView style={{ backgroundColor: '#1b1b1b', flex: 1 }}>
@@ -62,6 +62,7 @@ export default function FinishGoogleRegister({ callback, name }) {
         }}
         validationSchema={reviewSchema}
         onSubmit={async (values, actions) => {
+          setLoadingIndicator(true);
           db.collection('users')
             .doc(auth.currentUser.uid)
             .set({
@@ -75,6 +76,7 @@ export default function FinishGoogleRegister({ callback, name }) {
               discordContact: '',
             })
             .then((result) => {
+              setLoadingIndicator(false);
               callback(false);
             });
         }}
@@ -185,6 +187,17 @@ export default function FinishGoogleRegister({ callback, name }) {
                   Submit
                 </Text>
               </TouchableOpacity>
+              {loadingIndicator ? (
+                <ActivityIndicator
+                  size={30}
+                  color='#0082ff'
+                  animating={loadingIndicator}
+                  style={{
+                    marginRight: 14,
+                    marginTop: 20,
+                  }}
+                />
+              ) : null}
             </View>
           </View>
         )}

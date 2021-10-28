@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
-  StyleSheet,
-  Button,
+  ActivityIndicator,
   View,
   Text,
   TouchableOpacity,
@@ -14,18 +13,9 @@ import * as yup from 'yup';
 import { register } from '../authContext';
 import { CountryPickerModal } from '../shared/CountryPickerModal';
 
-// const strongPasswordRegEx =
-//   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&].{8,}$/;
 const strongPasswordRegEx =
   /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{7,}$/;
-
-// const strongPasswordRegEx =
-//   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&].{8,}$/;
-
-// const onlyLettersRegEx =
-//   /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$/u;
 const firstCapitalLetter = /^[A-Z].*/;
-
 const nickRegEx = /^[_A-z0-9]*((-|\s)*[_A-z0-9])*$/g;
 
 const reviewSchema = yup.object({
@@ -53,23 +43,19 @@ const reviewSchema = yup.object({
       .oneOf([yup.ref('password')], "Passwords aren't the same! ")
       .required('Confirm Password is required!                  '),
   }),
-  // address: yup.string('Wrong format!').required('Address is required!'),
-  // postalCode: yup
-  //   .string('Wrong format!')
-  //   .required('Postal or Zip Code is required!'),
+
   country: yup
     .string('Wrong format!')
     .required('Country is required!')
     .matches(firstCapitalLetter, 'Wrong country name!'),
-  // phoneNumber: yup
-  //   .string('Wrong format!')
-  //   .required('Phone Number is required!')
-  //   .min(9, 'Phone number is too short!'),
 });
 
-export default function Register({ auth }) {
+export default function Register() {
   const [countryPickerState, setCountryPickerState] = useState('');
   const [countryInputTouched, setCountryInputTouched] = useState(false);
+
+  const [loadingIndicator, setLoadingIndicator] = useState(false);
+  const [error, setError] = useState('');
 
   return (
     <ScrollView style={{ backgroundColor: '#1b1b1b', flex: 1 }}>
@@ -108,12 +94,15 @@ export default function Register({ auth }) {
         }}
         validationSchema={reviewSchema}
         onSubmit={async (values, actions) => {
+          setLoadingIndicator(true);
           await register(
             values.email,
             values.password,
             values.nick,
-            values.country
+            values.country,
+            setError
           );
+          setLoadingIndicator(false);
         }}
         style={{
           flex: 1,
@@ -303,9 +292,6 @@ export default function Register({ auth }) {
                     fontWeight: '700',
                   }}>
                   {msg}
-                  {/* {props.values.confirmPassword == props.values.password
-                    ? ''
-                    : (msg = 'Passwords must match!')} */}
                 </Text>
               )}
             </ErrorMessage>
@@ -361,55 +347,11 @@ export default function Register({ auth }) {
                 </Text>
               )}
             </ErrorMessage>
-            {/* <TextInput
-              mode={'outlined'}
-              value={props.values.phoneNumber}
-              onChangeText={props.handleChange('phoneNumber')}
-              label='Phone Number'
-              outlineColor={'#5c5c5c'}
-              error={
-                props.touched.phoneNumber && props.errors.phoneNumber
-                  ? true
-                  : false
-              }
-              style={{
-                width: '70%',
-
-                backgroundColor: '#1b1b1b',
-                color: '#f4f4f4',
-                marginTop: 20,
-              }}
-              theme={{
-                colors: {
-                  primary: '#0082ff',
-                  placeholder: '#5c5c5c',
-                  background: 'transparent',
-                  text: '#f4f4f4',
-                },
-              }}
-            />
-            <ErrorMessage component='div' name='phoneNumber'>
-              {(msg) => (
-                <Text
-                  style={{
-                    width: '70%',
-                    marginTop: 8,
-                    marginBottom: -10,
-                    height: 20,
-                    flexDirection: 'row',
-                    justifyContent: 'flex-end',
-                    color: '#b40424',
-                    fontWeight: '700',
-                  }}>
-                  {msg}
-                </Text>
-              )}
-            </ErrorMessage> */}
-
             <View
               style={{
                 width: '70%',
                 flexDirection: 'row-reverse',
+                alignItems: 'center',
                 marginBottom: 40,
               }}
               onPress={props.submitForm}>
@@ -435,6 +377,26 @@ export default function Register({ auth }) {
                   Submit
                 </Text>
               </TouchableOpacity>
+              {loadingIndicator ? (
+                <ActivityIndicator
+                  size={30}
+                  color='#0082ff'
+                  animating={loadingIndicator}
+                  style={{
+                    marginRight: 14,
+                    marginTop: 20,
+                  }}
+                />
+              ) : null}
+              <Text
+                style={{
+                  color: '#b40424',
+                  fontWeight: '700',
+                  marginTop: 20,
+                  marginRight: 14,
+                }}>
+                {error}
+              </Text>
             </View>
           </View>
         )}

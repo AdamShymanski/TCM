@@ -5,6 +5,7 @@ import 'firebase/auth';
 
 import pokemon from 'pokemontcgsdk';
 import * as Google from 'expo-google-app-auth';
+import { useCallback } from 'react';
 
 if (firebase.apps.length === 0) {
   firebase.initializeApp({
@@ -21,7 +22,6 @@ if (firebase.apps.length === 0) {
 export const db = firebase.firestore();
 export const auth = firebase.auth();
 export const storage = firebase.storage();
-export const firebaseObj = firebase;
 
 export async function fetchUserData() {
   const response = await db.collection('users').doc(auth.currentUser.uid).get();
@@ -876,7 +876,7 @@ export async function login(email, password, setError) {
     setError('Wrong Credentials!');
   }
 }
-export async function register(email, password, nick, country) {
+export async function register(email, password, nick, country, setError) {
   await auth
     .createUserWithEmailAndPassword(email, password)
     .then(async (userCredential) => {
@@ -896,9 +896,13 @@ export async function register(email, password, nick, country) {
       await login(email.trim(), password.trim());
     })
     .catch((error) => {
-      var errorCode = error.code;
-      var errorMessage = error.message;
-      console.log(errorCode, errorMessage);
+      const errorMessage = error.message;
+      if (
+        errorMessage ===
+        'The email address is already in use by another account.'
+      ) {
+        setError('Email has been already used.');
+      }
     });
 }
 export async function unsaveOffer(ownerId, offerId) {
@@ -1037,26 +1041,27 @@ export async function updateUserData(initValues, outValues, valuesOrder) {
     console.log(error);
   }
 }
-export async function createChat(secondUser) {
+export async function createChat(secondUserUid) {
   db.collection('chats').add({
     messages: [],
-    notificationFor: '',
+    notificationFor: secondUserUid,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    members: [auth.currentUser.uid, secondUser],
+    members: [auth.currentUser.uid, secondUserUid],
   });
 }
-export async function sendMessage(id, msg) {
+export async function sendMessage(id, message) {
   try {
+    console.log(message);
     await db
       .collection('chats')
       .doc(id)
       .update({
         messages: firebase.firestore.FieldValue.arrayUnion({
-          contect: msg,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          content: message,
+          sentAt: firebase.firestore.FieldValue.serverTimestamp(),
           uid: auth.currentUser.uid,
+          received: false,
         }),
-        // notificationFor: '',
       });
   } catch (err) {}
 }
@@ -1066,6 +1071,7 @@ export async function setChatListeners(setListenerData) {
       return doc.data().members[1];
     } else return doc.data().members[0];
   };
+
   db.collection('chats')
     .where('members', 'array-contains', auth.currentUser.uid)
     .onSnapshot((doc) => {
@@ -1076,6 +1082,41 @@ export async function setChatListeners(setListenerData) {
       setListenerData(array);
     });
 }
+
+// export async function setMessagesListener(
+//   id,
+//   setDocStates,
+//   docState,
+//   firstName,
+//   secondName
+// ) {
+//   db.collection('chats')
+//     .doc(id)
+//     .onSnapshot((doc) => {
+//       if (doc.data().messages.length != docState.length) {
+//         doc.data().messages.forEach((message, index) => {
+//           if (index + 1 > localArray.length) {
+//             setDocStates((docState) =>
+//               docState.push({
+//                 _id: index,
+//                 text: message.content,
+//                 createdAt: message.sentAt.toDate(),
+//                 user: {
+//                   _id: message.uid,
+//                   name:
+//                     message.uid == auth.currentUser.uid
+//                       ? firstName
+//                       : secondName,
+//                 },
+//                 sent: true,
+//                 received: message.received,
+//               })
+//             );
+//           }
+//         });
+//       }
+//     });
+// }
 export async function googleSignIn(logInResult) {
   try {
     const credential = firebase.auth.GoogleAuthProvider.credential(
@@ -1088,14 +1129,22 @@ export async function googleSignIn(logInResult) {
     return false;
   }
 }
-export async function googleReSignIn(logInResult) {
+export async function googleReSignIn(result) {
   try {
-    const credential = firebase.auth.GoogleAuthProvider.credential(
-      logInResult.idToken,
-      logInResult.accessToken
-    );
+    if (result.type === 'success') {
+      const credential = firebase.auth.GoogleAuthProvider.credential(
+        result.idToken,
+        result.accessToken
+      );
 
-    await firebase.auth().currentUser.reauthenticateWithCredential(credential);
+      await firebase
+        .auth()
+        .currentUser.reauthenticateWithCredential(credential);
+
+      return true;
+    } else {
+      return false;
+    }
   } catch (error) {
     console.log(error);
     return false;
