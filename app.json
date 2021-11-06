@@ -3,7 +3,7 @@
     "userInterfaceStyle": "dark",
     "name": "PTCG Marketplace",
     "slug": "ptcg_marketplace",
-    "version": "15",
+    "version": "18",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -25,7 +25,7 @@
       "package": "app.ptcg.marketplace",
 
       "googleServicesFile": "./google-services.json",
-      "versionCode": 15,
+      "versionCode": 18,
       "userInterfaceStyle": "dark",
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-2637485113454186~8246765572"

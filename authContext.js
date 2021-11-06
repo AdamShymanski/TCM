@@ -1082,41 +1082,27 @@ export async function setChatListeners(setListenerData) {
       setListenerData(array);
     });
 }
+export async function fetchLastMessage(
+  setLastMessage,
+  setHour,
+  setNotificationState,
+  data
+) {
+  const result = await db
+    .collection(`chats/${data.id}/messages`)
+    .doc(data.data.lastMessage)
+    .get();
 
-// export async function setMessagesListener(
-//   id,
-//   setDocStates,
-//   docState,
-//   firstName,
-//   secondName
-// ) {
-//   db.collection('chats')
-//     .doc(id)
-//     .onSnapshot((doc) => {
-//       if (doc.data().messages.length != docState.length) {
-//         doc.data().messages.forEach((message, index) => {
-//           if (index + 1 > localArray.length) {
-//             setDocStates((docState) =>
-//               docState.push({
-//                 _id: index,
-//                 text: message.content,
-//                 createdAt: message.sentAt.toDate(),
-//                 user: {
-//                   _id: message.uid,
-//                   name:
-//                     message.uid == auth.currentUser.uid
-//                       ? firstName
-//                       : secondName,
-//                 },
-//                 sent: true,
-//                 received: message.received,
-//               })
-//             );
-//           }
-//         });
-//       }
-//     });
-// }
+  setLastMessage(result.data());
+  setHour(
+    result.data().createdAt.toDate().toLocaleTimeString('en-US').substring(0, 5)
+  );
+  if (result.data().uid === auth.currentUser.uid) {
+    setNotificationState(true);
+  } else {
+    setNotificationState(false);
+  }
+}
 export async function googleSignIn(logInResult) {
   try {
     const credential = firebase.auth.GoogleAuthProvider.credential(

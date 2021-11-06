@@ -82,6 +82,20 @@ export default function CustomDrawer({ navigation }) {
             />
             <DrawerItem
               icon={({ color, size }) => (
+                <Icon
+                  name='account-cash-outline'
+                  color={'#f4f4f4'}
+                  size={size}
+                />
+              )}
+              labelStyle={{ color: '#f4f4f4' }}
+              label='Sellers'
+              onPress={() => {
+                navigation.navigate('Sellers');
+              }}
+            />
+            <DrawerItem
+              icon={({ color, size }) => (
                 <Icon name='cart-outline' color={'#f4f4f4'} size={size} />
               )}
               labelStyle={{ color: '#f4f4f4' }}
