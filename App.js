@@ -21,6 +21,7 @@ import Thanks from './screens/Thanks';
 import Orders from './screens/Orders';
 import ChatConversations from './screens/ChatConverstations';
 import Chat from './screens/Chat';
+import Sellers from './screens/Sellers';
 
 import Buy from './screens/Buy';
 import NewBuy from './screens/NewBuy';
@@ -178,8 +179,7 @@ function ChatStack() {
     <Stack.Navigator>
       <Stack.Screen
         name='ChatConversations'
-        children={() => <Chat />}
-        // children={() => <ChatConversations listenerData={listenerData} />}
+        children={() => <ChatConversations listenerData={listenerData} />}
         options={{
           headerTitle: () => <CustomHeader version={'chatConversations'} />,
           headerStyle: {
@@ -413,6 +413,22 @@ function YourOffersStack() {
     </Stack.Navigator>
   );
 }
+function SellersStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name='Sellers'
+        component={Sellers}
+        options={{
+          headerTitle: () => <CustomHeader version={'sellers'} />,
+          headerStyle: {
+            backgroundColor: '#121212',
+          },
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -520,8 +536,9 @@ export default function App() {
             <Drawer.Screen name='Chat' component={ChatStack} />
             <Drawer.Screen name='Orders' component={OrdersStack} />
             <Drawer.Screen name='SavedOffers' component={SavedOffersStack} />
+            <Drawer.Screen name='Sellers' component={SellersStack} />
           </Drawer.Navigator>
-          <AdMobBanner
+          {/* <AdMobBanner
             bannerSize='smartBannerPortrait'
             adUnitID='ca-app-pub-2637485113454186/2096785031'
             //ca-app-pub-3940256099942544/6300978111
@@ -529,7 +546,7 @@ export default function App() {
             onDidFailToReceiveAdWithError={(error) => {
               console.log(error);
             }}
-          />
+          /> */}
         </NavigationContainer>
       );
     }

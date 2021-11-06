@@ -5,7 +5,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import { fetchOwnerData } from '../authContext';
 import { useNavigation } from '@react-navigation/native';
 
-import { auth } from '../authContext';
+import { auth, fetchLastMessage } from '../authContext';
 import IconM from 'react-native-vector-icons/MaterialIcons';
 
 const ChatConversations = ({ listenerData }) => {
@@ -15,26 +15,18 @@ const ChatConversations = ({ listenerData }) => {
         <FlatList
           data={listenerData}
           renderItem={({ item, index }) => {
-            let notificationState;
-            if (
-              listenerData[index].data.notificationFor == auth.currentUser.uid
-            ) {
-              notificationState = true;
-            } else notificationState = false;
             return (
               <ConversationBar
                 uid={listenerData[index].uid}
-                lastMessage={listenerData[index].data?.messages[0]}
-                notificationState={notificationState}
                 data={listenerData[index]}
               />
             );
           }}
           keyExtractor={(item, index) => index.toString()}
-          onEndReached={async () => {
-            // console.log('hello');
-          }}
-          onEndReachedThreshold={4}
+          // onEndReached={async () => {
+          //   console.log('hello');
+          // }}
+          // onEndReachedThreshold={4}
         />
       ) : (
         <View
@@ -78,26 +70,31 @@ const ChatConversations = ({ listenerData }) => {
   );
 };
 
-const ConversationBar = ({ uid, lastMessage, notificationState, data }) => {
+const ConversationBar = ({ uid, data }) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState({ name: '', countryCode: '' });
+  const [lastMessage, setLastMessage] = useState();
+  const [hour, setHour] = useState();
+  const [notificationState, setNotificationState] = useState();
 
   const navigation = useNavigation();
-
-  const hour = lastMessage.sentAt
-    .toDate()
-    .toLocaleTimeString('en-US')
-    .substring(0, 5);
 
   useEffect(() => {
     const resolvePromises = async () => {
       setUser(await fetchOwnerData(uid));
+      await fetchLastMessage(
+        setLastMessage,
+        setHour,
+        setNotificationState,
+        data
+      );
+
       setLoading(false);
     };
     resolvePromises();
   }, []);
 
-  if (loading) return <View />;
+  if (loading) return null;
   return (
     <View
       style={{
@@ -190,7 +187,7 @@ const ConversationBar = ({ uid, lastMessage, notificationState, data }) => {
             fontWeight: notificationState ? '700' : '500',
             color: notificationState ? '#f4f4f4' : '#5c5c5c',
           }}>
-          {`${hour}   ${lastMessage.content}`}
+          {`${hour}   ${lastMessage.text}`}
         </Text>
       </View>
     </View>
