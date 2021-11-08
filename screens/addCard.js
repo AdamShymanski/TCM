@@ -457,6 +457,7 @@ export default function AddCard() {
             <FlatList
               style={{ paddingHorizontal: 8 }}
               data={bigCardsData}
+              numColumns={2}
               renderItem={({ item }) => {
                 return (
                   <CardAcp props={item} setId={setId} closeModal={closeModal} />
