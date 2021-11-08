@@ -82,7 +82,6 @@ export default function Home({
       if (bigCardsData === null || undefined) return true;
       if (cardsData.length > 1) return false;
       if (bigCardsData.length > 1) return false;
-
       return true;
     }
     if (variant == 'list') {
@@ -91,7 +90,6 @@ export default function Home({
       if (bigCardsData === null || undefined) return false;
       if (cardsData.length >= 1) return false;
       if (bigCardsData.length < 1) return false;
-
       return true;
     }
     if (variant == 'secondList') {
@@ -132,8 +130,8 @@ export default function Home({
           style={{
             backgroundColor: '#121212',
 
-            borderTopColor: '#5c5c5c',
-            borderTopWidth: 1.5,
+            // borderTopColor: '#5c5c5c',
+            // borderTopWidth: 1.5,
             flexDirection: 'column',
             justifyContent: 'space-between',
           }}>
@@ -229,6 +227,7 @@ export default function Home({
           <FlatList
             style={{ paddingHorizontal: 8 }}
             data={bigCardsData}
+            numColumns={2}
             renderItem={({ item }) => {
               return <BigCardHome props={item} setId={setId} />;
             }}

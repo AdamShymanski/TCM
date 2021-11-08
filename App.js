@@ -31,7 +31,7 @@ import { db, auth, setChatListeners, createChat } from './authContext.js';
 import { AdMobBanner } from 'expo-ads-admob';
 import FinishGoogleRegister from './screens/FinishGoogleRegister';
 
-import CustomHeader from './shared/Header';
+import CustomHeader from './shared/CustomHeader';
 import CustomDrawer from './shared/CustomDrawer';
 
 const Stack = createStackNavigator();

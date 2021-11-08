@@ -80,7 +80,7 @@ export default function CustomDrawer({ navigation }) {
                 navigation.navigate('Home');
               }}
             />
-            <DrawerItem
+            {/* <DrawerItem
               icon={({ color, size }) => (
                 <Icon
                   name='account-cash-outline'
@@ -93,7 +93,7 @@ export default function CustomDrawer({ navigation }) {
               onPress={() => {
                 navigation.navigate('Sellers');
               }}
-            />
+            /> */}
             <DrawerItem
               icon={({ color, size }) => (
                 <Icon name='cart-outline' color={'#f4f4f4'} size={size} />
