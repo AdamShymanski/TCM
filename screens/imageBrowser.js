@@ -72,7 +72,6 @@ const ImageBrowserScreen = ({ route }) => {
           backgroundColor: '#0082ff',
           borderColor: '#0082ff',
           paddingHorizontal: 12,
-          paddingVertical: 8,
         }}
         onPress={onSubmit}>
         <Text

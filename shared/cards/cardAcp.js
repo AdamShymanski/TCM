@@ -17,20 +17,6 @@ import inStock from '../../assets/in_stock.png';
 export default function CardAcp({ props, setId, closeModal }) {
   const [imageViewerState, setImageViewer] = useState(false);
 
-  const [photosArray, setPhotosArray] = useState([
-    {
-      // Simplest usage.
-      url: 'https://firebasestorage.googleapis.com/v0/b/ptcg-marketplace.appspot.com/o/global%2Fplacegolder.png?alt=media&token=ed9d1f9b-9a3b-4c82-b86f-132da3e75957',
-
-      // width: number
-      // height: number
-      // Optional, if you know the image size, you can set the optimization performance
-
-      // You can pass props to <Image />.
-      props: {},
-    },
-  ]);
-
   const [details, setDetails] = useState([0, 0, 0]);
 
   useEffect(() => {
@@ -216,7 +202,7 @@ export default function CardAcp({ props, setId, closeModal }) {
               alignItems: 'center',
               justifyContent: 'center',
 
-              backgroundColor: details[0] !== 0 ? '#0082FF' : '#00315e',
+              backgroundColor: '#0082FF',
               borderRadius: 3,
 
               marginTop: 18,
@@ -224,6 +210,7 @@ export default function CardAcp({ props, setId, closeModal }) {
             }}
             onPress={() => {
               setId(props.id);
+              closeModal();
             }}>
             <Text style={{ fontWeight: '700', fontSize: 15, color: '#121212' }}>
               Select

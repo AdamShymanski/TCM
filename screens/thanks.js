@@ -42,7 +42,7 @@ const Thanks = () => {
           justifyContent: 'center',
 
           marginBottom: 50,
-          paddingVertical: 12,
+
           paddingHorizontal: 12,
 
           borderColor: '#0082ff',

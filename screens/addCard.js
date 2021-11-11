@@ -25,13 +25,15 @@ import { addCard, fetchBigCards, fetchMoreBigCards } from '../authContext';
 import pikachu from '../assets/pikachu.png';
 
 import CardAcp from '../shared/cards/CardAcp';
+// import CardAcp from '../shared/cards/cda';
 import PickerModal from '../shared/PickerModal';
 import { LanguagePickerModal } from '../shared/LanguagePickerModal';
 
 export default function AddCard() {
   const navigation = useNavigation();
 
-  const priceRegEx = /^\d{1,3}(?:[.,]\d{2})*(?:[.,]\d{2})*$/g;
+  const priceRegEx = /^\d+([.,]\d{1,2})?$/g;
+
   const gradeRegEx = /^[1-9]|10*$/g;
 
   const reviewSchema = yup.object({
@@ -658,6 +660,15 @@ export default function AddCard() {
                   },
                 }}
               />
+              <Text
+                style={{
+                  color: '#5c5c5c',
+                  fontSize: 12,
+                  fontWeight: '600',
+                  marginTop: 6,
+                }}>
+                Example: 2,531.00 or 1.000
+              </Text>
               <ErrorMessage component='div' name='price'>
                 {(msg) => (
                   <Text
