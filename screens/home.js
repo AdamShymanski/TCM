@@ -66,13 +66,10 @@ export default function Home({
     }
   }, [isFocused]);
 
-  useEffect(() => {
-    const resolvePromises = async () => {
-      if (id !== undefined || null || []) {
-        setCardsData(await fetchCards(id));
-      }
-    };
-    resolvePromises();
+  useEffect(async () => {
+    if (id != undefined || null || []) {
+      setCardsData(await fetchCards(id));
+    }
   }, [id]);
 
   const stateHandler = (variant) => {

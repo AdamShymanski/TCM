@@ -20,11 +20,11 @@ import ImageBrowser from './screens/ImageBrowser';
 import Thanks from './screens/Thanks';
 import Orders from './screens/Orders';
 import ChatConversations from './screens/ChatConverstations';
+import DeletingAccount from './screens/DeletingAccount';
 import Chat from './screens/Chat';
 import Sellers from './screens/Sellers';
 
-import Buy from './screens/Buy';
-import NewBuy from './screens/NewBuy';
+import Buy from './screens/NewBuy';
 
 import { db, auth, setChatListeners, createChat } from './authContext.js';
 
@@ -178,17 +178,7 @@ function ChatStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name='ChatConversations'
-        children={() => <ChatConversations listenerData={listenerData} />}
-        options={{
-          headerTitle: () => <CustomHeader version={'chatConversations'} />,
-          headerStyle: {
-            backgroundColor: '#121212',
-          },
-        }}
-      />
-      <Stack.Screen
-        name='Chat'
+        name='ChatScreen'
         component={Chat}
         options={({ navigation, route }) => ({
           headerLeft: () => (
@@ -222,6 +212,16 @@ function ChatStack() {
             backgroundColor: '#121212',
           },
         })}
+      />
+      <Stack.Screen
+        name='ChatConversations'
+        children={() => <ChatConversations listenerData={listenerData} />}
+        options={{
+          headerTitle: () => <CustomHeader version={'chatConversations'} />,
+          headerStyle: {
+            backgroundColor: '#121212',
+          },
+        }}
       />
     </Stack.Navigator>
   );
@@ -537,8 +537,9 @@ export default function App() {
             <Drawer.Screen name='Orders' component={OrdersStack} />
             <Drawer.Screen name='SavedOffers' component={SavedOffersStack} />
             <Drawer.Screen name='Sellers' component={SellersStack} />
+            <Drawer.Screen name='DeletingAccount' component={DeletingAccount} />
           </Drawer.Navigator>
-          {/* <AdMobBanner
+          <AdMobBanner
             bannerSize='smartBannerPortrait'
             adUnitID='ca-app-pub-2637485113454186/2096785031'
             //ca-app-pub-3940256099942544/6300978111
@@ -546,7 +547,7 @@ export default function App() {
             onDidFailToReceiveAdWithError={(error) => {
               console.log(error);
             }}
-          /> */}
+          />
         </NavigationContainer>
       );
     }

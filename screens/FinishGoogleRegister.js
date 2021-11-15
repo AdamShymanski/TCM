@@ -34,12 +34,12 @@ export default function FinishGoogleRegister({ callback, name }) {
           style={{
             fontWeight: '700',
             color: '#f4f4f4',
-            fontSize: 46,
+            fontSize: 36,
             marginTop: 40,
 
             marginBottom: 18,
           }}>
-          Add Country
+          Where are you from?
         </Text>
         <Text
           style={{
@@ -71,9 +71,6 @@ export default function FinishGoogleRegister({ callback, name }) {
               reputation: 0,
               collectionSize: 0,
               savedOffers: [],
-              whatsAppContact: '',
-              instagramContact: '',
-              discordContact: '',
             })
             .then((result) => {
               setLoadingIndicator(false);

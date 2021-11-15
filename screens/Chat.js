@@ -3,19 +3,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text } from 'react-native';
 import { GiftedChat, Bubble } from 'react-native-gifted-chat';
 
-import { db, fetchName, auth } from '../authContext';
+import { db, auth, createChat } from '../authContext';
 
-import IconM from 'react-native-vector-icons/MaterialIcons';
+import { ActivityIndicator } from 'react-native-paper';
 
-export default function Chat({ docId }) {
+export default function Chat({ route }) {
+  const data = route.params;
+  const ownerId = route.params?.ownerId;
+
   const [messages, setMessages] = useState([]);
 
-  const [userName, setUserName] = useState('');
-  const [callersName, setCallersName] = useState('Ala');
-
-  const chatsRef = db.collection(`chats/8eRqz6gNNgeHMloiDbtf/messages`);
-
-  // const chatsRef = db.collection(`chats/${docId}/messages`);
+  const chatsRef = db.collection(`chats/${data?.id}/messages`);
 
   useEffect(() => {
     const unsubscribe = chatsRef.onSnapshot((querySnapshot) => {
@@ -30,8 +28,7 @@ export default function Chat({ docId }) {
             createdAt: message.createdAt.toDate(),
             user: {
               _id: message.uid,
-              name:
-                message.uid == auth.currentUser.uid ? userName : callersName,
+              name: message.name,
             },
             sent: true,
             received: message.received,
@@ -40,13 +37,6 @@ export default function Chat({ docId }) {
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
       appendMessages(messagesFirestore);
     });
-
-    const resolvePromises = async () => {
-      setUserName(await fetchName(auth.currentUser.uid));
-      // setCallersName(await fetchName());
-    };
-
-    resolvePromises();
     return () => unsubscribe();
   }, []);
 
@@ -59,56 +49,17 @@ export default function Chat({ docId }) {
     [messages]
   );
 
-  useEffect(() => {
-    console.log(messages);
-  }, [messages]);
-
   async function handleSend(messages) {
     const writes = messages.map((m) => {
       m.received = false;
       m.uid = m.user._id;
+      m.name = m.user.name;
       delete m.user;
       chatsRef.add(m);
     });
 
     await Promise.all(writes);
   }
-
-  // if (true) {
-  //   return (
-  //     <View
-  //       style={{
-  //         flex: 1,
-  //         alignItems: 'center',
-  //         justifyContent: 'center',
-  //         backgroundColor: '#1b1b1b',
-  //       }}>
-  //       <IconM name='chat-bubble' color={'#0082ff'} size={58} />
-  //       <Text
-  //         style={{
-  //           color: '#f4f4f4',
-  //           fontSize: 38,
-  //           fontWeight: '700',
-  //           marginBottom: 12,
-  //           paddingHorizontal: 20,
-  //           textAlign: 'center',
-  //         }}>
-  //         Chat With Sellers!
-  //       </Text>
-  //       <Text
-  //         style={{
-  //           fontSize: 15,
-  //           width: '80%',
-  //           color: '#4f4f4f',
-  //           marginBottom: 60,
-  //           textAlign: 'center',
-  //         }}>
-  //         Ask questions about the cards and negotiate prices. Chat will help you
-  //         do just that.
-  //       </Text>
-  //     </View>
-  //   );
-  // }
 
   return (
     <View style={{ backgroundColor: '#1b1b1b', flex: 1 }}>
@@ -139,8 +90,14 @@ export default function Chat({ docId }) {
             />
           );
         }}
-        user={{ _id: auth.currentUser.uid, name: userName }}
-        onSend={(messages) => handleSend(messages)}
+        user={{ _id: auth.currentUser.uid }}
+        onSend={(messages) => {
+          if (messages.length == 0) {
+            handleSend(messages);
+          } else {
+            createChat(messages, ownerId);
+          }
+        }}
       />
     </View>
   );

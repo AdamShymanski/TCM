@@ -5,7 +5,6 @@ import 'firebase/auth';
 
 import pokemon from 'pokemontcgsdk';
 import * as Google from 'expo-google-app-auth';
-import { useCallback } from 'react';
 
 if (firebase.apps.length === 0) {
   firebase.initializeApp({
@@ -62,11 +61,16 @@ export async function addCard(values, gradingSwitch, photoState, cardId) {
               [keysOrder[2]]: doc.data().lowestPrice,
             };
 
-            if (actualPriceH < newPrice) {
+            if ((actualPriceH && actualPriceL) === 0) {
               updateObj[keysOrder[1]] = values.price;
-            }
-            if (actualPriceL > newPrice) {
               updateObj[keysOrder[2]] = values.price;
+            } else {
+              if (actualPriceH < newPrice) {
+                updateObj[keysOrder[1]] = values.price;
+              }
+              if (actualPriceL > newPrice) {
+                updateObj[keysOrder[2]] = values.price;
+              }
             }
 
             db.collection('cardsData').doc(cardId).update(updateObj);
@@ -120,51 +124,77 @@ export async function fetchPhotos(offerId) {
     console.log(error);
   }
 }
-export async function updateCard(id, outValues, initValues, valuesOrder) {
+export async function updateCard(props, outValues, initValues, valuesOrder) {
   try {
-    if (!outValues[7]) {
-      outValues[1] = '';
-      outValues[2] = '';
-      outValues[3] = '';
-    } else {
-      outValues[4] = '';
-    }
-
     let cardUpdateObj = {};
+
     outValues.forEach((item, index) => {
       const keyName = valuesOrder[index];
       if (item !== initValues[index]) cardUpdateObj[keyName] = item;
     });
 
-    // console.log(outValues[0]);
+    await db.collection('cards').doc(props.id).update(cardUpdateObj);
 
-    // outValues[0] = parseFloat(outValues[0]);
+    if (outValues[0] != initValues[0]) {
+      let updateObj = {
+        highestPrice: null,
+        lowestPrice: null,
+      };
 
-    // console.log(outValues[0]);
+      async function searchForNewHighestPrice() {
+        const result = await db
+          .collection('cards')
+          .where('cardId', '==', props.cardId)
+          .get();
 
-    await db.collection('cards').doc(id).update(cardUpdateObj);
+        const arr = [];
 
-    const doc = await db.collection('cardsData').doc(id).get();
+        result.forEach((doc) => {
+          arr.push(doc.data());
+        });
 
-    const actualPriceH = parseFloat(doc.data().highestPrice);
-    const actualPriceL = parseFloat(doc.data().lowestPrice);
-    const newPrice = parseFloat(outValues[0]);
+        let finalPrice = 0;
 
-    const keysOrder = ['highestPrice', 'lowestPrice'];
+        arr.forEach((item, index) => {
+          if (index === 0) {
+            finalPrice = item.price;
+          } else if (item.price > finalPrice) {
+            finalPrice = item.price;
+          }
+        });
 
-    if (actualPriceH < newPrice) {
-      updateObj[keysOrder[0]] = parseFloat(values.price);
+        return finalPrice;
+      }
+      async function searchForNewLowestPrice() {
+        const result = await db
+          .collection('cards')
+          .where('cardId', '==', props.cardId)
+          .get();
+
+        const arr = [];
+
+        result.forEach((doc) => {
+          arr.push(doc.data());
+        });
+
+        let finalPrice = 0;
+
+        arr.forEach((item, index) => {
+          if (index === 0) {
+            finalPrice = item.price;
+          } else if (item.price < finalPrice) {
+            finalPrice = item.price;
+          }
+        });
+
+        return finalPrice;
+      }
+
+      updateObj.lowestPrice = await searchForNewLowestPrice();
+      updateObj.highestPrice = await searchForNewHighestPrice();
+
+      await db.collection('cardsData').doc(props.cardId).update(updateObj);
     }
-    if (actualPriceL > newPrice) {
-      updateObj[keysOrder[1]] = parseFloat(values.price);
-    }
-
-    let updateObj = {
-      [keysOrder[0]]: doc.data().highestPrice,
-      [keysOrder[1]]: doc.data().lowestPrice,
-    };
-
-    await db.collection('cardsData').doc(id).update(updateObj);
   } catch (error) {
     console.log(error);
   }
@@ -288,6 +318,7 @@ export async function deleteAccount() {
       .where('owner', '==', auth.currentUser.uid)
       .get();
 
+    //fetch all users card, and push them to arr
     result.forEach((doc) => {
       let cardObj = doc.data();
       cardObj.id = doc.id;
@@ -307,9 +338,9 @@ export async function deleteAccount() {
 
         if (auth.currentUser?.providerData[0].providerId == 'google.com') {
           await Google.logOutAsync();
+        } else {
+          auth.signOut();
         }
-
-        auth.signOut();
       });
     } else {
       await db.collection('users').doc(auth.currentUser.uid).delete();
@@ -317,9 +348,9 @@ export async function deleteAccount() {
 
       if (auth.currentUser?.providerData[0].providerId == 'google.com') {
         await Google.logOutAsync();
+      } else {
+        auth.signOut();
       }
-
-      auth.signOut();
     }
   } catch (error) {
     console.log(error);
@@ -550,10 +581,9 @@ export async function fetchMoreBigCards(
     console.log(error);
   }
 }
-export async function fetchName(id) {
+export async function fetchName() {
   try {
-    const result = await db.collection('users').doc(id).get();
-
+    const result = await db.collection('users').doc(auth.currentUser.uid).get();
     return result.data().nick;
   } catch (error) {
     console.log(errorCode, errorMessage);
@@ -805,15 +835,7 @@ export async function fetchOwnerData(ownerId) {
   ];
 
   try {
-    let name,
-      reputation,
-      collectionSize,
-      country,
-      savedOffers,
-      countryCode,
-      instagramContact,
-      discordContact,
-      whatsAppContact;
+    let name, reputation, collectionSize, country, savedOffers, countryCode;
     await db
       .collection('users')
       .doc(ownerId)
@@ -824,11 +846,6 @@ export async function fetchOwnerData(ownerId) {
         savedOffers = doc.data().savedOffers;
         country = doc.data().country;
         name = doc.data().nick;
-
-        //? Contact
-        instagramContact = doc.data().instagramContact;
-        discordContact = doc.data().discordContact;
-        whatsAppContact = doc.data().whatsAppContact;
 
         countryCodes.forEach((item, i) => {
           if (item.Name == country) {
@@ -843,9 +860,6 @@ export async function fetchOwnerData(ownerId) {
       country,
       savedOffers,
       countryCode,
-      instagramContact,
-      discordContact,
-      whatsAppContact,
     };
   } catch (error) {
     console.log(error);
@@ -888,9 +902,6 @@ export async function register(email, password, nick, country, setError) {
         reputation: 0,
         collectionSize: 0,
         savedOffers: [],
-        whatsAppContact: '',
-        instagramContact: '',
-        discordContact: '',
       });
 
       await login(email.trim(), password.trim());
@@ -1029,21 +1040,26 @@ export async function fetchSavedOffersId(setSavedOffersId, setLoading) {
     console.log(error);
   }
 }
-export async function updateUserData(initValues, outValues, valuesOrder) {
+export async function updateUserData(outValues) {
   try {
-    let updateObj = {};
-    outValues.forEach((item, index) => {
-      const keyName = valuesOrder[index];
-      if (item !== initValues[index]) updateObj[keyName] = item;
-    });
-    await db.collection('users').doc(auth.currentUser.uid).update(updateObj);
+    await db
+      .collection('users')
+      .doc(auth.currentUser.uid)
+      .update({ nick: outValues.nick, country: outValues.country });
   } catch (error) {
     console.log(error);
   }
 }
-export async function createChat(secondUserUid) {
+export async function createChat(message, secondUserUid) {
   db.collection('chats').add({
-    messages: [],
+    messages: [
+      {
+        content: message,
+        sentAt: firebase.firestore.FieldValue.serverTimestamp(),
+        uid: auth.currentUser.uid,
+        received: false,
+      },
+    ],
     notificationFor: secondUserUid,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     members: [auth.currentUser.uid, secondUserUid],
@@ -1060,6 +1076,7 @@ export async function sendMessage(id, message) {
           content: message,
           sentAt: firebase.firestore.FieldValue.serverTimestamp(),
           uid: auth.currentUser.uid,
+          name: auth.currentUser.uid,
           received: false,
         }),
       });

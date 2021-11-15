@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { globalStyles } from '../../styles/global';
 
 import ImageViewer from 'react-native-image-zoom-viewer';
 import {
@@ -11,29 +10,18 @@ import {
   Modal,
 } from 'react-native';
 
-import IconMI from 'react-native-vector-icons/MaterialCommunityIcons';
-
 import language_icon from './../../assets/language.png';
 import condition_icon from './../../assets/condition.png';
-
-import grade_icon from './../../assets/grade.png';
-import go_icon from './../../assets/gradingOrganization.png';
-import cn_icon from './../../assets/CN.png';
 
 import { fetchPhotos } from '../../authContext';
 
 import { useNavigation } from '@react-navigation/native';
 
-export function CardCollection({ props, setModal, setId }) {
+export function CardYourOffers({ props, setModal, setId }) {
   const condition = props.condition;
   const description = props.description;
   const price = props.price;
   const languageVersion = props.languageVersion;
-
-  const isGraded = props.isGraded;
-  const grade = props.grade;
-  const gradingOrganization = props.gradingOrganization;
-  const certificateNumber = props.certificateNumber;
 
   let cardPhotos = [];
 
@@ -144,35 +132,33 @@ export function CardCollection({ props, setModal, setId }) {
                 style={{
                   flexDirection: 'row',
                 }}>
-                {isGraded ? null : (
-                  <View
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: 12,
+                    marginRight: 6,
+                    borderRadius: 3,
+                    paddingHorizontal: 16,
+                    backgroundColor: '#1b1b1b',
+                  }}>
+                  <Image
+                    source={condition_icon}
                     style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      marginBottom: 12,
-                      marginRight: 6,
-                      borderRadius: 3,
-                      paddingHorizontal: 16,
-                      backgroundColor: '#1b1b1b',
+                      width: 20,
+                      height: 20,
+                      marginRight: 10,
+                    }}
+                  />
+                  <Text
+                    style={{
+                      color: '#f4f4f4',
+                      fontWeight: '700',
+                      fontSize: 16,
                     }}>
-                    <Image
-                      source={condition_icon}
-                      style={{
-                        width: 20,
-                        height: 20,
-                        marginRight: 10,
-                      }}
-                    />
-                    <Text
-                      style={{
-                        color: '#f4f4f4',
-                        fontWeight: '700',
-                        fontSize: 16,
-                      }}>
-                      {condition}
-                    </Text>
-                  </View>
-                )}
+                    {condition}
+                  </Text>
+                </View>
                 <View
                   style={{
                     flexDirection: 'row',
@@ -225,90 +211,6 @@ export function CardCollection({ props, setModal, setId }) {
               </View>
             </View>
           </View>
-          {isGraded ? (
-            <View style={stylesCard.bottom}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: '#1b1b1b',
-                  paddingHorizontal: 12,
-                  borderRadius: 4,
-                  marginRight: 8,
-                }}>
-                <Image
-                  source={grade_icon}
-                  style={{
-                    aspectRatio: 1 / 1,
-                    width: undefined,
-                    height: 18,
-                    marginRight: 8,
-                  }}
-                />
-                <Text
-                  style={{
-                    color: '#f4f4f4',
-                    fontWeight: '700',
-                    fontSize: 16,
-                  }}>
-                  {grade}
-                </Text>
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: '#1b1b1b',
-                  paddingHorizontal: 12,
-                  borderRadius: 4,
-                  marginRight: 8,
-                }}>
-                <Image
-                  source={go_icon}
-                  style={{
-                    aspectRatio: 1 / 1,
-                    width: undefined,
-                    height: 18,
-                    marginRight: 8,
-                  }}
-                />
-                <Text
-                  style={{
-                    color: '#f4f4f4',
-                    fontWeight: '700',
-                    fontSize: 16,
-                  }}>
-                  {gradingOrganization}
-                </Text>
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: '#1b1b1b',
-                  paddingHorizontal: 12,
-                  borderRadius: 4,
-                }}>
-                <Image
-                  source={cn_icon}
-                  style={{
-                    aspectRatio: 52 / 27,
-                    width: undefined,
-                    height: 12,
-                    marginRight: 8,
-                  }}
-                />
-                <Text
-                  style={{
-                    color: '#f4f4f4',
-                    fontWeight: '700',
-                    fontSize: 16,
-                  }}>
-                  {certificateNumber}
-                </Text>
-              </View>
-            </View>
-          ) : null}
           <View
             style={{
               flexDirection: 'row',
@@ -418,8 +320,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: 'transparent',
     width: '90%',
-    marginRight: '2%',
-    marginLeft: '2.3%',
+    marginLeft: '5%',
   },
   cardContent: {
     paddingVertical: 20,

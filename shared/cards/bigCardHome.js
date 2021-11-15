@@ -20,10 +20,7 @@ export default function BigCardHome({ props, setId }) {
   const [details, setDetails] = useState([0, 0, 0]);
 
   useEffect(() => {
-    const resolvePromise = async () => {
-      await fetchBigCardsDetails(props.id, setDetails);
-    };
-    resolvePromise();
+    return fetchBigCardsDetails(props.id, setDetails);
   }, []);
 
   const returnFontSize = (string) => {
