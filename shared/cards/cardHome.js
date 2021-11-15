@@ -13,14 +13,9 @@ import {
 
 import IconMI from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import reputation_icon from './../../assets/reputation_icon.png';
 import collection_icon from './../../assets/collection_icon.png';
 import language_icon from './../../assets/language.png';
 import condition_icon from './../../assets/condition.png';
-
-import grade_icon from './../../assets/grade.png';
-import go_icon from './../../assets/gradingOrganization.png';
-import cn_icon from './../../assets/CN.png';
 
 import {
   fetchPhotos,
@@ -33,14 +28,12 @@ import {
 import { useNavigation } from '@react-navigation/native';
 
 export function CardHome({ props, isSavedState }) {
-  const isGraded = props.isGraded;
   const condition = props.condition;
   const description = props.description;
   const price = props.price;
-  const grade = props.grade;
-  const gradingOrganization = props.gradingOrganization;
-  const certificateNumber = props.certificateNumber;
   const languageVersion = props.languageVersion;
+
+  const ownerId = props.owner;
 
   let cardPhotos = [];
 
@@ -81,7 +74,7 @@ export function CardHome({ props, isSavedState }) {
       setLoading(false);
     };
 
-    resolvePromises();
+    return resolvePromises();
   }, []);
 
   useEffect(() => {
@@ -90,10 +83,6 @@ export function CardHome({ props, isSavedState }) {
       if (item == props.id) setSaveOffer(true);
     });
   }, [isSavedState]);
-
-  const onPress = () => {
-    console.log('no elo kurwa');
-  };
 
   const clickSave = async () => {
     if (!isSaved) {
@@ -194,7 +183,7 @@ export function CardHome({ props, isSavedState }) {
     return outArray;
   };
 
-  if (!loadingState) {
+  if (!loadingState && ownerId != auth.currentUser.uid) {
     return (
       <View style={styles.card}>
         <Modal visible={imageViewerState} transparent={true}>
@@ -314,31 +303,29 @@ export function CardHome({ props, isSavedState }) {
                 style={{
                   flexDirection: 'row',
                 }}>
-                {isGraded ? null : (
-                  <View
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: 12,
+                    marginRight: 6,
+                    borderRadius: 3,
+                    paddingHorizontal: 16,
+                    backgroundColor: '#1b1b1b',
+                  }}>
+                  <Image
+                    source={condition_icon}
+                    style={{ width: 20, height: 20, marginRight: 10 }}
+                  />
+                  <Text
                     style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      marginBottom: 12,
-                      marginRight: 6,
-                      borderRadius: 3,
-                      paddingHorizontal: 16,
-                      backgroundColor: '#1b1b1b',
+                      color: '#f4f4f4',
+                      fontWeight: '700',
+                      fontSize: 16,
                     }}>
-                    <Image
-                      source={condition_icon}
-                      style={{ width: 20, height: 20, marginRight: 10 }}
-                    />
-                    <Text
-                      style={{
-                        color: '#f4f4f4',
-                        fontWeight: '700',
-                        fontSize: 16,
-                      }}>
-                      {condition}
-                    </Text>
-                  </View>
-                )}
+                    {condition}
+                  </Text>
+                </View>
 
                 <View
                   style={{
@@ -393,90 +380,7 @@ export function CardHome({ props, isSavedState }) {
               </View>
             </View>
           </View>
-          {isGraded ? (
-            <View style={stylesCard.bottom}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: '#1b1b1b',
-                  paddingHorizontal: 12,
-                  borderRadius: 4,
-                  marginRight: 8,
-                }}>
-                <Image
-                  source={grade_icon}
-                  style={{
-                    aspectRatio: 1 / 1,
-                    width: undefined,
-                    height: 18,
-                    marginRight: 8,
-                  }}
-                />
-                <Text
-                  style={{
-                    color: '#f4f4f4',
-                    fontWeight: '700',
-                    fontSize: 16,
-                  }}>
-                  {grade}
-                </Text>
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: '#1b1b1b',
-                  paddingHorizontal: 12,
-                  borderRadius: 4,
-                  marginRight: 8,
-                }}>
-                <Image
-                  source={go_icon}
-                  style={{
-                    aspectRatio: 1 / 1,
-                    width: undefined,
-                    height: 18,
-                    marginRight: 8,
-                  }}
-                />
-                <Text
-                  style={{
-                    color: '#f4f4f4',
-                    fontWeight: '700',
-                    fontSize: 16,
-                  }}>
-                  {gradingOrganization}
-                </Text>
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: '#1b1b1b',
-                  paddingHorizontal: 12,
-                  borderRadius: 4,
-                }}>
-                <Image
-                  source={cn_icon}
-                  style={{
-                    aspectRatio: 52 / 27,
-                    width: undefined,
-                    height: 12,
-                    marginRight: 8,
-                  }}
-                />
-                <Text
-                  style={{
-                    color: '#f4f4f4',
-                    fontWeight: '700',
-                    fontSize: 16,
-                  }}>
-                  {certificateNumber}
-                </Text>
-              </View>
-            </View>
-          ) : null}
+
           <View
             style={{
               flexDirection: 'row',
@@ -530,7 +434,9 @@ export function CardHome({ props, isSavedState }) {
                   borderRadius: 3,
                   marginRight: 5,
                 }}
-                onPress={() => navigation.navigate('Buy', owner)}>
+                onPress={() => {
+                  navigation.navigate('Buy', { ownerId });
+                }}>
                 <Text
                   style={{
                     fontSize: 16,

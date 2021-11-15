@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Image,
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  FlatList,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Modal } from 'react-native';
 
 import { TextInput } from 'react-native-paper';
 import { reauthenticate } from '../authContext';
@@ -66,17 +59,30 @@ const ReauthenticationModal = ({ setReauthenticationResult, setModal }) => {
               },
             }}
           />
+          {error ? (
+            <Text
+              style={{
+                color: '#b40424',
+                fontWeight: '700',
+                marginTop: 8,
+                marginRight: 16,
+              }}>
+              {error}
+            </Text>
+          ) : null}
+
           <View
             style={{
               width: '90%',
               flexDirection: 'row-reverse',
               marginBottom: 8,
+              paddingTop: error ? 16 : 20,
               alignItems: 'center',
             }}>
             <TouchableOpacity
               style={{
                 height: 30,
-                marginTop: 20,
+
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -108,7 +114,7 @@ const ReauthenticationModal = ({ setReauthenticationResult, setModal }) => {
             <TouchableOpacity
               style={{
                 height: 30,
-                marginTop: 20,
+
                 marginRight: 14,
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -132,15 +138,6 @@ const ReauthenticationModal = ({ setReauthenticationResult, setModal }) => {
                 Cancel
               </Text>
             </TouchableOpacity>
-            <Text
-              style={{
-                color: '#b40424',
-                fontWeight: '700',
-                marginBottom: -20,
-                marginRight: 16,
-              }}>
-              {error}
-            </Text>
           </View>
         </View>
       </View>

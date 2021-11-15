@@ -1,32 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import {
-  StyleSheet,
-  Button,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
-
-import { googleReSignIn } from '../authContext';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 
 import { TextInput } from 'react-native-paper';
 import { Formik, ErrorMessage } from 'formik';
 import * as yup from 'yup';
+
+import RNRestart from 'react-native-restart';
 
 import {
   fetchUserData,
   updateUserData,
   deleteAccount,
   changeEmail,
+  googleReSignIn,
   auth,
 } from '../authContext';
+
+import * as Google from 'expo-google-app-auth';
 
 import ReauthenticationModal from '../shared/ReauthenticationModal';
 import ChangePasswordModal from '../shared/ChangePasswordModal';
 import { CountryPickerModal } from '../shared/CountryPickerModal';
 import { AreYouSureModal } from '../shared/AreYouSureModal';
+
+import { useNavigation } from '@react-navigation/native';
 
 const onlyLettersRegEx =
   /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$/u;
@@ -45,50 +42,33 @@ const reviewSchema = yup.object({
 
 export default function Settings() {
   const [loading, setLoading] = useState(true);
+
+  const [accountFormError, setAccountFormError] = useState('');
+
+  const [actionType, setActionType] = useState(null);
+  const [modalState, setModal] = useState(false);
+  const [areYouSureModal, setAreYouSureModal] = useState(false);
+  const [countryPickerState, setCountryPickerState] = useState(false);
+  const [changePasswordModal, setChangePasswordModal] = useState(false);
+  const [reauthenticationResult, setReauthenticationResult] = useState(null);
+
   const [userData, setUserData] = useState({
     nick: '',
     country: '',
-    whatsAppContact: '',
-    instagramContact: '',
-    discordContact: '',
   });
-  const [modalState, setModal] = useState(false);
-  const [reauthenticationResult, setReauthenticationResult] = useState(null);
-  const [actionType, setActionType] = useState(null);
+  const [initValues, setInitValues] = useState({
+    nick: '',
+    country: '',
+  });
 
-  const [changePasswordModal, setChangePasswordModal] = useState(false);
-
-  const [countryPickerState, setCountryPickerState] = useState(false);
-  const [countryValue, setCountryValue] = useState(null);
-
-  const [contactInfoFormError, setContactInfoFormError] = useState('');
-  const [accountFormError, setAccountFormError] = useState('');
-
-  const [submitingFormIndicator, setSubmitingFormIndicator] = useState(false);
-
-  const valuesOrder = [
-    'nick',
-    'country',
-    'whatsAppContact',
-    'discordContact',
-    'instagramContact',
-  ];
-  const initValues = [
-    userData.nick,
-    userData.country,
-    userData.whatsAppContact,
-    userData.discordContact,
-    userData.instagramContact,
-  ];
-
-  const [outValues, setOutValues] = useState(null);
-
-  const [areYouSureModal, setAreYouSureModal] = useState(false);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const resolvePromises = async () => {
-      setUserData(await fetchUserData());
-      setCountryValue(userData.country);
+      const result = await fetchUserData();
+
+      setUserData(result);
+      setInitValues({ nick: result.nick, country: result.country });
       setLoading(false);
     };
     resolvePromises();
@@ -99,13 +79,10 @@ export default function Settings() {
       if (reauthenticationResult) {
         if (actionType == 'deleteAccount') {
           await deleteAccount();
-        }
-        if (actionType == 'changeEmail') {
+        } else if (actionType == 'changeEmail') {
           await changeEmail();
-        }
-        if (actionType == null) {
-          await updateUserData(initValues, outValues, valuesOrder);
-          setUserData(await fetchUserData());
+        } else if (actionType == 'updateUser') {
+          await updateUserData(userData);
         }
 
         setModal(false);
@@ -116,260 +93,250 @@ export default function Settings() {
     resolvePromises();
   }, [reauthenticationResult]);
 
+  const setCountryValue = (value) => {
+    const obj = userData;
+    obj.country = value;
+    setUserData(obj);
+  };
+
+  async function reSignInWithGoogleAsync(action) {
+    try {
+      if (action === 'deleteAccount') {
+        navigation.navigate('DeletingAccount');
+      }
+      const result = await Google.logInAsync({
+        androidClientId:
+          '352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com',
+        androidStandaloneAppClientId: `352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com`,
+        scopes: ['profile', 'email'],
+      });
+
+      if (result.type === 'success' && (await googleReSignIn(result))) {
+        if (action === 'deleteAccount') {
+          await deleteAccount();
+        } else {
+          await updateUserData(userData);
+        }
+      } else {
+        return { cancelled: true };
+      }
+    } catch (e) {
+      if (e.code == 'auth/email-already-in-use') {
+        console.log('Duplicated emails has been detected');
+      } else {
+        console.log(e);
+      }
+    }
+  }
+
   if (loading) {
     return <View />;
-  }
-  return (
-    <ScrollView
-      style={{
-        flex: 1,
-        backgroundColor: '#1b1b1b',
-      }}>
-      {countryPickerState ? (
-        <CountryPickerModal
-          setValue={setCountryValue}
-          setVisible={setCountryPickerState}
-        />
-      ) : null}
-      {modalState ? (
-        <ReauthenticationModal
-          setReauthenticationResult={setReauthenticationResult}
-          setModal={setModal}
-        />
-      ) : null}
-      {areYouSureModal ? (
-        <AreYouSureModal
-          setReauthenticationResult={setReauthenticationResult}
-          setModal={setAreYouSureModal}
-        />
-      ) : null}
-      {changePasswordModal ? (
-        <ChangePasswordModal setModal={setChangePasswordModal} />
-      ) : null}
-
-      <Text
+  } else {
+    return (
+      <ScrollView
         style={{
-          color: '#f4f4f4',
-          fontWeight: '700',
-          fontSize: 22,
-
-          paddingTop: 12,
-          paddingLeft: 12,
+          flex: 1,
+          backgroundColor: '#1b1b1b',
         }}>
-        Account
-      </Text>
-      <View
-        style={{
-          backgroundColor: '#1B1B1B',
-        }}>
-        <Formik
-          initialValues={{
-            nick: userData.nick,
-            country: userData.country,
-          }}
-          validationSchema={reviewSchema}
-          onSubmit={async (values, actions) => {
-            setOutValues([
-              values.nick,
-              countryValue ? countryValue : userData.country,
-              userData.whatsAppContact,
-              userData.discordContact,
-              userData.instagramContact,
-            ]);
-            const detectChanges = () => {
-              let change = false;
-              [
-                values.nick,
-                countryValue ? countryValue : userData.country,
-                userData.whatsAppContact,
-                userData.discordContact,
-                userData.instagramContact,
-              ].forEach((item, index) => {
-                if (item !== initValues[index]) {
-                  change = true;
-                }
-              });
-              if (change) {
-                setAccountFormError('');
-                return true;
-              }
-              setAccountFormError('No change detected');
-            };
+        {countryPickerState ? (
+          <CountryPickerModal
+            setValue={setCountryValue}
+            setVisible={setCountryPickerState}
+          />
+        ) : null}
+        {modalState ? (
+          <ReauthenticationModal
+            setReauthenticationResult={setReauthenticationResult}
+            setModal={setModal}
+          />
+        ) : null}
+        {areYouSureModal ? (
+          <AreYouSureModal
+            setReauthenticationResult={setReauthenticationResult}
+            setModal={setAreYouSureModal}
+          />
+        ) : null}
+        {changePasswordModal ? (
+          <ChangePasswordModal setModal={setChangePasswordModal} />
+        ) : null}
 
-            if (detectChanges()) {
-              setModal(true);
-            }
-          }}
+        <Text
           style={{
-            flex: 1,
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
-            height: '100%',
-            marginVertical: 40,
-            backgroundColor: '#121212',
+            color: '#f4f4f4',
+            fontWeight: '700',
+            fontSize: 22,
+
+            paddingTop: 12,
+            paddingLeft: 12,
           }}>
-          {(props) => (
-            <View
-              style={{
-                flex: 1,
-                flexDirection: 'column',
-                alignItems: 'center',
-                width: '100%',
-                height: '100%',
-              }}>
-              <TextInput
-                mode={'outlined'}
-                value={props.values.nick}
-                onChangeText={props.handleChange('nick')}
-                label='Nick'
-                outlineColor={'#5c5c5c'}
-                error={props.touched.nick && props.errors.nick ? true : false}
+          Account
+        </Text>
+        <View
+          style={{
+            backgroundColor: '#1B1B1B',
+          }}>
+          <Formik
+            initialValues={{
+              nick: userData.nick,
+              country: userData.country,
+            }}
+            validationSchema={reviewSchema}
+            onSubmit={async (values, actions) => {
+              const detectChanges = () => {
+                if (
+                  values.nick == initValues.nick &&
+                  userData.country == initValues.country
+                ) {
+                  setAccountFormError('No change detected');
+                  return false;
+                } else {
+                  setAccountFormError('');
+                  return true;
+                }
+              };
+
+              if (detectChanges()) {
+                if (
+                  auth.currentUser?.providerData[0].providerId != 'google.com'
+                ) {
+                  setModal(true);
+                } else {
+                  await reSignInWithGoogleAsync();
+                  setUserData({ nick: values.nick, country: userData.country });
+                  setInitValues({
+                    nick: values.nick,
+                    country: userData.country,
+                  });
+                }
+              }
+            }}
+            style={{
+              flex: 1,
+              flexDirection: 'column',
+              alignItems: 'center',
+              width: '100%',
+              height: '100%',
+              marginVertical: 40,
+              backgroundColor: '#121212',
+            }}>
+            {(props) => (
+              <View
                 style={{
-                  width: '80%',
-                  backgroundColor: '#1B1B1B',
-                  color: '#f4f4f4',
-                  marginTop: 20,
-                }}
-                theme={{
-                  colors: {
-                    primary: '#0082ff',
-                    placeholder: '#5c5c5c',
-                    background: 'transparent',
-                    text: '#f4f4f4',
-                  },
-                }}
-              />
-              <ErrorMessage component='div' name='nick'>
-                {(msg) => (
-                  <Text
-                    style={{
-                      width: '80%',
-                      marginTop: 8,
-                      marginBottom: 18,
-                      height: 20,
-                      flexDirection: 'row',
-                      justifyContent: 'flex-end',
-                      color: '#b40424',
-                      fontWeight: '700',
-                    }}>
-                    {msg}
-                  </Text>
-                )}
-              </ErrorMessage>
-              <TouchableOpacity
-                style={{ width: '80%' }}
-                onPress={() => setCountryPickerState(true)}>
+                  flex: 1,
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  width: '100%',
+                  height: '100%',
+                }}>
                 <TextInput
                   mode={'outlined'}
-                  value={countryValue ? countryValue : userData.country}
-                  onChangeText={props.handleChange('country')}
-                  label='Country'
+                  value={props.values.nick}
+                  onChangeText={props.handleChange('nick')}
+                  label='Nick'
                   outlineColor={'#5c5c5c'}
-                  error={
-                    props.touched.country && props.errors.country ? true : false
-                  }
+                  error={props.touched.nick && props.errors.nick ? true : false}
                   style={{
-                    width: '100%',
+                    width: '80%',
                     backgroundColor: '#1B1B1B',
+                    color: '#f4f4f4',
                     marginTop: 20,
                   }}
-                  disabled={true}
                   theme={{
                     colors: {
-                      text: '#fff',
-                      disabled: '#5c5c5c',
+                      primary: '#0082ff',
+                      placeholder: '#5c5c5c',
                       background: 'transparent',
+                      text: '#f4f4f4',
                     },
                   }}
                 />
-              </TouchableOpacity>
-
-              <ErrorMessage component='div' name='country'>
-                {(msg) => (
-                  <Text
-                    style={{
-                      width: '80%',
-                      marginTop: 8,
-                      marginBottom: 18,
-                      height: 20,
-                      flexDirection: 'row',
-                      justifyContent: 'flex-end',
-                      color: '#b40424',
-                      fontWeight: '700',
-                    }}>
-                    {msg}
-                  </Text>
-                )}
-              </ErrorMessage>
-
-              <View
-                style={{
-                  width: '80%',
-                  flexDirection: 'row-reverse',
-                  marginBottom: 20,
-                  alignItems: 'center',
-                }}>
+                <ErrorMessage component='div' name='nick'>
+                  {(msg) => (
+                    <Text
+                      style={{
+                        width: '80%',
+                        marginTop: 8,
+                        marginBottom: 18,
+                        height: 20,
+                        flexDirection: 'row',
+                        justifyContent: 'flex-end',
+                        color: '#b40424',
+                        fontWeight: '700',
+                      }}>
+                      {msg}
+                    </Text>
+                  )}
+                </ErrorMessage>
                 <TouchableOpacity
-                  style={{
-                    height: 30,
-                    marginTop: 20,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-
-                    backgroundColor: '#0082FF',
-                    borderRadius: 3,
-                    paddingHorizontal: 20,
-                  }}
-                  onPress={props.submitForm}>
-                  <Text
+                  style={{ width: '80%' }}
+                  onPress={() => setCountryPickerState(true)}>
+                  <TextInput
+                    mode={'outlined'}
+                    value={userData.country}
+                    onChangeText={props.handleChange('country')}
+                    label='Country'
+                    outlineColor={'#5c5c5c'}
+                    error={
+                      props.touched.country && props.errors.country
+                        ? true
+                        : false
+                    }
                     style={{
-                      fontSize: 16,
-                      fontWeight: '700',
-                      color: '#121212',
-                    }}>
-                    Submit
-                  </Text>
+                      width: '100%',
+                      backgroundColor: '#1B1B1B',
+                      marginTop: 20,
+                    }}
+                    disabled={true}
+                    theme={{
+                      colors: {
+                        text: '#fff',
+                        disabled: '#5c5c5c',
+                        background: 'transparent',
+                      },
+                    }}
+                  />
                 </TouchableOpacity>
-                <Text
-                  style={{
-                    color: '#b40424',
-                    fontWeight: '700',
-                    marginBottom: -20,
-                    marginRight: 16,
-                  }}>
-                  {accountFormError}
-                </Text>
-              </View>
-              <View
-                style={{
-                  width: '80%',
-                  flexDirection: 'row-reverse',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
 
-                  borderTopWidth: 2,
-                  borderColor: '#5c5c5c',
-                  marginBottom: 20,
-                }}>
-                {auth.currentUser?.providerData[0].providerId !=
-                'google.com' ? (
+                <ErrorMessage component='div' name='country'>
+                  {(msg) => (
+                    <Text
+                      style={{
+                        width: '80%',
+                        marginTop: 8,
+                        marginBottom: 18,
+                        height: 20,
+                        flexDirection: 'row',
+                        justifyContent: 'flex-end',
+                        color: '#b40424',
+                        fontWeight: '700',
+                      }}>
+                      {msg}
+                    </Text>
+                  )}
+                </ErrorMessage>
+
+                <View
+                  style={{
+                    width: '80%',
+                    flexDirection: 'row-reverse',
+                    marginBottom: 20,
+                    alignItems: 'center',
+                  }}>
                   <TouchableOpacity
                     style={{
                       height: 30,
                       marginTop: 20,
-
                       flexDirection: 'row',
                       alignItems: 'center',
                       justifyContent: 'center',
 
                       backgroundColor: '#0082FF',
                       borderRadius: 3,
-                      paddingHorizontal: 12,
+                      paddingHorizontal: 20,
                     }}
                     onPress={() => {
-                      setChangePasswordModal(true);
+                      setActionType('updateUser');
+                      props.submitForm();
                     }}>
                     <Text
                       style={{
@@ -377,303 +344,103 @@ export default function Settings() {
                         fontWeight: '700',
                         color: '#121212',
                       }}>
-                      Change Password
+                      Submit
                     </Text>
                   </TouchableOpacity>
-                ) : null}
-
-                <TouchableOpacity
-                  style={{
-                    height: 30,
-                    marginTop: 20,
-
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-
-                    backgroundColor: '#0082FF',
-                    borderRadius: 3,
-                    paddingHorizontal: 12,
-                  }}
-                  onPress={() => {
-                    if (
-                      auth.currentUser?.providerData[0].providerId !=
-                      'google.com'
-                    ) {
-                      setActionType('deleteAccount');
-                      setModal(true);
-                    } else {
-                      setActionType('deleteAccount');
-                      setAreYouSureModal(true);
-                    }
-                  }}>
                   <Text
                     style={{
-                      fontSize: 16,
+                      color: '#b40424',
                       fontWeight: '700',
-                      color: '#121212',
+                      marginBottom: -20,
+                      marginRight: 16,
                     }}>
-                    Delete Account
+                    {accountFormError}
                   </Text>
-                </TouchableOpacity>
+                </View>
               </View>
-            </View>
-          )}
-        </Formik>
-      </View>
-
-      <Text
-        style={{
-          color: '#f4f4f4',
-          fontWeight: '700',
-          fontSize: 22,
-
-          paddingTop: 12,
-          paddingLeft: 12,
-        }}>
-        Contact Info for Buyers
-      </Text>
-      <View
-        style={{
-          backgroundColor: '#1B1B1B',
-        }}>
-        <Formik
-          initialValues={{
-            whatsAppContact: userData.whatsAppContact,
-            instagramContact: userData.instagramContact,
-            discordContact: userData.discordContact,
-          }}
-          onSubmit={async (values, actions) => {
-            setOutValues([
-              userData.nick,
-              userData.country,
-              values.whatsAppContact,
-              values.instagramContact,
-              values.discordContact,
-            ]);
-
-            const detectChanges = () => {
-              let change = false;
-              [
-                userData.nick,
-                userData.country,
-                values.whatsAppContact,
-                values.instagramContact,
-                values.discordContact,
-              ].forEach((item, index) => {
-                if (item !== initValues[index]) {
-                  change = true;
-                }
-              });
-              if (change) {
-                setContactInfoFormError('');
-                return true;
-              }
-              setContactInfoFormError('No change detected');
-            };
-
-            if (detectChanges()) {
-              setModal(true);
-            }
-          }}
+            )}
+          </Formik>
+        </View>
+        <Text
           style={{
-            flex: 1,
+            color: '#f4f4f4',
+            fontWeight: '700',
+            fontSize: 22,
+
+            paddingTop: 12,
+            paddingLeft: 12,
+          }}>
+          Other
+        </Text>
+        <View
+          style={{
+            backgroundColor: '#1B1B1B',
             flexDirection: 'column',
             alignItems: 'center',
-            width: '100%',
-            height: '100%',
-            marginVertical: 40,
-            backgroundColor: '#121212',
           }}>
-          {(props) => (
-            <View
-              style={{
-                flex: 1,
-                flexDirection: 'column',
-                alignItems: 'center',
-                width: '100%',
-                height: '100%',
-              }}>
-              <TextInput
-                mode={'outlined'}
-                value={props.values.whatsAppContact}
-                onChangeText={props.handleChange('whatsAppContact')}
-                label='WhatsApp Contact'
-                outlineColor={'#5c5c5c'}
-                error={
-                  props.touched.whatsAppContact && props.errors.whatsAppContact
-                    ? true
-                    : false
-                }
-                style={{
-                  width: '80%',
-                  backgroundColor: '#1B1B1B',
-                  color: '#f4f4f4',
-                  marginTop: 20,
-                }}
-                theme={{
-                  colors: {
-                    primary: '#0082ff',
-                    placeholder: '#5c5c5c',
-                    background: 'transparent',
-                    text: '#f4f4f4',
-                  },
-                }}
-              />
-              <ErrorMessage component='div' name='whatsAppContact'>
-                {(msg) => (
-                  <Text
-                    style={{
-                      width: '80%',
-                      marginTop: 8,
-                      marginBottom: 18,
-                      height: 20,
-                      flexDirection: 'row',
-                      justifyContent: 'flex-end',
-                      color: '#b40424',
-                      fontWeight: '700',
-                    }}>
-                    {msg}
-                  </Text>
-                )}
-              </ErrorMessage>
-              <TextInput
-                mode={'outlined'}
-                value={props.values.discordContact}
-                onChangeText={props.handleChange('discordContact')}
-                label='Discord Contact'
-                outlineColor={'#5c5c5c'}
-                error={
-                  props.touched.discordContact && props.errors.discordContact
-                    ? true
-                    : false
-                }
-                style={{
-                  width: '80%',
-                  backgroundColor: '#1B1B1B',
-                  color: '#f4f4f4',
-                  marginTop: 20,
-                }}
-                theme={{
-                  colors: {
-                    primary: '#0082ff',
-                    placeholder: '#5c5c5c',
-                    background: 'transparent',
-                    text: '#f4f4f4',
-                  },
-                }}
-              />
-              <ErrorMessage component='div' name='discordContact'>
-                {(msg) => (
-                  <Text
-                    style={{
-                      width: '80%',
-                      marginTop: 8,
-                      marginBottom: 18,
-                      height: 20,
-                      flexDirection: 'row',
-                      justifyContent: 'flex-end',
-                      color: '#b40424',
-                      fontWeight: '700',
-                    }}>
-                    {msg}
-                  </Text>
-                )}
-              </ErrorMessage>
-              <TextInput
-                mode={'outlined'}
-                value={props.values.instagramContact}
-                onChangeText={props.handleChange('instagramContact')}
-                label='Instagram Contact'
-                outlineColor={'#5c5c5c'}
-                error={
-                  props.touched.instagramContact &&
-                  props.errors.instagramContact
-                    ? true
-                    : false
-                }
-                style={{
-                  width: '80%',
-                  backgroundColor: '#1B1B1B',
-                  color: '#f4f4f4',
-                  marginTop: 20,
-                }}
-                theme={{
-                  colors: {
-                    primary: '#0082ff',
-                    placeholder: '#5c5c5c',
-                    background: 'transparent',
-                    text: '#f4f4f4',
-                  },
-                }}
-              />
-              <ErrorMessage component='div' name='instagramContact'>
-                {(msg) => (
-                  <Text
-                    style={{
-                      width: '80%',
-                      marginTop: 8,
-                      marginBottom: 18,
-                      height: 20,
-                      flexDirection: 'row',
-                      justifyContent: 'flex-end',
-                      color: '#b40424',
-                      fontWeight: '700',
-                    }}>
-                    {msg}
-                  </Text>
-                )}
-              </ErrorMessage>
-              <View
-                style={{
-                  width: '80%',
-                  flexDirection: 'row-reverse',
-                  marginBottom: 20,
-                  alignItems: 'center',
-                }}>
-                <TouchableOpacity
-                  style={{
-                    height: 30,
-                    marginTop: 20,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+          <TouchableOpacity
+            style={{
+              height: 30,
+              marginTop: 20,
+              width: '70%',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
 
-                    backgroundColor: '#0082FF',
-                    borderRadius: 3,
-                    paddingHorizontal: 20,
-                  }}
-                  onPress={props.submitForm}>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: '700',
-                      color: '#121212',
-                    }}>
-                    Submit
-                  </Text>
-                </TouchableOpacity>
-                <ActivityIndicator
-                  size='small'
-                  color='#0082ff'
-                  animating={submitingFormIndicator}
-                />
-                <Text
-                  style={{
-                    color: '#b40424',
-                    fontWeight: '700',
-                    marginBottom: -20,
-                    marginRight: 16,
-                  }}>
-                  {contactInfoFormError}
-                </Text>
-              </View>
-            </View>
-          )}
-        </Formik>
-      </View>
-    </ScrollView>
-  );
+              backgroundColor: '#0082FF',
+              borderRadius: 3,
+              paddingHorizontal: 12,
+            }}
+            onPress={async () => {
+              if (
+                auth.currentUser?.providerData[0].providerId != 'google.com'
+              ) {
+                setActionType('deleteAccount');
+                setModal(true);
+              } else {
+                await reSignInWithGoogleAsync('deleteAccount');
+              }
+            }}>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '700',
+                color: '#121212',
+              }}>
+              Delete Account
+            </Text>
+          </TouchableOpacity>
+          {auth.currentUser?.providerData[0].providerId != 'google.com' ? (
+            <TouchableOpacity
+              style={{
+                height: 30,
+                marginTop: 20,
+
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+
+                backgroundColor: '#0082FF',
+                borderRadius: 3,
+                paddingHorizontal: 12,
+              }}
+              onPress={() => {
+                setChangePasswordModal(true);
+              }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '700',
+                  color: '#121212',
+                }}>
+                Change Password
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      </ScrollView>
+    );
+  }
 }
 
 //!Instagram, Whatsapp, Discord

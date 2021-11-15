@@ -1,14 +1,20 @@
 import React, { useEffect, useState } from 'react';
 
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+} from 'react-native';
 
 import { MaterialIcons } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import DeleteCardModal from '../shared/DeleteCardModal';
-import { CardCollection } from '../shared/cards/CardCollection';
-import { fetchUsersCards, fetchOwnerData, auth } from '../authContext';
+import { CardYourOffers } from '../shared/cards/CardYourOffers';
+import { fetchUsersCards } from '../authContext';
 
 import { AlertModal } from '../shared/AlertModal';
 
@@ -21,18 +27,6 @@ export default function YourOffers() {
   const [loadingState, setLoadingState] = useState(true);
 
   const [id, setId] = useState(null);
-
-  const checkUsersContactInfo = async () => {
-    const usersObject = await fetchOwnerData(auth.currentUser.uid);
-    if (
-      usersObject?.whatsAppContact ||
-      usersObject?.discordContact ||
-      usersObject?.instagramContact
-    ) {
-      return true;
-    }
-    return false;
-  };
 
   useEffect(() => {
     const resolvePromises = async () => {
@@ -47,8 +41,8 @@ export default function YourOffers() {
     const resolvePromises = async () => {
       if (modalState === false) {
         setLoadingState(true);
-        setCardsData(await fetchUsersCards());
         setModalState(null);
+        setCardsData(await fetchUsersCards());
         setLoadingState(false);
       }
     };
@@ -65,106 +59,105 @@ export default function YourOffers() {
       {modalState ? <DeleteCardModal setModal={setModalState} id={id} /> : null}
       {alertModal ? <AlertModal setModal={setAlertModal} /> : null}
       {!loadingState ? (
-        <TouchableOpacity
+        <View
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '96%',
-            backgroundColor: '#121212',
-            paddingVertical: 10,
-            marginLeft: '2%',
-            marginTop: 10,
-            marginBottom: 6,
-            borderRadius: 4,
-          }}
-          onPress={async () => {
-            if (await checkUsersContactInfo()) {
-              navigation.navigate('AddCard');
-            } else {
-              setAlertModal(true);
-            }
+            flex: 1,
           }}>
-          <MaterialIcons
-            name='add'
-            size={24}
-            color='#f4f4f4'
-            style={{ position: 'absolute', left: '25%' }}
-            onPress={() => setAlertModal(true)}
-          />
-          <Text
+          <TouchableOpacity
             style={{
-              color: '#f4f4f4',
-              fontWeight: '700',
-              fontSize: 15,
-              marginRight: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '96%',
+              backgroundColor: '#121212',
+              paddingVertical: 10,
+              marginLeft: '2%',
+              marginTop: 10,
+              marginBottom: 6,
+              borderRadius: 4,
+            }}
+            onPress={() => {
+              navigation.navigate('AddCard');
             }}>
-            {'Add a new Card'}
-          </Text>
-        </TouchableOpacity>
-      ) : null}
+            <MaterialIcons
+              name='add'
+              size={24}
+              color='#f4f4f4'
+              style={{ position: 'absolute', left: '25%' }}
+              onPress={() => setAlertModal(true)}
+            />
+            <Text
+              style={{
+                color: '#f4f4f4',
+                fontWeight: '700',
+                fontSize: 15,
+                marginRight: 8,
+              }}>
+              {'Add a new Card'}
+            </Text>
+          </TouchableOpacity>
 
-      {cardsData?.length > 0 ? (
-        !loadingState ? (
-          <FlatList
-            data={cardsData}
-            renderItem={({ item, index }) => {
-              if (index == 0) {
+          {cardsData.length > 0 ? (
+            <FlatList
+              data={cardsData}
+              renderItem={({ item, index }) => {
                 return (
-                  <CardCollection
+                  <CardYourOffers
                     props={item}
                     setModal={setModalState}
                     setId={setId}
                   />
                 );
-              }
-              return (
-                <CardCollection
-                  props={item}
-                  setModal={setModalState}
-                  setId={setId}
-                />
-              );
-            }}
-            keyExtractor={(item, index) => index.toString()}
-          />
-        ) : null
+              }}
+              keyExtractor={(item, index) => index.toString()}
+            />
+          ) : (
+            <View
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#1b1b1b',
+              }}>
+              <Icon
+                name='cards'
+                color={'#0082ff'}
+                size={58}
+                style={{ marginBottom: 12 }}
+              />
+              <Text
+                style={{
+                  color: '#f4f4f4',
+                  fontSize: 38,
+                  fontWeight: '700',
+                  marginBottom: 12,
+                  paddingHorizontal: 20,
+                  textAlign: 'center',
+                }}>
+                Add New Offers!
+              </Text>
+              <Text
+                style={{
+                  fontSize: 15,
+                  width: '80%',
+                  color: '#4f4f4f',
+                  marginBottom: 60,
+                  textAlign: 'center',
+                }}>
+                Add photos, description, price and condition of the card and
+                sell it. It's really easy with PTCG Marketplace.
+              </Text>
+            </View>
+          )}
+        </View>
       ) : (
         <View
           style={{
             flex: 1,
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#1b1b1b',
           }}>
-          <Icon
-            name='cards'
-            color={'#0082ff'}
-            size={58}
-            style={{ marginBottom: 12 }}
-          />
-          <Text
-            style={{
-              color: '#f4f4f4',
-              fontSize: 38,
-              fontWeight: '700',
-              marginBottom: 12,
-              paddingHorizontal: 20,
-              textAlign: 'center',
-            }}>
-            Add New Offers!
-          </Text>
-          <Text
-            style={{
-              fontSize: 15,
-              width: '80%',
-              color: '#4f4f4f',
-              marginBottom: 60,
-              textAlign: 'center',
-            }}>
-            Add photos, description, price and condition of the card and sell
-            it. It's really easy with PTCG Marketplace.
-          </Text>
+          <ActivityIndicator size='large' color='#0082ff' />
         </View>
       )}
     </View>

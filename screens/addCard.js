@@ -17,7 +17,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-import { Switch, TextInput } from 'react-native-paper';
+import { Checkbox, TextInput } from 'react-native-paper';
 
 import { useNavigation } from '@react-navigation/native';
 import { addCard, fetchBigCards, fetchMoreBigCards } from '../authContext';
@@ -33,7 +33,6 @@ export default function AddCard() {
   const navigation = useNavigation();
 
   const priceRegEx = /^\d+([.,]\d{1,2})?$/g;
-
   const gradeRegEx = /^[1-9]|10*$/g;
 
   const reviewSchema = yup.object({
@@ -51,29 +50,6 @@ export default function AddCard() {
       .string('Wrong format!')
       .required('Language Version is required!')
       .min(4, 'Wrong format'),
-    description: yup
-      .string('Wrong format!')
-      .required('Description is required!')
-      .max(60, 'Description is too long!'),
-  });
-  const reviewSchemaWithGrading = yup.object({
-    price: yup
-      .string('Wrong format!')
-      .matches(priceRegEx, 'Wrong format!')
-      .required('Price is required!')
-      .max(10, 'Grading Organization is too long!'),
-    languageVersion: yup
-      .string('Wrong format!')
-      .required('Language Version is required!')
-      .min(4, 'Wrong format'),
-    grade: yup
-      .string('Wrong format!')
-      .required('Grading Score is required!')
-      .max(8, 'Grading Score is too long!'),
-    gradingOrganization: yup
-      .string('Wrong format!')
-      .required('Grading Organization is required!')
-      .max(8, 'Grading Organization is too long!'),
     description: yup
       .string('Wrong format!')
       .required('Description is required!')
@@ -227,14 +203,12 @@ export default function AddCard() {
       setScError(true);
     }
   };
-
   const searchForCard = async () => {
     setBigCardsData(
       await fetchBigCards(nativeInputValue, pickerValue, setLoading)
     );
     setPageNumber(2);
   };
-
   const stateHandler = (variant) => {
     if (variant == 'pikachu') {
       if (loadingState) return false;
@@ -270,7 +244,7 @@ export default function AddCard() {
   };
 
   const [photoState, setPhoto] = useState(null);
-  const [gradingSwitch, setGrading] = useState(true);
+  const [gradingSwitch, setGrading] = useState(false);
 
   const [modalState, setModal] = useState(false);
   const [scError, setScError] = useState(false);
@@ -538,16 +512,11 @@ export default function AddCard() {
         style={{ flex: 1 }}
         initialValues={{
           price: '',
-          grade: '',
-          gradingOrganization: '',
-          certificateNumber: '',
           condition: '',
           description: '',
           languageVersion: '',
         }}
-        validationSchema={
-          gradingSwitch ? reviewSchemaWithGrading : reviewSchema
-        }
+        validationSchema={reviewSchema}
         onSubmit={async (values, actions) => {
           setLoadingIndicator(true);
           await submitForm(values);
@@ -797,7 +766,6 @@ export default function AddCard() {
                   backgroundColor: '#1b1b1b',
                   color: '#f4f4f4',
                   marginTop: 20,
-                  display: gradingSwitch ? 'none' : 'flex',
                 }}
                 theme={{
                   colors: {
@@ -808,10 +776,7 @@ export default function AddCard() {
                   },
                 }}
               />
-              <ErrorMessage
-                component='div'
-                name='condition'
-                style={{ display: gradingSwitch ? 'none' : 'flex' }}>
+              <ErrorMessage component='div' name='condition'>
                 {!gradingSwitch ? (
                   (msg) => (
                     <Text
@@ -845,7 +810,7 @@ export default function AddCard() {
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  marginTop: 40,
+                  marginTop: 20,
                 }}>
                 <Text
                   style={{
@@ -856,148 +821,15 @@ export default function AddCard() {
                     fontSize: 20,
                     marginRight: 10,
                   }}>
-                  Grading of Card
+                  Is the card graded?
                 </Text>
-                <Switch
-                  value={gradingSwitch}
+                <Checkbox
+                  status={gradingSwitch ? 'checked' : 'unchecked'}
                   color={'#0082ff'}
-                  onValueChange={() => setGrading(!gradingSwitch)}
+                  uncheckedColor={'#5c5c5c'}
+                  onPress={() => setGrading(!gradingSwitch)}
                 />
               </View>
-
-              {gradingSwitch ? (
-                <View style={{ width: '100%' }}>
-                  <TextInput
-                    mode={'outlined'}
-                    value={props.values.grade}
-                    onChangeText={props.handleChange('grade')}
-                    error={
-                      props.touched.grade && props.errors.grade ? true : false
-                    }
-                    disabled={!gradingSwitch}
-                    label='Grading Score (e.g. 10 PRI or 8.5)'
-                    outlineColor={'#5c5c5c'}
-                    style={{
-                      width: '85%',
-                      backgroundColor: '#1b1b1b',
-                      color: '#f4f4f4',
-                      marginTop: 20,
-                    }}
-                    theme={{
-                      colors: {
-                        primary: '#0082ff',
-                        placeholder: '#5c5c5c',
-                        background: 'transparent',
-                        text: '#f4f4f4',
-                      },
-                    }}
-                  />
-                  <ErrorMessage component='div' name='grade'>
-                    {(msg) => (
-                      <Text
-                        style={{
-                          width: '70%',
-                          marginTop: 8,
-                          height: 20,
-                          flexDirection: 'row',
-                          justifyContent: 'flex-end',
-                          color: '#b40424',
-                          fontWeight: '700',
-                        }}>
-                        {msg}
-                      </Text>
-                    )}
-                  </ErrorMessage>
-                  <TextInput
-                    mode={'outlined'}
-                    value={props.values.gradingOrganization}
-                    onChangeText={props.handleChange('gradingOrganization')}
-                    error={
-                      props.touched.gradingOrganization &&
-                      props.errors.gradingOrganization
-                        ? true
-                        : false
-                    }
-                    disabled={!gradingSwitch}
-                    label='Grading Organization (e.g. PSA)'
-                    outlineColor={'#5c5c5c'}
-                    style={{
-                      width: '85%',
-                      backgroundColor: '#1b1b1b',
-                      color: '#f4f4f4',
-                      marginTop: 20,
-                    }}
-                    theme={{
-                      colors: {
-                        primary: '#0082ff',
-                        placeholder: '#5c5c5c',
-                        background: 'transparent',
-                        text: '#f4f4f4',
-                      },
-                    }}
-                  />
-                  <ErrorMessage component='div' name='gradingOrganization'>
-                    {(msg) => (
-                      <Text
-                        style={{
-                          width: '70%',
-                          marginTop: 8,
-                          height: 20,
-                          flexDirection: 'row',
-                          justifyContent: 'flex-end',
-                          color: '#b40424',
-                          fontWeight: '700',
-                        }}>
-                        {msg}
-                      </Text>
-                    )}
-                  </ErrorMessage>
-                  <TextInput
-                    mode={'outlined'}
-                    value={props.values.certificateNumber}
-                    onChangeText={props.handleChange('certificateNumber')}
-                    error={
-                      props.touched.certificateNumber &&
-                      props.errors.certificateNumber
-                        ? true
-                        : false
-                    }
-                    disabled={!gradingSwitch}
-                    label='Certificate Number'
-                    outlineColor={'#5c5c5c'}
-                    style={{
-                      width: '85%',
-                      backgroundColor: '#1b1b1b',
-                      color: '#f4f4f4',
-                      marginTop: 20,
-                    }}
-                    theme={{
-                      colors: {
-                        primary: '#0082ff',
-                        placeholder: '#5c5c5c',
-                        background: 'transparent',
-                        text: '#f4f4f4',
-                      },
-                    }}
-                  />
-                  <ErrorMessage component='div' name='certificateNumber'>
-                    {(msg) => (
-                      <Text
-                        style={{
-                          width: '70%',
-                          marginTop: 8,
-                          height: 20,
-                          flexDirection: 'row',
-                          justifyContent: 'flex-end',
-                          color: '#b40424',
-                          fontWeight: '700',
-                        }}>
-                        {msg}
-                      </Text>
-                    )}
-                  </ErrorMessage>
-                </View>
-              ) : null}
             </View>
             <View
               style={{

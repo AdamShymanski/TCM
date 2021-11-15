@@ -1,9 +1,16 @@
-import React from 'react';
-import { Image, View, Text, TouchableOpacity, Clipboard } from 'react-native';
+import React, { useState } from 'react';
+import { Image, View, Text, TouchableOpacity } from 'react-native';
+import { Snackbar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 
+import PayPal from '../assets/paypal_logo.png';
+
 export default function Buy({ route }) {
+  const ownerId = route.params.ownerId;
+
   const navigation = useNavigation();
+
+  const [snackbarState, setSnackbarState] = useState(false);
 
   return (
     <View
@@ -42,13 +49,16 @@ export default function Buy({ route }) {
             width: '100%',
             paddingVertical: 8,
             alignItems: 'center',
-            borderRadius: 2,
+            borderRadius: 5,
           }}
           onPress={() => {
-            navigation.navigate('Register');
+            navigation.navigate('Chat', {
+              screen: 'ChatScreen',
+              params: { ownerId },
+            });
           }}>
           <Text style={{ color: '#121212', fontWeight: '700', fontSize: 16 }}>
-            Send Message To Seller
+            Start Chat
           </Text>
         </TouchableOpacity>
         <View
@@ -79,7 +89,38 @@ export default function Buy({ route }) {
             }}
           />
         </View>
+        <TouchableOpacity
+          style={{
+            backgroundColor: '#997523',
+            //#ffc43c default background color
+            width: '100%',
+            paddingVertical: 8,
+            alignItems: 'center',
+            borderRadius: 5,
+          }}
+          onPress={() => {
+            setSnackbarState(true);
+          }}>
+          <Image
+            source={PayPal}
+            style={{
+              height: 20,
+              aspectRatio: 80 / 32,
+            }}
+          />
+        </TouchableOpacity>
       </View>
+      <Snackbar
+        visible={snackbarState}
+        onDismiss={() => setSnackbarState(false)}
+        action={{
+          label: 'OK',
+          onPress: () => {
+            setSnackbarState(false);
+          },
+        }}>
+        Payments through PayPal aren't yet available
+      </Snackbar>
     </View>
   );
 }

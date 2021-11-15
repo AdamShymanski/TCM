@@ -8,14 +8,14 @@ import { useIsFocused } from '@react-navigation/native';
 import { CardSavedOffers } from '../shared/cards/CardSavedOffers';
 
 export default function SavedOffers({ navigation }) {
-  const [cardsData, setCardsData] = useState(null);
+  const [cardsData, setCardsData] = useState([]);
   const [loadingState, setLoading] = useState(true);
 
   const isFocused = useIsFocused();
 
   useEffect(() => {
     if (!isFocused) {
-      setCardsData(null);
+      setCardsData([]);
       setLoading(true);
     }
     if (isFocused) {
@@ -30,7 +30,7 @@ export default function SavedOffers({ navigation }) {
         backgroundColor: '#1b1b1b',
         flexDirection: 'column',
       }}>
-      {cardsData !== null || cardsData?.length > 0 ? (
+      {cardsData !== null || cardsData.length > 0 ? (
         !loadingState ? (
           <FlatList
             data={cardsData}
