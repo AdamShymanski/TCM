@@ -7,37 +7,38 @@ import { db, auth, createChat } from "../authContext";
 
 import { ActivityIndicator } from "react-native-paper";
 
-export default function Chat({ route }) {
+export default function StartChat({ route }) {
+  const ownerId = route.params?.ownerId;
   const [messages, setMessages] = useState([]);
-
-  const data = route.params.data;
-  const chatsRef = db.collection(`chats/${data?.id}/messages`);
+  const [chatRef, setChatRef] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = chatsRef.onSnapshot((querySnapshot) => {
-      const messagesFirestore = querySnapshot
-        .docChanges()
-        .filter(({ type }) => type === "added")
-        .map(({ doc }) => {
-          const message = doc.data();
+    if (chatRef != null) {
+      const unsubscribe = chatRef.onSnapshot((querySnapshot) => {
+        const messagesFirestore = querySnapshot
+          .docChanges()
+          .filter(({ type }) => type === "added")
+          .map(({ doc }) => {
+            const message = doc.data();
 
-          return {
-            _id: message._id,
-            text: message.text,
-            createdAt: message.createdAt.toDate(),
-            user: {
-              _id: message.user._id,
-              name: message.user.name,
-            },
-            sent: true,
-            received: message.received,
-          };
-        })
-        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-      appendMessages(messagesFirestore);
-    });
+            return {
+              _id: message._id,
+              text: message.text,
+              createdAt: message.createdAt.toDate(),
+              user: {
+                _id: message.user._id,
+                name: message.user.name,
+              },
+              sent: true,
+              received: message.received,
+            };
+          })
+          .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+        appendMessages(messagesFirestore);
+      });
 
-    return () => unsubscribe();
+      return () => unsubscribe();
+    }
   }, []);
 
   const appendMessages = useCallback(
@@ -95,7 +96,7 @@ export default function Chat({ route }) {
           if (messages.length !== 0) {
             await handleSend(messages);
           } else {
-            await createChat(messages, ownerId);
+            await createChat(messages, ownerId, setChatRef);
             setMessages(messages);
           }
         }}

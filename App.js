@@ -1,53 +1,54 @@
 // @refresh reset
-import React, { useState, useEffect } from 'react';
-import * as Updates from 'expo-updates';
-import { NavigationContainer } from '@react-navigation/native';
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from "react";
+import * as Updates from "expo-updates";
+import { NavigationContainer } from "@react-navigation/native";
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import { View, Text, TouchableOpacity } from "react-native";
 
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator } from "@react-navigation/stack";
 
-import Home from './screens/Home.js';
-import SavedOffers from './screens/SavedOffers.js';
-import Settings from './screens/Settings.js';
-import YourOffers from './screens/YourOffers.js';
-import AddCard from './screens/AddCard.js';
-import EditCard from './screens/EditCard.js';
-import Welcome from './screens/Welcome.js';
-import Register from './screens/Register.js';
-import Login from './screens/Login.js';
-import ImageBrowser from './screens/ImageBrowser';
-import Thanks from './screens/Thanks';
-import Orders from './screens/Orders';
-import ChatConversations from './screens/ChatConverstations';
-import DeletingAccount from './screens/DeletingAccount';
-import Chat from './screens/Chat';
-import Sellers from './screens/Sellers';
+import Home from "./screens/Home.js";
+import SavedOffers from "./screens/SavedOffers.js";
+import Settings from "./screens/Settings.js";
+import YourOffers from "./screens/YourOffers.js";
+import AddCard from "./screens/AddCard.js";
+import EditCard from "./screens/EditCard.js";
+import Welcome from "./screens/Welcome.js";
+import Register from "./screens/Register.js";
+import Login from "./screens/Login.js";
+import ImageBrowser from "./screens/ImageBrowser";
+import Thanks from "./screens/Thanks";
+import Orders from "./screens/Orders";
+import DeletingAccount from "./screens/DeletingAccount";
+import Sellers from "./screens/Sellers";
+import ChatConversations from "./screens/ChatConverstations";
+import Chat from "./screens/Chat";
+import StartChat from "./screens/StartChat";
 
-import Buy from './screens/NewBuy';
+import Buy from "./screens/NewBuy";
 
-import { db, auth, setChatListeners, createChat } from './authContext.js';
+import { db, auth, setChatListeners, createChat } from "./authContext.js";
 
-import { AdMobBanner } from 'expo-ads-admob';
-import FinishGoogleRegister from './screens/FinishGoogleRegister';
+import { AdMobBanner } from "expo-ads-admob";
+import FinishGoogleRegister from "./screens/FinishGoogleRegister";
 
-import CustomHeader from './shared/CustomHeader';
-import CustomDrawer from './shared/CustomDrawer';
+import CustomHeader from "./shared/CustomHeader";
+import CustomDrawer from "./shared/CustomDrawer";
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
 function HomeStack() {
   const [bigCardsData, setBigCardsData] = useState(null);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [pageNumber, setPageNumber] = useState(2);
   const [loadingState, setLoading] = useState(false);
-  const [pickerValue, setPickerValue] = useState('Rarity Declining');
+  const [pickerValue, setPickerValue] = useState("Rarity Declining");
 
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name='Home'
+        name="Home"
         children={() => (
           <Home
             bigCardsData={bigCardsData}
@@ -64,7 +65,7 @@ function HomeStack() {
         options={{
           headerTitle: () => (
             <CustomHeader
-              version={'drawer'}
+              version={"drawer"}
               setBigCardsData={setBigCardsData}
               setPageNumber={setPageNumber}
               setInputValue={setInputValue}
@@ -74,12 +75,12 @@ function HomeStack() {
             />
           ),
           headerStyle: {
-            backgroundColor: '#121212',
+            backgroundColor: "#121212",
           },
         }}
       />
       <Stack.Screen
-        name='Buy'
+        name="Buy"
         component={Buy}
         options={({ navigation, route }) => ({
           headerLeft: () => (
@@ -89,28 +90,30 @@ function HomeStack() {
                 marginLeft: 12,
 
                 height: 30,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
                 borderWidth: 2,
-                borderColor: '#777777',
+                borderColor: "#777777",
                 paddingHorizontal: 12,
               }}
-              onPress={() => navigation.goBack()}>
+              onPress={() => navigation.goBack()}
+            >
               <Text
                 style={{
                   fontSize: 16,
-                  fontWeight: '700',
-                  color: '#777777',
-                }}>
-                {'Go back'}
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
               </Text>
             </TouchableOpacity>
           ),
-          headerTintColor: '#121212',
-          headerTitle: '',
+          headerTintColor: "#121212",
+          headerTitle: "",
           headerStyle: {
-            backgroundColor: '#121212',
+            backgroundColor: "#121212",
           },
         })}
       />
@@ -121,12 +124,12 @@ function SavedOffersStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name='SavedOffers'
+        name="SavedOffers"
         component={SavedOffers}
         options={{
-          headerTitle: () => <CustomHeader version={'savedOffers'} />,
+          headerTitle: () => <CustomHeader version={"savedOffers"} />,
           headerStyle: {
-            backgroundColor: '#121212',
+            backgroundColor: "#121212",
           },
         }}
       />
@@ -137,12 +140,12 @@ function SettingsStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name='Setting'
+        name="Setting"
         component={Settings}
         options={{
-          headerTitle: () => <CustomHeader version={'settings'} />,
+          headerTitle: () => <CustomHeader version={"settings"} />,
           headerStyle: {
-            backgroundColor: '#121212',
+            backgroundColor: "#121212",
           },
         }}
       />
@@ -153,12 +156,12 @@ function OrdersStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name='Orders'
+        name="Orders"
         component={Orders}
         options={{
-          headerTitle: () => <CustomHeader version={'orders'} />,
+          headerTitle: () => <CustomHeader version={"orders"} />,
           headerStyle: {
-            backgroundColor: '#121212',
+            backgroundColor: "#121212",
           },
         }}
       />
@@ -167,6 +170,7 @@ function OrdersStack() {
 }
 function ChatStack() {
   const [listenerData, setListenerData] = useState([]);
+  const [isFirstMessage, setIsFirstMessage] = useState(false);
 
   useEffect(() => {
     const resolvePromises = async () => {
@@ -178,7 +182,17 @@ function ChatStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name='ChatScreen'
+        name="ChatConversations"
+        children={() => <ChatConversations listenerData={listenerData} />}
+        options={{
+          headerTitle: () => <CustomHeader version={"chatConversations"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
+      <Stack.Screen
+        name="ChatScreen"
         component={Chat}
         options={({ navigation, route }) => ({
           headerLeft: () => (
@@ -188,60 +202,117 @@ function ChatStack() {
                 marginLeft: 12,
 
                 height: 30,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
                 borderWidth: 2,
-                borderColor: '#777777',
+                borderColor: "#777777",
                 paddingHorizontal: 12,
               }}
-              onPress={() => navigation.goBack()}>
+              onPress={() => navigation.goBack()}
+            >
               <Text
                 style={{
                   fontSize: 16,
-                  fontWeight: '700',
-                  color: '#777777',
-                }}>
-                {'Go back'}
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
               </Text>
             </TouchableOpacity>
           ),
-          headerTintColor: '#121212',
-          headerTitle: '',
+          headerTintColor: "#121212",
+          headerTitle: "",
           headerStyle: {
-            backgroundColor: '#121212',
+            backgroundColor: "#121212",
           },
         })}
       />
       <Stack.Screen
-        name='ChatConversations'
-        children={() => <ChatConversations listenerData={listenerData} />}
-        options={{
-          headerTitle: () => <CustomHeader version={'chatConversations'} />,
+        name="Chat"
+        component={StartChat}
+        options={({ navigation, route }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 12,
+
+                height: 30,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: "#777777",
+                paddingHorizontal: 12,
+              }}
+              onPress={() => navigation.goBack()}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 12,
+
+                height: 34,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#0082ff",
+
+                paddingHorizontal: 12,
+              }}
+              onPress={() => navigation.goBack()}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#121212",
+                }}
+              >
+                {"Other offers from this seller"}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerTintColor: "#121212",
+          headerTitle: "",
           headerStyle: {
-            backgroundColor: '#121212',
+            backgroundColor: "#121212",
           },
-        }}
+        })}
       />
     </Stack.Navigator>
   );
 }
 function YourOffersStack() {
   const [bigCardsData, setBigCardsData] = useState(null);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [pageNumber, setPageNumber] = useState(2);
   const [loadingState, setLoading] = useState(false);
-  const [pickerValue, setPickerValue] = useState('Rarity Declining');
+  const [pickerValue, setPickerValue] = useState("Rarity Declining");
 
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name='YourOffers'
+        name="YourOffers"
         component={YourOffers}
         options={{
           headerTitle: () => (
             <CustomHeader
-              version={'yourOffers'}
+              version={"yourOffers"}
               setCardsData={setBigCardsData}
               setPageNumber={setPageNumber}
               setInputValue={setInputValue}
@@ -251,13 +322,13 @@ function YourOffersStack() {
             />
           ),
           headerStyle: {
-            backgroundColor: '#121212',
+            backgroundColor: "#121212",
           },
         }}
       />
 
       <Stack.Screen
-        name='ImageBrowser'
+        name="ImageBrowser"
         component={ImageBrowser}
         options={({ navigation, route }) => ({
           headerLeft: () => (
@@ -267,33 +338,35 @@ function YourOffersStack() {
                 marginLeft: 12,
 
                 height: 30,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
                 borderWidth: 2,
-                borderColor: '#777777',
+                borderColor: "#777777",
                 paddingHorizontal: 12,
               }}
-              onPress={() => navigation.goBack()}>
+              onPress={() => navigation.goBack()}
+            >
               <Text
                 style={{
                   fontSize: 16,
-                  fontWeight: '700',
-                  color: '#777777',
-                }}>
-                {'Go back'}
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
               </Text>
             </TouchableOpacity>
           ),
-          headerTintColor: '#121212',
-          headerTitle: '',
+          headerTintColor: "#121212",
+          headerTitle: "",
           headerStyle: {
-            backgroundColor: '#121212',
+            backgroundColor: "#121212",
           },
         })}
       />
       <Stack.Screen
-        name='AddCard'
+        name="AddCard"
         component={AddCard}
         options={({ navigation, route }) => ({
           headerLeft: () => (
@@ -303,38 +376,40 @@ function YourOffersStack() {
                 marginLeft: 22,
 
                 height: 30,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
                 borderWidth: 2,
-                borderColor: '#777777',
+                borderColor: "#777777",
                 paddingHorizontal: 12,
               }}
               onPress={() =>
                 navigation.reset({
                   index: 0,
-                  routes: [{ name: 'YourOffers' }],
+                  routes: [{ name: "YourOffers" }],
                 })
-              }>
+              }
+            >
               <Text
                 style={{
                   fontSize: 16,
-                  fontWeight: '700',
-                  color: '#777777',
-                }}>
-                {'Go back'}
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
               </Text>
             </TouchableOpacity>
           ),
-          headerTintColor: '#121212',
-          headerTitle: '',
+          headerTintColor: "#121212",
+          headerTitle: "",
           headerStyle: {
-            backgroundColor: '#121212',
+            backgroundColor: "#121212",
           },
         })}
       />
       <Stack.Screen
-        name='EditCard'
+        name="EditCard"
         component={EditCard}
         options={({ navigation, route }) => ({
           headerLeft: () => (
@@ -344,38 +419,40 @@ function YourOffersStack() {
                 marginLeft: 22,
 
                 height: 30,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
                 borderWidth: 2,
-                borderColor: '#777777',
+                borderColor: "#777777",
                 paddingHorizontal: 12,
               }}
               onPress={() =>
                 navigation.reset({
                   index: 0,
-                  routes: [{ name: 'YourOffers' }],
+                  routes: [{ name: "YourOffers" }],
                 })
-              }>
+              }
+            >
               <Text
                 style={{
                   fontSize: 16,
-                  fontWeight: '700',
-                  color: '#777777',
-                }}>
-                {'Go back'}
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
               </Text>
             </TouchableOpacity>
           ),
-          headerTintColor: '#121212',
-          headerTitle: '',
+          headerTintColor: "#121212",
+          headerTitle: "",
           headerStyle: {
-            backgroundColor: '#121212',
+            backgroundColor: "#121212",
           },
         })}
       />
       <Stack.Screen
-        name='Thanks'
+        name="Thanks"
         component={Thanks}
         options={({ navigation, route }) => ({
           headerLeft: () => (
@@ -385,28 +462,30 @@ function YourOffersStack() {
                 marginLeft: 22,
 
                 height: 30,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
                 borderWidth: 2,
-                borderColor: '#777777',
+                borderColor: "#777777",
                 paddingHorizontal: 12,
               }}
-              onPress={() => navigation.navigate('AddCard')}>
+              onPress={() => navigation.navigate("AddCard")}
+            >
               <Text
                 style={{
                   fontSize: 16,
-                  fontWeight: '700',
-                  color: '#777777',
-                }}>
-                {'Go back'}
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
               </Text>
             </TouchableOpacity>
           ),
-          headerTintColor: '#121212',
-          headerTitle: '',
+          headerTintColor: "#121212",
+          headerTitle: "",
           headerStyle: {
-            backgroundColor: '#121212',
+            backgroundColor: "#121212",
           },
         })}
       />
@@ -417,12 +496,12 @@ function SellersStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name='Sellers'
+        name="Sellers"
         component={Sellers}
         options={{
-          headerTitle: () => <CustomHeader version={'sellers'} />,
+          headerTitle: () => <CustomHeader version={"sellers"} />,
           headerStyle: {
-            backgroundColor: '#121212',
+            backgroundColor: "#121212",
           },
         }}
       />
@@ -440,7 +519,7 @@ export default function App() {
       if (user) {
         // await setTestDeviceIDAsync('EMULATOR');
         const usersDoc = await db
-          .collection('users')
+          .collection("users")
           .doc(auth.currentUser.uid)
           .get();
 
@@ -459,7 +538,6 @@ export default function App() {
         const update = await Updates.checkForUpdateAsync();
         if (update.isAvailable) {
           await Updates.fetchUpdateAsync();
-          console.log('Update');
           Updates.reloadAsync();
         }
       } catch (e) {
@@ -479,7 +557,7 @@ export default function App() {
         <NavigationContainer>
           <Stack.Navigator>
             <Stack.Screen
-              name='setFinishRegisterProcess'
+              name="setFinishRegisterProcess"
               children={() => (
                 <FinishGoogleRegister
                   callback={setFinishRegisterProcess}
@@ -494,28 +572,30 @@ export default function App() {
                       marginLeft: 12,
 
                       height: 30,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
                       borderWidth: 2,
-                      borderColor: '#777777',
+                      borderColor: "#777777",
                       paddingHorizontal: 12,
                     }}
-                    onPress={() => auth.signOut()}>
+                    onPress={() => auth.signOut()}
+                  >
                     <Text
                       style={{
                         fontSize: 16,
-                        fontWeight: '700',
-                        color: '#777777',
-                      }}>
-                      {'Go back'}
+                        fontWeight: "700",
+                        color: "#777777",
+                      }}
+                    >
+                      {"Go back"}
                     </Text>
                   </TouchableOpacity>
                 ),
-                headerTintColor: '#121212',
-                headerTitle: '',
+                headerTintColor: "#121212",
+                headerTitle: "",
                 headerStyle: {
-                  backgroundColor: '#121212',
+                  backgroundColor: "#121212",
                 },
               })}
             />
@@ -526,22 +606,23 @@ export default function App() {
       return (
         <NavigationContainer>
           <Drawer.Navigator
-            style={{ backgroundColor: '#82ff00' }}
+            style={{ backgroundColor: "#82ff00" }}
             drawerContent={({ navigation }) => (
               <CustomDrawer navigation={navigation} />
-            )}>
-            <Drawer.Screen name='Home' component={HomeStack} />
-            <Drawer.Screen name='Settings' component={SettingsStack} />
-            <Drawer.Screen name='YourOffers' component={YourOffersStack} />
-            <Drawer.Screen name='Chat' component={ChatStack} />
-            <Drawer.Screen name='Orders' component={OrdersStack} />
-            <Drawer.Screen name='SavedOffers' component={SavedOffersStack} />
-            <Drawer.Screen name='Sellers' component={SellersStack} />
-            <Drawer.Screen name='DeletingAccount' component={DeletingAccount} />
+            )}
+          >
+            <Drawer.Screen name="Home" component={HomeStack} />
+            <Drawer.Screen name="Settings" component={SettingsStack} />
+            <Drawer.Screen name="YourOffers" component={YourOffersStack} />
+            <Drawer.Screen name="Chat" component={ChatStack} />
+            <Drawer.Screen name="Orders" component={OrdersStack} />
+            <Drawer.Screen name="SavedOffers" component={SavedOffersStack} />
+            <Drawer.Screen name="Sellers" component={SellersStack} />
+            <Drawer.Screen name="DeletingAccount" component={DeletingAccount} />
           </Drawer.Navigator>
           <AdMobBanner
-            bannerSize='smartBannerPortrait'
-            adUnitID='ca-app-pub-2637485113454186/2096785031'
+            bannerSize="smartBannerPortrait"
+            adUnitID="ca-app-pub-2637485113454186/2096785031"
             //ca-app-pub-3940256099942544/6300978111
             servePersonalizedAds // true or false
             onDidFailToReceiveAdWithError={(error) => {
@@ -559,7 +640,7 @@ export default function App() {
             options={{
               headerShown: false,
             }}
-            name='Welcome'
+            name="Welcome"
             children={() => <Welcome setUserName={setFinishRegisterProcess} />}
           />
           <Stack.Screen
@@ -571,32 +652,34 @@ export default function App() {
                     marginLeft: 22,
 
                     height: 30,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
                     borderWidth: 2,
-                    borderColor: '#777777',
+                    borderColor: "#777777",
                     paddingHorizontal: 12,
                   }}
-                  onPress={() => navigation.navigate('Welcome')}>
+                  onPress={() => navigation.navigate("Welcome")}
+                >
                   <Text
                     style={{
                       fontSize: 16,
-                      fontWeight: '700',
-                      color: '#777777',
-                    }}>
-                    {'Go back'}
+                      fontWeight: "700",
+                      color: "#777777",
+                    }}
+                  >
+                    {"Go back"}
                   </Text>
                 </TouchableOpacity>
               ),
-              headerTintColor: '#121212',
-              headerTitle: '',
+              headerTintColor: "#121212",
+              headerTitle: "",
               headerStyle: {
-                backgroundColor: '#121212',
+                backgroundColor: "#121212",
               },
             })}
             // initialParams={{ auth: firebase.auth() }}
-            name='Register'
+            name="Register"
             component={Register}
           />
           <Stack.Screen
@@ -608,32 +691,34 @@ export default function App() {
                     marginLeft: 22,
 
                     height: 30,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
                     borderWidth: 2,
-                    borderColor: '#777777',
+                    borderColor: "#777777",
                     paddingHorizontal: 12,
                   }}
-                  onPress={() => navigation.navigate('Welcome')}>
+                  onPress={() => navigation.navigate("Welcome")}
+                >
                   <Text
                     style={{
                       fontSize: 16,
-                      fontWeight: '700',
-                      color: '#777777',
+                      fontWeight: "700",
+                      color: "#777777",
                     }}
-                    onPress={() => navigation.navigate('Welcome')}>
-                    {'Go back'}
+                    onPress={() => navigation.navigate("Welcome")}
+                  >
+                    {"Go back"}
                   </Text>
                 </TouchableOpacity>
               ),
-              headerTintColor: '#121212',
-              headerTitle: '',
+              headerTintColor: "#121212",
+              headerTitle: "",
               headerStyle: {
-                backgroundColor: '#121212',
+                backgroundColor: "#121212",
               },
             })}
-            name='Login'
+            name="Login"
             component={Login}
           />
           <Stack.Screen
@@ -645,31 +730,33 @@ export default function App() {
                     marginLeft: 22,
 
                     height: 30,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
                     borderWidth: 2,
-                    borderColor: '#777777',
+                    borderColor: "#777777",
                     paddingHorizontal: 12,
                   }}
-                  onPress={() => navigation.navigate('Welcome')}>
+                  onPress={() => navigation.navigate("Welcome")}
+                >
                   <Text
                     style={{
                       fontSize: 16,
-                      fontWeight: '700',
-                      color: '#777777',
-                    }}>
-                    {'Go back'}
+                      fontWeight: "700",
+                      color: "#777777",
+                    }}
+                  >
+                    {"Go back"}
                   </Text>
                 </TouchableOpacity>
               ),
-              headerTintColor: '#121212',
-              headerTitle: '',
+              headerTintColor: "#121212",
+              headerTitle: "",
               headerStyle: {
-                backgroundColor: '#121212',
+                backgroundColor: "#121212",
               },
             })}
-            name='FinishGoogleRegister'
+            name="FinishGoogleRegister"
             component={FinishGoogleRegister}
           />
         </Stack.Navigator>
