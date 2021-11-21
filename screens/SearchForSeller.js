@@ -6,13 +6,16 @@ import { Formik, ErrorMessage } from "formik";
 
 import * as yup from "yup";
 
-export default function Sellers() {
+import { auth, db } from "../authContext";
+
+import { useNavigation } from "@react-navigation/native";
+
+export default function SearchForSeller() {
   const reviewSchema = yup.object({
-    sellerId: yup
-      .string("Wrong ID!")
-      .required("Wrong ID!")
-      .min(100, "Wrong ID!"),
+    sellerId: yup.string("Wrong ID!").required("Wrong ID!"),
   });
+
+  const navigation = useNavigation();
 
   return (
     <View
@@ -41,7 +44,32 @@ export default function Sellers() {
             sellerId: "",
           }}
           validationSchema={reviewSchema}
-          onSubmit={async (values, actions) => {}}
+          onSubmit={async (values, actions) => {
+            //set error if value is uid
+
+            if (values.sellerId === auth.currentUser.uid) {
+              actions.setFieldError(
+                "sellerId",
+                "You can't search for yourself!"
+              );
+            }
+
+            db.collection("users")
+              .doc(values.sellerId)
+              .get()
+              .then(async (doc) => {
+                if (doc.exists) {
+                  navigation.navigate("SellerProfile", {
+                    sellerId: values.sellerId,
+                  });
+                } else {
+                  actions.setFieldError(
+                    "sellerId",
+                    "Seller not found! Please try again."
+                  );
+                }
+              });
+          }}
           style={{
             flex: 1,
             flexDirection: "column",
