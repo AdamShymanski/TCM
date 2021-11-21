@@ -20,10 +20,11 @@ import ImageBrowser from "./screens/ImageBrowser";
 import Thanks from "./screens/Thanks";
 import Orders from "./screens/Orders";
 import DeletingAccount from "./screens/DeletingAccount";
-import Sellers from "./screens/Sellers";
 import ChatConversations from "./screens/ChatConverstations";
 import Chat from "./screens/Chat";
 import StartChat from "./screens/StartChat";
+import SellerProfile from "./screens/SellerProfile";
+import SearchForSeller from "./screens/SearchForSeller";
 
 import Buy from "./screens/NewBuy";
 
@@ -496,14 +497,52 @@ function SellersStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="Sellers"
-        component={Sellers}
+        name="SearchForSeller"
+        component={SearchForSeller}
         options={{
-          headerTitle: () => <CustomHeader version={"sellers"} />,
+          headerTitle: () => <CustomHeader version={"searchForSeller"} />,
           headerStyle: {
             backgroundColor: "#121212",
           },
         }}
+      />
+      <Stack.Screen
+        name="SellerProfile"
+        component={SellerProfile}
+        options={({ navigation, route }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 12,
+
+                height: 30,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: "#777777",
+                paddingHorizontal: 12,
+              }}
+              onPress={() => navigation.goBack()}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerTintColor: "#121212",
+          headerTitle: "",
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        })}
       />
     </Stack.Navigator>
   );

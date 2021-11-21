@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,16 +7,16 @@ import {
   Image,
   ImageBackground,
   TextInput,
-} from 'react-native';
+} from "react-native";
 
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from "@expo/vector-icons";
 
-import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import IconM from 'react-native-vector-icons/MaterialIcons';
-import IconF from 'react-native-vector-icons/Feather';
+import { useNavigation } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import IconM from "react-native-vector-icons/MaterialIcons";
+import IconF from "react-native-vector-icons/Feather";
 
-import { fetchBigCards } from '../authContext';
+import { fetchBigCards } from "../authContext";
 
 export default function CustomHeader({
   version,
@@ -27,10 +27,6 @@ export default function CustomHeader({
   pickerValue,
   setLoading,
 }) {
-  const [inputState, setInput] = useState(
-    version == 'sellers' ? 'Search for a seller' : 'Search for a card'
-  );
-
   const searchForCard = async () => {
     setBigCardsData(null);
     setBigCardsData(await fetchBigCards(inputValue, pickerValue, setLoading));
@@ -43,44 +39,47 @@ export default function CustomHeader({
     navigation.openDrawer();
   };
 
-  if (version == 'savedOffers') {
+  if (version == "savedOffers") {
     return (
       <View
         style={{
-          width: '100%',
-          height: '100%',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
+          width: "100%",
+          height: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
         <MaterialIcons
-          name='menu'
+          name="menu"
           size={28}
-          color={'#f4f4f4'}
+          color={"#f4f4f4"}
           onPress={() => {
             openMenu();
           }}
           style={{
-            color: '#f4f4f4',
+            color: "#f4f4f4",
             marginLeft: 16,
           }}
         />
         <View
           style={{
-            flexDirection: 'row',
-          }}>
+            flexDirection: "row",
+          }}
+        >
           <Text
             style={{
-              color: '#f4f4f4',
-              fontWeight: '700',
+              color: "#f4f4f4",
+              fontWeight: "700",
               fontSize: 21,
               marginRight: 4,
-            }}>
-            {'Saved Offers'}
+            }}
+          >
+            {"Saved Offers"}
           </Text>
           <Icon
-            name='bookmark'
-            color={'#0082ff'}
+            name="bookmark"
+            color={"#0082ff"}
             size={30}
             style={{ marginRight: 8 }}
           />
@@ -89,44 +88,47 @@ export default function CustomHeader({
     );
   }
 
-  if (version == 'settings') {
+  if (version == "settings") {
     return (
       <View
         style={{
-          width: '100%',
-          height: '100%',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
+          width: "100%",
+          height: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
         <MaterialIcons
-          name='menu'
+          name="menu"
           size={28}
-          color={'#f4f4f4'}
+          color={"#f4f4f4"}
           onPress={() => {
             openMenu();
           }}
           style={{
-            color: '#f4f4f4',
+            color: "#f4f4f4",
             marginLeft: 16,
           }}
         />
         <View
           style={{
-            flexDirection: 'row',
-          }}>
+            flexDirection: "row",
+          }}
+        >
           <Text
             style={{
-              color: '#f4f4f4',
-              fontWeight: '700',
+              color: "#f4f4f4",
+              fontWeight: "700",
               fontSize: 21,
               marginRight: 8,
-            }}>
-            {'Settings'}
+            }}
+          >
+            {"Settings"}
           </Text>
           <IconF
-            name='settings'
-            color={'#0082ff'}
+            name="settings"
+            color={"#0082ff"}
             size={30}
             style={{ marginRight: 8 }}
           />
@@ -135,44 +137,47 @@ export default function CustomHeader({
     );
   }
 
-  if (version == 'orders') {
+  if (version == "orders") {
     return (
       <View
         style={{
-          width: '100%',
-          height: '100%',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
+          width: "100%",
+          height: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
         <MaterialIcons
-          name='menu'
+          name="menu"
           size={28}
-          color={'#f4f4f4'}
+          color={"#f4f4f4"}
           onPress={() => {
             openMenu();
           }}
           style={{
-            color: '#f4f4f4',
+            color: "#f4f4f4",
             marginLeft: 16,
           }}
         />
         <View
           style={{
-            flexDirection: 'row',
-          }}>
+            flexDirection: "row",
+          }}
+        >
           <Text
             style={{
-              color: '#f4f4f4',
-              fontWeight: '700',
+              color: "#f4f4f4",
+              fontWeight: "700",
               fontSize: 21,
               marginRight: 8,
-            }}>
-            {'Orders'}
+            }}
+          >
+            {"Orders"}
           </Text>
           <Icon
-            name='cart-outline'
-            color={'#0082ff'}
+            name="cart-outline"
+            color={"#0082ff"}
             size={30}
             style={{ marginRight: 8 }}
           />
@@ -181,44 +186,47 @@ export default function CustomHeader({
     );
   }
 
-  if (version == 'chatConversations') {
+  if (version == "chatConversations") {
     return (
       <View
         style={{
-          width: '100%',
-          height: '100%',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
+          width: "100%",
+          height: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
         <MaterialIcons
-          name='menu'
+          name="menu"
           size={28}
-          color={'#f4f4f4'}
+          color={"#f4f4f4"}
           onPress={() => {
             openMenu();
           }}
           style={{
-            color: '#f4f4f4',
+            color: "#f4f4f4",
             marginLeft: 16,
           }}
         />
         <View
           style={{
-            flexDirection: 'row',
-          }}>
+            flexDirection: "row",
+          }}
+        >
           <Text
             style={{
-              color: '#f4f4f4',
-              fontWeight: '700',
+              color: "#f4f4f4",
+              fontWeight: "700",
               fontSize: 21,
               marginRight: 8,
-            }}>
-            {'Chat'}
+            }}
+          >
+            {"Chat"}
           </Text>
           <IconM
-            name='chat-bubble'
-            color={'#0082ff'}
+            name="chat-bubble"
+            color={"#0082ff"}
             size={30}
             style={{ marginRight: 8 }}
           />
@@ -227,44 +235,47 @@ export default function CustomHeader({
     );
   }
 
-  if (version == 'chat') {
+  if (version == "chat") {
     return (
       <View
         style={{
-          width: '100%',
-          height: '100%',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
+          width: "100%",
+          height: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
         <MaterialIcons
-          name='menu'
+          name="menu"
           size={28}
-          color={'#f4f4f4'}
+          color={"#f4f4f4"}
           onPress={() => {
             openMenu();
           }}
           style={{
-            color: '#f4f4f4',
+            color: "#f4f4f4",
             marginLeft: 16,
           }}
         />
         <View
           style={{
-            flexDirection: 'row',
-          }}>
+            flexDirection: "row",
+          }}
+        >
           <Text
             style={{
-              color: '#f4f4f4',
-              fontWeight: '700',
+              color: "#f4f4f4",
+              fontWeight: "700",
               fontSize: 21,
               marginRight: 8,
-            }}>
-            {'Chat'}
+            }}
+          >
+            {"Chat"}
           </Text>
           <IconM
-            name='chat-bubble-outline'
-            color={'#0082ff'}
+            name="chat-bubble-outline"
+            color={"#0082ff"}
             size={30}
             style={{ marginRight: 8 }}
           />
@@ -273,83 +284,89 @@ export default function CustomHeader({
     );
   }
 
-  if (version == 'yourOffers') {
+  if (version == "yourOffers") {
     return (
       <View
         style={{
-          width: '100%',
-          height: '100%',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
+          width: "100%",
+          height: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
         <MaterialIcons
-          name='menu'
+          name="menu"
           size={28}
-          color={'#f4f4f4'}
+          color={"#f4f4f4"}
           onPress={() => {
             openMenu();
           }}
           style={{
-            color: '#f4f4f4',
+            color: "#f4f4f4",
             marginLeft: 16,
           }}
         />
         <View
           style={{
-            flexDirection: 'row',
-          }}>
+            flexDirection: "row",
+          }}
+        >
           <Text
             style={{
-              color: '#f4f4f4',
-              fontWeight: '700',
+              color: "#f4f4f4",
+              fontWeight: "700",
               fontSize: 21,
               marginRight: 8,
-            }}>
-            {'Your Offers'}
+            }}
+          >
+            {"Your Offers"}
           </Text>
-          <Icon name='cards' color={'#0082ff'} size={30} />
+          <Icon name="cards" color={"#0082ff"} size={30} />
         </View>
       </View>
     );
   }
 
-  if (version == 'sellers') {
+  if (version == "searchForSeller") {
     return (
       <View
         style={{
-          width: '100%',
-          height: '100%',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
+          width: "100%",
+          height: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
         <MaterialIcons
-          name='menu'
+          name="menu"
           size={28}
-          color={'#f4f4f4'}
+          color={"#f4f4f4"}
           onPress={() => {
             openMenu();
           }}
           style={{
-            color: '#f4f4f4',
+            color: "#f4f4f4",
             marginLeft: 16,
           }}
         />
         <View
           style={{
-            flexDirection: 'row',
-          }}>
+            flexDirection: "row",
+          }}
+        >
           <Text
             style={{
-              color: '#f4f4f4',
-              fontWeight: '700',
+              color: "#f4f4f4",
+              fontWeight: "700",
               fontSize: 21,
               marginRight: 8,
-            }}>
-            {'Sellers'}
+            }}
+          >
+            {"Sellers"}
           </Text>
-          <Icon name='account-cash' color={'#0082ff'} size={30} />
+          <Icon name="account-cash" color={"#0082ff"} size={30} />
         </View>
       </View>
     );
@@ -358,9 +375,9 @@ export default function CustomHeader({
   return (
     <View style={styles.header}>
       <MaterialIcons
-        name='menu'
+        name="menu"
         size={28}
-        color={'#f4f4f4'}
+        color={"#f4f4f4"}
         onPress={() => {
           openMenu();
         }}
@@ -368,34 +385,34 @@ export default function CustomHeader({
       />
       <View style={styles.headerTitle}>
         <TextInput
-          mode='outlined'
-          placeholderTextColor={'#5c5c5c'}
-          outlineColor={'#121212'}
+          mode="outlined"
+          placeholderTextColor={"#5c5c5c"}
+          outlineColor={"#121212"}
           onEndEditing={() => {
             searchForCard();
           }}
           value={inputValue}
           onChangeText={(text) => setInputValue(text)}
-          placeholder={inputState}
-          onFocus={() => setInput('')}
-          onBlur={() => setInput('Seach for a card')}
+          placeholder={"Search for a card"}
+          onFocus={() => setInput("")}
+          onBlur={() => setInput("Seach for a card")}
           style={{
             width: 260,
             height: 40,
             marginBottom: 5,
-            borderColor: '#121212',
-            backgroundColor: '#1b1b1b',
+            borderColor: "#121212",
+            backgroundColor: "#1b1b1b",
             borderWidth: 2,
             borderRadius: 5,
             paddingLeft: 10,
-            color: '#f4f4f4',
+            color: "#f4f4f4",
           }}
         />
         <MaterialIcons
-          name='search'
+          name="search"
           size={26}
-          color={'#f4f4f4'}
-          style={{ position: 'absolute', right: 14, top: 8 }}
+          color={"#f4f4f4"}
+          style={{ position: "absolute", right: 14, top: 8 }}
         />
       </View>
     </View>
@@ -406,32 +423,32 @@ export default function CustomHeader({
 
 const styles = StyleSheet.create({
   wrapper: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   header: {
-    width: '100%',
-    height: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
+    width: "100%",
+    height: "100%",
+    flexDirection: "row",
+    alignItems: "center",
   },
   headerText: {
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     letterSpacing: 1,
   },
   icon: {
-    position: 'absolute',
+    position: "absolute",
     left: 16,
-    color: '#f4f4f4',
+    color: "#f4f4f4",
   },
   headerTitle: {
-    position: 'absolute',
+    position: "absolute",
     right: 16,
 
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerImage: {
     width: 26,
