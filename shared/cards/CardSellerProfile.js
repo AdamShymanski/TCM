@@ -10,8 +10,6 @@ import {
   Modal,
 } from "react-native";
 
-import { globalStyles } from "../../styles/global";
-
 import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
 import language_icon from "./../../assets/language.png";
 import condition_icon from "./../../assets/condition.png";
