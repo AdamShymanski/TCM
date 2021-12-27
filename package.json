@@ -1,9 +1,8 @@
 {
-  "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "eject": "expo eject"
   },
@@ -32,14 +31,16 @@
     "expo-media-library": "^13.0.3",
     "expo-permissions": "^13.0.3",
     "expo-screen-orientation": "^4.0.3",
+    "expo-splash-screen": "~0.13.5",
     "expo-status-bar": "^1.1.0",
-    "expo-updates": "^0.10.5",
+    "expo-system-ui": "^1.0.0",
+    "expo-updates": "~0.10.13",
     "firebase": "8.2.3",
     "formik": "^2.2.9",
     "pokemontcgsdk": "^2.0.0",
-    "react": "^17.0.2",
+    "react": "17.0.1",
     "react-dom": "^17.0.2",
-    "react-native": "^0.64.3",
+    "react-native": "0.64.3",
     "react-native-gesture-handler": "^1.10.3",
     "react-native-gifted-chat": "^0.16.3",
     "react-native-image-zoom-viewer": "^3.0.1",
@@ -60,5 +61,7 @@
   "devDependencies": {
     "@babel/core": "^7.15.8"
   },
-  "private": true
+  "private": true,
+  "name": "PTCG_Marketplace",
+  "version": "1.0.0"
 }
