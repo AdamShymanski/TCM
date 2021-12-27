@@ -23,7 +23,6 @@
     },
     "android": {
       "package": "app.ptcg.marketplace",
-
       "googleServicesFile": "./google-services.json",
       "versionCode": 20,
       "userInterfaceStyle": "dark",

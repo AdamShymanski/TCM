@@ -6,37 +6,16 @@ import { CardSellerProfile } from "../shared/cards/CardSellerProfile";
 import { useIsFocused } from "@react-navigation/native";
 
 export default function SellerProfile({ route }) {
+  const [loading, setLoading] = useState(true);
   const [cardsArray, setCardsArray] = useState([]);
   const [sellerData, setSellerData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [savedOffersId, setSavedOffersId] = useState(null);
 
   const isFocused = useIsFocused();
-  const [savedOffersId, setSavedOffersId] = useState(null);
 
   useEffect(() => {
     const resolvePromises = async () => {
       setSellerData(await fetchOwnerData(route.params.sellerId));
-
-      // const promise = Promise.all(async () => {
-      //   const arr = [];
-      //   const docArr = await db
-      //     .collection("cards")
-      //     .where("owner", "==", route.params.sellerId)
-      //     .get();
-
-      //   console.log(docArr[0].data() + "docArr");
-
-      //   docArr.forEach((doc) => {
-      //     let cardObj = doc.data();
-      //     cardObj.id = doc.id;
-      //     arr.push(cardObj);
-      //   });
-      //   setCardsArray(arr);
-      // }).then(() => {
-      //   setLoading(false);
-      // });
-
-      // promise();
 
       const arr = [];
       const docArr = await db

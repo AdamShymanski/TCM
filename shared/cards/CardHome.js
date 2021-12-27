@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { globalStyles } from '../../styles/global';
+import React, { useState, useEffect } from "react";
+import { globalStyles } from "../../styles/global";
 
-import ImageViewer from 'react-native-image-zoom-viewer';
+import ImageViewer from "react-native-image-zoom-viewer";
 import {
   StyleSheet,
   View,
@@ -9,13 +9,13 @@ import {
   Image,
   TouchableOpacity,
   Modal,
-} from 'react-native';
+} from "react-native";
 
-import IconMI from 'react-native-vector-icons/MaterialCommunityIcons';
+import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
 
-import collection_icon from './../../assets/collection_icon.png';
-import language_icon from './../../assets/language.png';
-import condition_icon from './../../assets/condition.png';
+import collection_icon from "./../../assets/collection_icon.png";
+import language_icon from "./../../assets/language.png";
+import condition_icon from "./../../assets/condition.png";
 
 import {
   fetchPhotos,
@@ -23,9 +23,9 @@ import {
   saveOffer,
   unsaveOffer,
   auth,
-} from '../../authContext';
+} from "../../authContext";
 
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
 
 export function CardHome({ props, isSavedState }) {
   const condition = props.condition;
@@ -40,16 +40,16 @@ export function CardHome({ props, isSavedState }) {
   const [loadingState, setLoading] = useState(true);
   const [imageViewerState, setImageViewer] = useState(false);
   const [owner, setOwner] = useState({
-    name: '',
+    name: "",
     reputation: 0,
     collectionSize: 0,
-    countryCodes: '',
+    countryCodes: "",
   });
   const [isSaved, setSaveOffer] = useState(false);
   const [photosArray, setPhotosArray] = useState([
     {
       // Simplest usage.
-      url: 'https://firebasestorage.googleapis.com/v0/b/ptcg-marketplace.appspot.com/o/global%2Fplacegolder.png?alt=media&token=ed9d1f9b-9a3b-4c82-b86f-132da3e75957',
+      url: "https://firebasestorage.googleapis.com/v0/b/ptcg-marketplace.appspot.com/o/global%2Fplacegolder.png?alt=media&token=ed9d1f9b-9a3b-4c82-b86f-132da3e75957",
 
       // width: number
       // height: number
@@ -63,18 +63,23 @@ export function CardHome({ props, isSavedState }) {
   const navigation = useNavigation();
 
   useEffect(() => {
-    const resolvePromises = async () => {
-      cardPhotos = await fetchPhotos(props.id);
-      setOwner(await fetchOwnerData(props.owner));
-      setPhotosArray(fillPhotosArray(cardPhotos));
+    let mounted = true;
 
-      isSavedState.forEach((item) => {
-        if (item == props.id) setSaveOffer(true);
-      });
-      setLoading(false);
+    const resolvePromises = async () => {
+      if (mounted) {
+        cardPhotos = await fetchPhotos(props.id);
+        setOwner(await fetchOwnerData(props.owner));
+        setPhotosArray(fillPhotosArray(cardPhotos));
+
+        isSavedState.forEach((item) => {
+          if (item == props.id) setSaveOffer(true);
+        });
+        setLoading(false);
+      }
     };
 
-    return resolvePromises();
+    resolvePromises();
+    return () => (mounted = false);
   }, []);
 
   useEffect(() => {
@@ -113,28 +118,30 @@ export function CardHome({ props, isSavedState }) {
               marginRight: 16,
 
               height: 30,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#0082FF',
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#0082FF",
               width: 90,
             },
           ]}
-          onPress={() => clickSave()}>
+          onPress={() => clickSave()}
+        >
           <Text
             style={[
               {
                 fontSize: 16,
-                fontWeight: '700',
-                color: '#121212',
+                fontWeight: "700",
+                color: "#121212",
               },
-            ]}>
+            ]}
+          >
             Saved
           </Text>
           <IconMI
-            name={'check-bold'}
+            name={"check-bold"}
             size={18}
-            color='#121212'
+            color="#121212"
             style={{ marginLeft: 6, bottom: 1 }}
           />
         </TouchableOpacity>
@@ -149,24 +156,26 @@ export function CardHome({ props, isSavedState }) {
             marginRight: 16,
 
             height: 30,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
             width: 76,
-            backgroundColor: 'transparent',
+            backgroundColor: "transparent",
             borderWidth: 2.5,
-            borderColor: '#5c5c5c',
+            borderColor: "#5c5c5c",
           },
         ]}
-        onPress={() => clickSave()}>
+        onPress={() => clickSave()}
+      >
         <Text
           style={[
             {
               fontSize: 16,
-              fontWeight: '700',
-              color: '#5c5c5c',
+              fontWeight: "700",
+              color: "#5c5c5c",
             },
-          ]}>
+          ]}
+        >
           Save
         </Text>
       </TouchableOpacity>
@@ -192,38 +201,40 @@ export function CardHome({ props, isSavedState }) {
             onSwipeDown={() => {
               setImageViewer(false);
             }}
-            backgroundColor={'#1b1b1b'}
+            backgroundColor={"#1b1b1b"}
             enableSwipeDown={true}
             renderHeader={(currentIndex) => (
               <View
                 style={{
-                  width: '100%',
+                  width: "100%",
                   height: 66,
-                  flexDirection: 'row',
-                  backgroundColor: '#121212',
-                }}>
+                  flexDirection: "row",
+                  backgroundColor: "#121212",
+                }}
+              >
                 <TouchableOpacity
                   style={{
                     borderRadius: 3,
                     marginLeft: 12,
 
                     height: 30,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
                     borderWidth: 2,
-                    borderColor: '#777777',
+                    borderColor: "#777777",
                     paddingHorizontal: 12,
-                    paddingVertical: 8,
                   }}
-                  onPress={() => setImageViewer(false)}>
+                  onPress={() => setImageViewer(false)}
+                >
                   <Text
                     style={{
                       fontSize: 16,
-                      fontWeight: '700',
-                      color: '#777777',
-                    }}>
-                    {'Go back'}
+                      fontWeight: "700",
+                      color: "#777777",
+                    }}
+                  >
+                    {"Go back"}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -235,22 +246,23 @@ export function CardHome({ props, isSavedState }) {
           <View style={stylesCard.top}>
             <View
               style={{
-                backgroundColor: '#404040',
-                height: '100%',
+                backgroundColor: "#404040",
+                height: "100%",
                 paddingVertical: 8,
                 paddingHorizontal: 12,
                 borderTopLeftRadius: 3,
                 borderBottomLeftRadius: 3,
                 marginRight: 10,
-              }}>
+              }}
+            >
               <Image
                 style={{ width: 28, height: 21 }}
                 source={{
-                  uri: `https://flagcdn.com/160x120/${owner.countryCode}.png`,
+                  uri: `https://flagcdn.com/160x120/${owner?.countryCode}.png`,
                 }}
               />
             </View>
-            <Text style={[globalStyles.titleText, { color: 'white' }]}>
+            <Text style={[globalStyles.titleText, { color: "white" }]}>
               {owner.name}
             </Text>
             <View style={stylesCard.profileParams}>
@@ -276,7 +288,8 @@ export function CardHome({ props, isSavedState }) {
                 }}
               />
               <Text
-                style={{ color: '#f4f4f4', fontWeight: '700', fontSize: 18 }}>
+                style={{ color: "#f4f4f4", fontWeight: "700", fontSize: 18 }}
+              >
                 {owner.collectionSize}
               </Text>
             </View>
@@ -286,7 +299,8 @@ export function CardHome({ props, isSavedState }) {
             <TouchableOpacity
               onPress={() => {
                 setImageViewer(true);
-              }}>
+              }}
+            >
               <Image
                 style={{
                   width: 105,
@@ -294,67 +308,73 @@ export function CardHome({ props, isSavedState }) {
                   marginLeft: 12,
                   borderRadius: 3,
                 }}
-                source={{ uri: photosArray[0].url }}
+                source={{ uri: photosArray[0]?.url }}
               />
             </TouchableOpacity>
 
             <View style={stylesCard.description}>
               <View
                 style={{
-                  flexDirection: 'row',
-                }}>
+                  flexDirection: "row",
+                }}
+              >
                 <View
                   style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
+                    flexDirection: "row",
+                    alignItems: "center",
                     marginBottom: 12,
                     marginRight: 6,
                     borderRadius: 3,
                     paddingHorizontal: 16,
-                    backgroundColor: '#1b1b1b',
-                  }}>
+                    backgroundColor: "#1b1b1b",
+                  }}
+                >
                   <Image
                     source={condition_icon}
                     style={{ width: 20, height: 20, marginRight: 10 }}
                   />
                   <Text
                     style={{
-                      color: '#f4f4f4',
-                      fontWeight: '700',
+                      color: "#f4f4f4",
+                      fontWeight: "700",
                       fontSize: 16,
-                    }}>
+                    }}
+                  >
                     {condition}
                   </Text>
                 </View>
 
                 <View
                   style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
+                    flexDirection: "row",
+                    alignItems: "center",
 
                     marginBottom: 12,
                     borderRadius: 3,
                     paddingHorizontal: 16,
                     paddingVertical: 8,
-                    backgroundColor: '#1b1b1b',
-                  }}>
+                    backgroundColor: "#1b1b1b",
+                  }}
+                >
                   <Image
                     source={language_icon}
                     style={{ width: 20, height: 20, marginRight: 10 }}
                   />
                   <Text
                     style={{
-                      color: '#f4f4f4',
-                      fontWeight: '700',
+                      color: "#f4f4f4",
+                      fontWeight: "700",
                       fontSize: 16,
-                    }}>
+                    }}
+                  >
                     {languageVersion}
                   </Text>
                 </View>
               </View>
 
               <View
-                style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                style={{ flexDirection: "column", alignItems: "flex-start" }}
+              >
                 <View
                   style={{
                     padding: 6,
@@ -362,18 +382,20 @@ export function CardHome({ props, isSavedState }) {
                     flex: 1,
 
                     borderRadius: 3,
-                    backgroundColor: '#1b1b1b',
+                    backgroundColor: "#1b1b1b",
                     width: 210,
                     height: 66,
-                  }}>
+                  }}
+                >
                   <Text
                     style={{
-                      color: '#ADADAD',
-                      fontWeight: '500',
+                      color: "#ADADAD",
+                      fontWeight: "500",
                       marginRight: 9,
                       flex: 1,
                       fontSize: 12,
-                    }}>
+                    }}
+                  >
                     {description}
                   </Text>
                 </View>
@@ -383,11 +405,11 @@ export function CardHome({ props, isSavedState }) {
 
           <View
             style={{
-              flexDirection: 'row',
-              width: '100%',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              backgroundColor: '#121212',
+              flexDirection: "row",
+              width: "100%",
+              justifyContent: "space-between",
+              alignItems: "center",
+              backgroundColor: "#121212",
 
               borderBottomLeftRadius: 7,
               borderBottomRightRadius: 7,
@@ -395,55 +417,60 @@ export function CardHome({ props, isSavedState }) {
               paddingVertical: 5,
               paddingHorizontal: 8,
               paddingBottom: 9,
-            }}>
+            }}
+          >
             <Text
               style={{
                 paddingHorizontal: 10,
                 paddingVertical: 6,
-                backgroundColor: '#121212',
+                backgroundColor: "#121212",
                 borderRadius: 4,
-                color: '#f4f4f4',
-                fontWeight: '700',
+                color: "#f4f4f4",
+                fontWeight: "700",
                 fontSize: 18,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <Text style={{ color: '#0082ff', fontSize: 14 }}>
-                {'Price    '}
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ color: "#0082ff", fontSize: 14 }}>
+                {"Price    "}
               </Text>
               {price}
-              <Text style={{ color: '#CDCDCD', fontSize: 14 }}>{'  USD'}</Text>
+              <Text style={{ color: "#CDCDCD", fontSize: 14 }}>{"  USD"}</Text>
             </Text>
 
             <View
               style={{
-                flexDirection: 'row',
-              }}>
+                flexDirection: "row",
+              }}
+            >
               {renderSaveButton()}
 
               <TouchableOpacity
                 style={{
                   width: 76,
                   height: 30,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
 
-                  backgroundColor: '#0082FF',
+                  backgroundColor: "#0082FF",
                   borderRadius: 3,
                   marginRight: 5,
                 }}
                 onPress={() => {
-                  navigation.navigate('Buy', { ownerId });
-                }}>
+                  navigation.navigate("Buy", { ownerId });
+                }}
+              >
                 <Text
                   style={{
                     fontSize: 16,
-                    fontWeight: '700',
-                    color: '#121212',
+                    fontWeight: "700",
+                    color: "#121212",
                     marginRight: 5,
-                  }}>
+                  }}
+                >
                   Buy
                 </Text>
               </TouchableOpacity>
@@ -459,7 +486,7 @@ export function CardHome({ props, isSavedState }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     marginHorizontal: 4,
     marginVertical: 6,
     marginRight: 20,
@@ -472,19 +499,19 @@ const styles = StyleSheet.create({
 
 const stylesCard = StyleSheet.create({
   top: {
-    position: 'relative',
+    position: "relative",
 
     marginBottom: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
 
     borderRadius: 3,
-    backgroundColor: '#121212',
+    backgroundColor: "#121212",
   },
   body: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#121212',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#121212",
     paddingVertical: 12,
 
     borderRadius: 6,
@@ -492,7 +519,7 @@ const stylesCard = StyleSheet.create({
     borderBottomRightRadius: 0,
   },
   description: {
-    height: '100%',
+    height: "100%",
     flex: 1,
 
     paddingLeft: 12,
@@ -500,34 +527,34 @@ const stylesCard = StyleSheet.create({
     borderRadius: 5,
   },
   rightText: {
-    color: '#0082ff',
-    fontWeight: 'bold',
+    color: "#0082ff",
+    fontWeight: "bold",
     fontSize: 16,
   },
   leftText: {
-    color: '#f4f4f4',
-    fontWeight: '400',
+    color: "#f4f4f4",
+    fontWeight: "400",
     fontSize: 16,
   },
   cardName: {
-    color: '#f4f4f4',
-    fontWeight: '700',
+    color: "#f4f4f4",
+    fontWeight: "700",
     fontSize: 15,
     marginBottom: 8,
   },
   bottom: {
-    flexDirection: 'row',
-    backgroundColor: '#121212',
+    flexDirection: "row",
+    backgroundColor: "#121212",
     height: 60,
-    width: '100%',
+    width: "100%",
     paddingVertical: 12,
-    justifyContent: 'space-evenly',
+    justifyContent: "space-evenly",
     paddingHorizontal: 8,
   },
   profileParams: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'absolute',
+    flexDirection: "row",
+    alignItems: "center",
+    position: "absolute",
     right: 20,
   },
 });

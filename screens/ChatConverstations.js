@@ -153,7 +153,7 @@ const ConversationBar = ({ uid, data }) => {
             marginRight: 12,
           }}
           onPress={() => {
-            navigation.navigate("Chat", { data });
+            navigation.navigate("ChatScreen", { data });
           }}
         >
           <Text

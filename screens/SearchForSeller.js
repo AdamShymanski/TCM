@@ -52,23 +52,23 @@ export default function SearchForSeller() {
                 "sellerId",
                 "You can't search for yourself!"
               );
+            } else {
+              db.collection("users")
+                .doc(values.sellerId)
+                .get()
+                .then(async (doc) => {
+                  if (doc.exists) {
+                    navigation.navigate("SellerProfile", {
+                      sellerId: values.sellerId,
+                    });
+                  } else {
+                    actions.setFieldError(
+                      "sellerId",
+                      "Seller not found! Please try again."
+                    );
+                  }
+                });
             }
-
-            db.collection("users")
-              .doc(values.sellerId)
-              .get()
-              .then(async (doc) => {
-                if (doc.exists) {
-                  navigation.navigate("SellerProfile", {
-                    sellerId: values.sellerId,
-                  });
-                } else {
-                  actions.setFieldError(
-                    "sellerId",
-                    "Seller not found! Please try again."
-                  );
-                }
-              });
           }}
           style={{
             flex: 1,

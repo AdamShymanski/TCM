@@ -4,7 +4,9 @@ import "firebase/storage";
 import "firebase/auth";
 
 import pokemon from "pokemontcgsdk";
-import * as Google from "expo-google-app-auth";
+// import * as Google from "expo-google-app-auth";
+
+import * as GoogleSignIn from "expo-google-sign-in";
 
 if (firebase.apps.length === 0) {
   firebase.initializeApp({
@@ -18,6 +20,7 @@ if (firebase.apps.length === 0) {
   });
 }
 
+export const firebaseObj = firebase;
 export const db = firebase.firestore();
 export const auth = firebase.auth();
 export const storage = firebase.storage();
@@ -335,7 +338,7 @@ export async function deleteAccount() {
         await auth.currentUser.delete();
 
         if (auth.currentUser?.providerData[0].providerId == "google.com") {
-          await Google.logOutAsync();
+          await GoogleSignIn.signOutAsync();
         } else {
           auth.signOut();
         }
@@ -345,7 +348,7 @@ export async function deleteAccount() {
       await auth.currentUser.delete();
 
       if (auth.currentUser?.providerData[0].providerId == "google.com") {
-        await Google.logOutAsync();
+        await GoogleSignIn.signOutAsync();
       } else {
         auth.signOut();
       }
@@ -354,7 +357,12 @@ export async function deleteAccount() {
     console.log(error);
   }
 }
-export async function fetchBigCards(arg, pickerValue, setLoading) {
+export async function fetchBigCards(
+  arg,
+  sortingPickerValue,
+  filteringPickerValue,
+  setLoading
+) {
   try {
     pokemon.configure({ apiKey: "3c362cd9-2286-48d4-989a-0d2a65b9d5a8" });
 
@@ -362,11 +370,11 @@ export async function fetchBigCards(arg, pickerValue, setLoading) {
 
     let initArray = [];
 
-    if (pickerValue === "Rarity Declining") {
-      pickerValue = "-rarity";
+    if (sortingPickerValue === "Rarity Declining") {
+      sortingPickerValue = "-rarity";
     }
-    if (pickerValue === "Rarity Ascending") {
-      pickerValue = "+rarity";
+    if (sortingPickerValue === "Rarity Ascending") {
+      sortingPickerValue = "+rarity";
     }
 
     if (arg) {
@@ -392,7 +400,7 @@ export async function fetchBigCards(arg, pickerValue, setLoading) {
               q: `name:${parsedArg}`,
               pageSize: 10,
               page: 1,
-              orderBy: pickerValue,
+              orderBy: sortingPickerValue,
             });
 
             initArray = [...initArray, ...result.data];
@@ -405,7 +413,7 @@ export async function fetchBigCards(arg, pickerValue, setLoading) {
               q: `name:${sArg}`,
               pageSize: 10,
               page: 1,
-              orderBy: pickerValue,
+              orderBy: sortingPickerValue,
             });
 
             initArray = [...initArray, ...result.data];
@@ -420,7 +428,7 @@ export async function fetchBigCards(arg, pickerValue, setLoading) {
               q: `name:${sArg[1]} subtypes:${sArg[0]}`,
               pageSize: 5,
               page: 1,
-              orderBy: pickerValue,
+              orderBy: sortingPickerValue,
             });
 
             initArray = [...initArray, ...result1.data];
@@ -433,7 +441,7 @@ export async function fetchBigCards(arg, pickerValue, setLoading) {
               q: `name:${sArg[0]} subtypes:${sArg[1]}`,
               pageSize: 5,
               page: 1,
-              orderBy: pickerValue,
+              orderBy: sortingPickerValue,
             });
 
             initArray = [...initArray, ...result2.data];
@@ -448,7 +456,7 @@ export async function fetchBigCards(arg, pickerValue, setLoading) {
             q: `number:${sArg[0]} set.printedTotal:${sArg[1]}`,
             pageSize: 5,
             page: 1,
-            orderBy: pickerValue,
+            orderBy: sortingPickerValue,
           });
           initArray = [...initArray, ...result.data];
         } catch (error) {
@@ -466,7 +474,8 @@ export async function fetchBigCards(arg, pickerValue, setLoading) {
 }
 export async function fetchMoreBigCards(
   arg,
-  pickerValue,
+  sortingPickerValue,
+  filteringPickerValue,
   pageNumber,
   bigCardsData,
   setBigCardsData
@@ -476,11 +485,11 @@ export async function fetchMoreBigCards(
 
     let initArray = [...bigCardsData];
 
-    if (pickerValue === "Rarity Declining") {
-      pickerValue = "-rarity";
+    if (sortingPickerValue === "Rarity Declining") {
+      sortingPickerValue = "-rarity";
     }
-    if (pickerValue === "Rarity Ascending") {
-      pickerValue = "+rarity";
+    if (sortingPickerValue === "Rarity Ascending") {
+      sortingPickerValue = "+rarity";
     }
 
     if (!/\d/.test(arg)) {
@@ -488,7 +497,7 @@ export async function fetchMoreBigCards(
         q: `name:${arg}`,
         pageSize: 5,
         page: pageNumber,
-        orderBy: pickerValue,
+        orderBy: sortingPickerValue,
       });
 
       initArray = [...initArray, ...result.data];
@@ -500,7 +509,7 @@ export async function fetchMoreBigCards(
           q: `name:${sArg[1]} subtypes:${sArg[0]}`,
           pageSize: 5,
           page: pageNumber,
-          orderBy: pickerValue,
+          orderBy: sortingPickerValue,
         });
 
         initArray = [...initArray, ...result1.data];
@@ -509,7 +518,7 @@ export async function fetchMoreBigCards(
           q: `name:${sArg[0]} subtypes:${sArg[1]}`,
           pageSize: 5,
           page: pageNumber,
-          orderBy: pickerValue,
+          orderBy: sortingPickerValue,
         });
 
         initArray = [...initArray, ...result2.data];
@@ -518,7 +527,7 @@ export async function fetchMoreBigCards(
           q: `name:${arg} rarity:${parseRarity(sArg[0])}`,
           pageSize: 5,
           page: pageNumber,
-          orderBy: pickerValue,
+          orderBy: sortingPickerValue,
         });
 
         initArray = [...initArray, ...result3.data];
@@ -527,7 +536,7 @@ export async function fetchMoreBigCards(
           q: `name:${arg} rarity:${parseRarity(sArg[1])}`,
           pageSize: 5,
           page: pageNumber,
-          orderBy: pickerValue,
+          orderBy: sortingPickerValue,
         });
 
         initArray = [...initArray, ...result4.data];
@@ -536,7 +545,7 @@ export async function fetchMoreBigCards(
           q: `name:${arg} rarity:${parseRarity(sArg[1] + sArg[2])}`,
           pageSize: 5,
           page: pageNumber,
-          orderBy: pickerValue,
+          orderBy: sortingPickerValue,
         });
 
         initArray = [...initArray, ...result5.data];
@@ -545,7 +554,7 @@ export async function fetchMoreBigCards(
           q: `name:${arg} rarity:${parseRarity(sArg[2])}`,
           pageSize: 5,
           page: pageNumber,
-          orderBy: pickerValue,
+          orderBy: sortingPickerValue,
         });
 
         initArray = [...initArray, ...result6.data];
@@ -556,7 +565,7 @@ export async function fetchMoreBigCards(
         q: `number:${sArg[0]} set.printedTotal:${sArg[1]}`,
         pageSize: 5,
         page: pageNumber,
-        orderBy: pickerValue,
+        orderBy: sortingPickerValue,
       });
       initArray = [...initArray, ...result.data];
     }
@@ -877,6 +886,28 @@ export async function reauthenticate(password) {
     return false;
   }
 }
+export async function fetchMostRecentOffers() {
+  try {
+    const offers = [];
+    await db
+      .collection("cards")
+      .orderBy("timestamp", "desc")
+      .limit(4)
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          let result = doc.data();
+          result.id = doc.id;
+          offers.push(result);
+        });
+      });
+
+    return offers;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
 export async function login(email, password, setError) {
   try {
     await auth.signInWithEmailAndPassword(email.trim(), password.trim());
@@ -993,16 +1024,17 @@ export async function fetchCards(id) {
     console.log(error);
   }
 }
-export async function fetchBigCardsDetails(id, setDetails) {
+export async function fetchBigCardsDetails(id, setDetails, mounted) {
   try {
     const doc = await db.collection("cardsData").doc(id).get();
-
     if (doc.data() !== undefined) {
-      setDetails([
-        doc.data().offersNumber,
-        doc.data().highestPrice,
-        doc.data().lowestPrice,
-      ]);
+      if (mounted) {
+        setDetails([
+          doc.data().offersNumber,
+          doc.data().highestPrice,
+          doc.data().lowestPrice,
+        ]);
+      }
     }
   } catch (error) {
     console.log(error);
@@ -1050,20 +1082,23 @@ export async function updateUserData(outValues) {
     console.log(error);
   }
 }
-export async function createChat(message, secondUserUid) {
+export async function createChat(message, secondUserUid, setChatRef) {
   db.collection("chats")
     .add({
       members: [auth.currentUser.uid, secondUserUid],
       lastMessage: "",
       notificationFor: secondUserUid,
     })
-    .then((result1) => {
-      db.collection(`chats/${result1.id}/messages`)
+    .then(async (doc) => {
+      db.collection(`chats/${doc.id}/messages`)
         .add(message[0])
-        .then((result2) => {
-          db.collection(`chats`)
-            .doc(result1.id)
-            .update({ lastMessage: result2.id });
+        .then(async (messageDoc) => {
+          await db
+            .collection(`chats`)
+            .doc(doc.id)
+            .update({ lastMessage: messageDoc.id });
+
+          setChatRef(`chats/${doc.id}/messages`);
         });
     });
 }
@@ -1122,16 +1157,16 @@ export async function fetchLastMessage(
   }
 }
 export async function googleSignIn(logInResult) {
-  try {
-    const credential = firebase.auth.GoogleAuthProvider.credential(
-      logInResult.idToken,
-      logInResult.accessToken
-    );
-    await firebase.auth().signInWithCredential(credential);
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
+  // try {
+  //   const credential = firebase.auth.GoogleAuthProvider.credential(
+  //     logInResult.idToken,
+  //     logInResult.accessToken
+  //   );
+  //   await firebase.auth().signInWithCredential(credential);
+  // } catch (error) {
+  //   console.log(error);
+  //   return false;
+  // }
 }
 export async function googleReSignIn(result) {
   try {

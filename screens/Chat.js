@@ -3,18 +3,22 @@ import React, { useState, useEffect, useCallback } from "react";
 import { View } from "react-native";
 import { GiftedChat, Bubble } from "react-native-gifted-chat";
 
-import { db, auth, createChat } from "../authContext";
+import { db, auth } from "../authContext";
 
 import { ActivityIndicator } from "react-native-paper";
 
-export default function Chat({ route }) {
+export default function Chat({ route, setSellerIdState }) {
   const [messages, setMessages] = useState([]);
 
   const data = route.params.data;
-  const chatsRef = db.collection(`chats/${data?.id}/messages`);
+  const ownerId = route.params?.data.uid;
+
+  const chatRef = db.collection(`chats/${data?.id}/messages`);
 
   useEffect(() => {
-    const unsubscribe = chatsRef.onSnapshot((querySnapshot) => {
+    setSellerIdState(ownerId);
+
+    const unsubscribe = chatRef.onSnapshot((querySnapshot) => {
       const messagesFirestore = querySnapshot
         .docChanges()
         .filter(({ type }) => type === "added")
@@ -53,7 +57,7 @@ export default function Chat({ route }) {
     const writes = messages.map((m) => {
       m.received = false;
       m.user.name = auth.currentUser.displayName;
-      chatsRef.add(m);
+      chatRef.add(m);
     });
 
     await Promise.all(writes);
@@ -92,12 +96,7 @@ export default function Chat({ route }) {
         }}
         user={{ _id: auth.currentUser.uid, name: auth.currentUser.displayName }}
         onSend={async (messages) => {
-          if (messages.length !== 0) {
-            await handleSend(messages);
-          } else {
-            await createChat(messages, ownerId);
-            setMessages(messages);
-          }
+          await handleSend(messages);
         }}
         renderLoading={() => <ActivityIndicator size="large" color="#0082ff" />}
       />

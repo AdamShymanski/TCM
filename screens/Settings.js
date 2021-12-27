@@ -1,29 +1,38 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Clipboard,
+} from "react-native";
+//correct and updated library is -- import Clipboard from '@react-native-community/clipboard';
+//but it doesn't work :/
 
-import { TextInput } from 'react-native-paper';
-import { Formik, ErrorMessage } from 'formik';
-import * as yup from 'yup';
+import { TextInput } from "react-native-paper";
+import { Formik, ErrorMessage } from "formik";
+import * as yup from "yup";
 
-import RNRestart from 'react-native-restart';
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { Snackbar } from "react-native-paper";
 
 import {
+  auth,
   fetchUserData,
   updateUserData,
   deleteAccount,
   changeEmail,
   googleReSignIn,
-  auth,
-} from '../authContext';
+} from "../authContext";
 
-import * as Google from 'expo-google-app-auth';
+import * as Google from "expo-google-app-auth";
 
-import ReauthenticationModal from '../shared/ReauthenticationModal';
-import ChangePasswordModal from '../shared/ChangePasswordModal';
-import { CountryPickerModal } from '../shared/CountryPickerModal';
-import { AreYouSureModal } from '../shared/AreYouSureModal';
+import ReauthenticationModal from "../shared/ReauthenticationModal";
+import ChangePasswordModal from "../shared/ChangePasswordModal";
+import { CountryPickerModal } from "../shared/CountryPickerModal";
+import { AreYouSureModal } from "../shared/AreYouSureModal";
 
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
 
 const onlyLettersRegEx =
   /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$/u;
@@ -31,19 +40,19 @@ const firstCapitalLetter = /^[A-Z].*/;
 
 const reviewSchema = yup.object({
   nick: yup
-    .string('Wrong format!')
-    .min(4, 'Name must be longer then 4 charts!'),
+    .string("Wrong format!")
+    .min(4, "Name must be longer then 4 charts!"),
   country: yup
-    .string('Wrong format!')
-    .required('Country is required!')
-    .matches(firstCapitalLetter, 'Wrong country name!')
-    .matches(onlyLettersRegEx, 'Name cannot contain numbers or symbols!'),
+    .string("Wrong format!")
+    .required("Country is required!")
+    .matches(firstCapitalLetter, "Wrong country name!")
+    .matches(onlyLettersRegEx, "Name cannot contain numbers or symbols!"),
 });
 
 export default function Settings() {
   const [loading, setLoading] = useState(true);
 
-  const [accountFormError, setAccountFormError] = useState('');
+  const [accountFormError, setAccountFormError] = useState("");
 
   const [actionType, setActionType] = useState(null);
   const [modalState, setModal] = useState(false);
@@ -52,13 +61,16 @@ export default function Settings() {
   const [changePasswordModal, setChangePasswordModal] = useState(false);
   const [reauthenticationResult, setReauthenticationResult] = useState(null);
 
+  const [snackbarState, setSnackbarState] = useState(false);
+
   const [userData, setUserData] = useState({
-    nick: '',
-    country: '',
+    nick: "",
+    country: "",
   });
+
   const [initValues, setInitValues] = useState({
-    nick: '',
-    country: '',
+    nick: "",
+    country: "",
   });
 
   const navigation = useNavigation();
@@ -77,11 +89,11 @@ export default function Settings() {
   useEffect(() => {
     const resolvePromises = async () => {
       if (reauthenticationResult) {
-        if (actionType == 'deleteAccount') {
+        if (actionType == "deleteAccount") {
           await deleteAccount();
-        } else if (actionType == 'changeEmail') {
+        } else if (actionType == "changeEmail") {
           await changeEmail();
-        } else if (actionType == 'updateUser') {
+        } else if (actionType == "updateUser") {
           await updateUserData(userData);
         }
 
@@ -101,18 +113,18 @@ export default function Settings() {
 
   async function reSignInWithGoogleAsync(action) {
     try {
-      if (action === 'deleteAccount') {
-        navigation.navigate('DeletingAccount');
+      if (action === "deleteAccount") {
+        navigation.navigate("DeletingAccount");
       }
       const result = await Google.logInAsync({
         androidClientId:
-          '352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com',
+          "352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com",
         androidStandaloneAppClientId: `352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com`,
-        scopes: ['profile', 'email'],
+        scopes: ["profile", "email"],
       });
 
-      if (result.type === 'success' && (await googleReSignIn(result))) {
-        if (action === 'deleteAccount') {
+      if (result.type === "success" && (await googleReSignIn(result))) {
+        if (action === "deleteAccount") {
           await deleteAccount();
         } else {
           await updateUserData(userData);
@@ -121,8 +133,8 @@ export default function Settings() {
         return { cancelled: true };
       }
     } catch (e) {
-      if (e.code == 'auth/email-already-in-use') {
-        console.log('Duplicated emails has been detected');
+      if (e.code == "auth/email-already-in-use") {
+        console.log("Duplicated emails has been detected");
       } else {
         console.log(e);
       }
@@ -133,312 +145,411 @@ export default function Settings() {
     return <View />;
   } else {
     return (
-      <ScrollView
+      <View
         style={{
           flex: 1,
-          backgroundColor: '#1b1b1b',
-        }}>
-        {countryPickerState ? (
-          <CountryPickerModal
-            setValue={setCountryValue}
-            setVisible={setCountryPickerState}
-          />
-        ) : null}
-        {modalState ? (
-          <ReauthenticationModal
-            setReauthenticationResult={setReauthenticationResult}
-            setModal={setModal}
-          />
-        ) : null}
-        {areYouSureModal ? (
-          <AreYouSureModal
-            setReauthenticationResult={setReauthenticationResult}
-            setModal={setAreYouSureModal}
-          />
-        ) : null}
-        {changePasswordModal ? (
-          <ChangePasswordModal setModal={setChangePasswordModal} />
-        ) : null}
-
-        <Text
+          backgroundColor: "#1b1b1b",
+        }}
+      >
+        <ScrollView
           style={{
-            color: '#f4f4f4',
-            fontWeight: '700',
-            fontSize: 22,
+            flex: 1,
+            backgroundColor: "#1b1b1b",
+          }}
+        >
+          {countryPickerState ? (
+            <CountryPickerModal
+              setValue={setCountryValue}
+              setVisible={setCountryPickerState}
+            />
+          ) : null}
+          {modalState ? (
+            <ReauthenticationModal
+              setReauthenticationResult={setReauthenticationResult}
+              setModal={setModal}
+            />
+          ) : null}
+          {areYouSureModal ? (
+            <AreYouSureModal
+              setReauthenticationResult={setReauthenticationResult}
+              setModal={setAreYouSureModal}
+            />
+          ) : null}
+          {changePasswordModal ? (
+            <ChangePasswordModal setModal={setChangePasswordModal} />
+          ) : null}
 
-            paddingTop: 12,
-            paddingLeft: 12,
-          }}>
-          Account
-        </Text>
-        <View
-          style={{
-            backgroundColor: '#1B1B1B',
-          }}>
-          <Formik
-            initialValues={{
-              nick: userData.nick,
-              country: userData.country,
-            }}
-            validationSchema={reviewSchema}
-            onSubmit={async (values, actions) => {
-              const detectChanges = () => {
-                if (
-                  values.nick == initValues.nick &&
-                  userData.country == initValues.country
-                ) {
-                  setAccountFormError('No change detected');
-                  return false;
-                } else {
-                  setAccountFormError('');
-                  return true;
-                }
-              };
-
-              if (detectChanges()) {
-                if (
-                  auth.currentUser?.providerData[0].providerId != 'google.com'
-                ) {
-                  setModal(true);
-                } else {
-                  await reSignInWithGoogleAsync();
-                  setUserData({ nick: values.nick, country: userData.country });
-                  setInitValues({
-                    nick: values.nick,
-                    country: userData.country,
-                  });
-                }
-              }
-            }}
+          <Text
             style={{
-              flex: 1,
-              flexDirection: 'column',
-              alignItems: 'center',
-              width: '100%',
-              height: '100%',
-              marginVertical: 40,
-              backgroundColor: '#121212',
-            }}>
-            {(props) => (
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  width: '100%',
-                  height: '100%',
-                }}>
-                <TextInput
-                  mode={'outlined'}
-                  value={props.values.nick}
-                  onChangeText={props.handleChange('nick')}
-                  label='Nick'
-                  outlineColor={'#5c5c5c'}
-                  error={props.touched.nick && props.errors.nick ? true : false}
+              color: "#f4f4f4",
+              fontWeight: "700",
+              fontSize: 22,
+
+              paddingTop: 12,
+              paddingLeft: 12,
+            }}
+          >
+            Account
+          </Text>
+          <View
+            style={{
+              backgroundColor: "#1B1B1B",
+            }}
+          >
+            <Formik
+              initialValues={{
+                nick: userData.nick,
+                country: userData.country,
+              }}
+              validationSchema={reviewSchema}
+              onSubmit={async (values, actions) => {
+                const detectChanges = () => {
+                  if (
+                    values.nick == initValues.nick &&
+                    userData.country == initValues.country
+                  ) {
+                    setAccountFormError("No change detected");
+                    return false;
+                  } else {
+                    setAccountFormError("");
+                    return true;
+                  }
+                };
+
+                if (detectChanges()) {
+                  if (
+                    auth.currentUser?.providerData[0].providerId != "google.com"
+                  ) {
+                    setModal(true);
+                  } else {
+                    await reSignInWithGoogleAsync();
+                    setUserData({
+                      nick: values.nick,
+                      country: userData.country,
+                    });
+                    setInitValues({
+                      nick: values.nick,
+                      country: userData.country,
+                    });
+                  }
+                }
+              }}
+              style={{
+                flex: 1,
+                flexDirection: "column",
+                alignItems: "center",
+                width: "100%",
+                height: "100%",
+                marginVertical: 40,
+                backgroundColor: "#121212",
+              }}
+            >
+              {(props) => (
+                <View
                   style={{
-                    width: '80%',
-                    backgroundColor: '#1B1B1B',
-                    color: '#f4f4f4',
-                    marginTop: 20,
+                    flex: 1,
+                    flexDirection: "column",
+                    alignItems: "center",
+                    width: "100%",
+                    height: "100%",
                   }}
-                  theme={{
-                    colors: {
-                      primary: '#0082ff',
-                      placeholder: '#5c5c5c',
-                      background: 'transparent',
-                      text: '#f4f4f4',
-                    },
-                  }}
-                />
-                <ErrorMessage component='div' name='nick'>
-                  {(msg) => (
-                    <Text
-                      style={{
-                        width: '80%',
-                        marginTop: 8,
-                        marginBottom: 18,
-                        height: 20,
-                        flexDirection: 'row',
-                        justifyContent: 'flex-end',
-                        color: '#b40424',
-                        fontWeight: '700',
-                      }}>
-                      {msg}
-                    </Text>
-                  )}
-                </ErrorMessage>
-                <TouchableOpacity
-                  style={{ width: '80%' }}
-                  onPress={() => setCountryPickerState(true)}>
+                >
                   <TextInput
-                    mode={'outlined'}
-                    value={userData.country}
-                    onChangeText={props.handleChange('country')}
-                    label='Country'
-                    outlineColor={'#5c5c5c'}
+                    mode={"outlined"}
+                    value={props.values.nick}
+                    onChangeText={props.handleChange("nick")}
+                    label="Nick"
+                    outlineColor={"#5c5c5c"}
                     error={
-                      props.touched.country && props.errors.country
-                        ? true
-                        : false
+                      props.touched.nick && props.errors.nick ? true : false
                     }
                     style={{
-                      width: '100%',
-                      backgroundColor: '#1B1B1B',
+                      width: "80%",
+                      backgroundColor: "#1B1B1B",
+                      color: "#f4f4f4",
                       marginTop: 20,
                     }}
-                    disabled={true}
                     theme={{
                       colors: {
-                        text: '#fff',
-                        disabled: '#5c5c5c',
-                        background: 'transparent',
+                        primary: "#0082ff",
+                        placeholder: "#5c5c5c",
+                        background: "transparent",
+                        text: "#f4f4f4",
                       },
                     }}
                   />
-                </TouchableOpacity>
-
-                <ErrorMessage component='div' name='country'>
-                  {(msg) => (
-                    <Text
-                      style={{
-                        width: '80%',
-                        marginTop: 8,
-                        marginBottom: 18,
-                        height: 20,
-                        flexDirection: 'row',
-                        justifyContent: 'flex-end',
-                        color: '#b40424',
-                        fontWeight: '700',
-                      }}>
-                      {msg}
-                    </Text>
-                  )}
-                </ErrorMessage>
-
-                <View
-                  style={{
-                    width: '80%',
-                    flexDirection: 'row-reverse',
-                    marginBottom: 20,
-                    alignItems: 'center',
-                  }}>
+                  <ErrorMessage component="div" name="nick">
+                    {(msg) => (
+                      <Text
+                        style={{
+                          width: "80%",
+                          marginTop: 8,
+                          marginBottom: 18,
+                          height: 20,
+                          flexDirection: "row",
+                          justifyContent: "flex-end",
+                          color: "#b40424",
+                          fontWeight: "700",
+                        }}
+                      >
+                        {msg}
+                      </Text>
+                    )}
+                  </ErrorMessage>
                   <TouchableOpacity
-                    style={{
-                      height: 30,
-                      marginTop: 20,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                    style={{ width: "80%" }}
+                    onPress={() => setCountryPickerState(true)}
+                  >
+                    <TextInput
+                      mode={"outlined"}
+                      value={userData.country}
+                      onChangeText={props.handleChange("country")}
+                      label="Country"
+                      outlineColor={"#5c5c5c"}
+                      error={
+                        props.touched.country && props.errors.country
+                          ? true
+                          : false
+                      }
+                      style={{
+                        width: "100%",
+                        backgroundColor: "#1B1B1B",
+                        marginTop: 20,
+                      }}
+                      disabled={true}
+                      theme={{
+                        colors: {
+                          text: "#fff",
+                          disabled: "#5c5c5c",
+                          background: "transparent",
+                        },
+                      }}
+                    />
+                  </TouchableOpacity>
 
-                      backgroundColor: '#0082FF',
-                      borderRadius: 3,
-                      paddingHorizontal: 20,
+                  <ErrorMessage component="div" name="country">
+                    {(msg) => (
+                      <Text
+                        style={{
+                          width: "80%",
+                          marginTop: 8,
+                          marginBottom: 18,
+                          height: 20,
+                          flexDirection: "row",
+                          justifyContent: "flex-end",
+                          color: "#b40424",
+                          fontWeight: "700",
+                        }}
+                      >
+                        {msg}
+                      </Text>
+                    )}
+                  </ErrorMessage>
+
+                  <View
+                    style={{
+                      width: "80%",
+                      flexDirection: "row-reverse",
+                      marginBottom: 20,
+                      alignItems: "center",
                     }}
-                    onPress={() => {
-                      setActionType('updateUser');
-                      props.submitForm();
-                    }}>
+                  >
+                    <TouchableOpacity
+                      style={{
+                        height: 30,
+                        marginTop: 20,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+
+                        backgroundColor: "#0082FF",
+                        borderRadius: 3,
+                        paddingHorizontal: 20,
+                      }}
+                      onPress={() => {
+                        setActionType("updateUser");
+                        props.submitForm();
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: "700",
+                          color: "#121212",
+                        }}
+                      >
+                        Submit
+                      </Text>
+                    </TouchableOpacity>
                     <Text
                       style={{
-                        fontSize: 16,
-                        fontWeight: '700',
-                        color: '#121212',
-                      }}>
-                      Submit
+                        color: "#b40424",
+                        fontWeight: "700",
+                        marginBottom: -20,
+                        marginRight: 16,
+                      }}
+                    >
+                      {accountFormError}
                     </Text>
-                  </TouchableOpacity>
-                  <Text
-                    style={{
-                      color: '#b40424',
-                      fontWeight: '700',
-                      marginBottom: -20,
-                      marginRight: 16,
-                    }}>
-                    {accountFormError}
-                  </Text>
+                  </View>
                 </View>
-              </View>
-            )}
-          </Formik>
-        </View>
-        <Text
-          style={{
-            color: '#f4f4f4',
-            fontWeight: '700',
-            fontSize: 22,
-
-            paddingTop: 12,
-            paddingLeft: 12,
-          }}>
-          Other
-        </Text>
-        <View
-          style={{
-            backgroundColor: '#1B1B1B',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}>
-          <TouchableOpacity
+              )}
+            </Formik>
+          </View>
+          <Text
             style={{
-              height: 30,
-              marginTop: 20,
-              width: '70%',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
+              color: "#f4f4f4",
+              fontWeight: "700",
+              fontSize: 22,
 
-              backgroundColor: '#0082FF',
-              borderRadius: 3,
-              paddingHorizontal: 12,
+              paddingTop: 12,
+              paddingLeft: 12,
             }}
-            onPress={async () => {
-              if (
-                auth.currentUser?.providerData[0].providerId != 'google.com'
-              ) {
-                setActionType('deleteAccount');
-                setModal(true);
-              } else {
-                await reSignInWithGoogleAsync('deleteAccount');
-              }
-            }}>
-            <Text
+          >
+            Seller ID
+          </Text>
+          <View
+            style={{
+              marginTop: 20,
+              backgroundColor: "#1B1B1B",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <View
               style={{
-                fontSize: 16,
-                fontWeight: '700',
-                color: '#121212',
-              }}>
-              Delete Account
-            </Text>
-          </TouchableOpacity>
-          {auth.currentUser?.providerData[0].providerId != 'google.com' ? (
+                borderRadius: 6,
+                paddingVertical: 12,
+                flexDirection: "row",
+                backgroundColor: "#121212",
+                alignItems: "center",
+              }}
+            >
+              <TouchableOpacity
+                style={{
+                  backgroundColor: "#1b1b1b",
+                  paddingVertical: 6,
+                  paddingHorizontal: 6,
+                  borderRadius: 4,
+                  marginLeft: 16,
+                }}
+                onPress={() => {
+                  Clipboard.setString(`${auth.currentUser.uid}`);
+                  setSnackbarState(true);
+                }}
+              >
+                <Icon name="content-copy" color={"#0082ff"} size={24} />
+              </TouchableOpacity>
+              <Text
+                style={{
+                  fontWeight: "700",
+                  fontSize: 13.7,
+                  color: "#f4f4f4",
+                  marginLeft: 12,
+                  marginRight: 16,
+                }}
+              >
+                {auth.currentUser.uid}
+              </Text>
+            </View>
+          </View>
+          <Text
+            style={{
+              color: "#f4f4f4",
+              fontWeight: "700",
+              fontSize: 22,
+
+              paddingTop: 12,
+              paddingLeft: 12,
+            }}
+          >
+            Other
+          </Text>
+          <View
+            style={{
+              backgroundColor: "#1B1B1B",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
             <TouchableOpacity
               style={{
                 height: 30,
                 marginTop: 20,
+                width: "70%",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
 
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-
-                backgroundColor: '#0082FF',
+                backgroundColor: "#0082FF",
                 borderRadius: 3,
                 paddingHorizontal: 12,
               }}
-              onPress={() => {
-                setChangePasswordModal(true);
-              }}>
+              onPress={async () => {
+                if (
+                  auth.currentUser?.providerData[0].providerId != "google.com"
+                ) {
+                  setActionType("deleteAccount");
+                  setModal(true);
+                } else {
+                  await reSignInWithGoogleAsync("deleteAccount");
+                }
+              }}
+            >
               <Text
                 style={{
                   fontSize: 16,
-                  fontWeight: '700',
-                  color: '#121212',
-                }}>
-                Change Password
+                  fontWeight: "700",
+                  color: "#121212",
+                }}
+              >
+                Delete Account
               </Text>
             </TouchableOpacity>
-          ) : null}
-        </View>
-      </ScrollView>
+            {auth.currentUser?.providerData[0].providerId != "google.com" ? (
+              <TouchableOpacity
+                style={{
+                  height: 30,
+                  marginTop: 20,
+                  width: "70%",
+
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+
+                  backgroundColor: "#0082FF",
+                  borderRadius: 3,
+                  paddingHorizontal: 12,
+                }}
+                onPress={() => {
+                  setChangePasswordModal(true);
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#121212",
+                  }}
+                >
+                  Change Password
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </ScrollView>
+        <Snackbar
+          visible={snackbarState}
+          duration={2000}
+          onDismiss={() => setSnackbarState(false)}
+          action={{
+            label: "",
+            onPress: () => {},
+          }}
+        >
+          Seller ID is copied to clipboard
+        </Snackbar>
+      </View>
     );
   }
 }

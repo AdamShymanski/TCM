@@ -3,16 +3,18 @@ import React, { useState, useEffect, useCallback } from "react";
 import { View } from "react-native";
 import { GiftedChat, Bubble } from "react-native-gifted-chat";
 
-import { db, auth, createChat } from "../authContext";
+import { auth, createChat } from "../authContext";
 
 import { ActivityIndicator } from "react-native-paper";
 
-export default function StartChat({ route }) {
+export default function StartChat({ route, setSellerIdState }) {
   const ownerId = route.params?.ownerId;
   const [messages, setMessages] = useState([]);
   const [chatRef, setChatRef] = useState(null);
 
   useEffect(() => {
+    setSellerIdState(ownerId);
+
     if (chatRef != null) {
       const unsubscribe = chatRef.onSnapshot((querySnapshot) => {
         const messagesFirestore = querySnapshot
@@ -54,7 +56,7 @@ export default function StartChat({ route }) {
     const writes = messages.map((m) => {
       m.received = false;
       m.user.name = auth.currentUser.displayName;
-      chatsRef.add(m);
+      chatRef.add(m);
     });
 
     await Promise.all(writes);
@@ -93,7 +95,7 @@ export default function StartChat({ route }) {
         }}
         user={{ _id: auth.currentUser.uid, name: auth.currentUser.displayName }}
         onSend={async (messages) => {
-          if (messages.length !== 0) {
+          if (messages.length > 1) {
             await handleSend(messages);
           } else {
             await createChat(messages, ownerId, setChatRef);

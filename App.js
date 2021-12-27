@@ -28,7 +28,7 @@ import SearchForSeller from "./screens/SearchForSeller";
 
 import Buy from "./screens/NewBuy";
 
-import { db, auth, setChatListeners, createChat } from "./authContext.js";
+import { db, auth, setChatListeners } from "./authContext.js";
 
 import { AdMobBanner } from "expo-ads-admob";
 import FinishGoogleRegister from "./screens/FinishGoogleRegister";
@@ -44,7 +44,15 @@ function HomeStack() {
   const [inputValue, setInputValue] = useState("");
   const [pageNumber, setPageNumber] = useState(2);
   const [loadingState, setLoading] = useState(false);
-  const [pickerValue, setPickerValue] = useState("Rarity Declining");
+  const [sortingPickerValue, setSortingPickerValue] =
+    useState("Rarity Declining");
+  const [filteringPickerValue, setFilteringPickerValue] = useState({
+    language: [],
+    price: { from: null, to: null },
+    graded: false,
+    condition: { from: null, to: null },
+  });
+  const [inputFocusState, setInputFocusState] = useState(false);
 
   return (
     <Stack.Navigator>
@@ -53,26 +61,31 @@ function HomeStack() {
         children={() => (
           <Home
             bigCardsData={bigCardsData}
+            setBigCardsData={setBigCardsData}
             loadingState={loadingState}
-            setPickerValue={setPickerValue}
             setLoading={setLoading}
-            pickerValue={pickerValue}
+            sortingPickerValue={sortingPickerValue}
+            setSortingPickerValue={setSortingPickerValue}
+            filteringPickerValue={filteringPickerValue}
+            setFilteringPickerValue={setFilteringPickerValue}
             pageNumber={pageNumber}
             setPageNumber={setPageNumber}
             nativeInputValue={inputValue}
-            setBigCardsData={setBigCardsData}
+            inputFocusState={inputFocusState}
           />
         )}
         options={{
           headerTitle: () => (
             <CustomHeader
               version={"drawer"}
-              setBigCardsData={setBigCardsData}
+              setLoading={setLoading}
               setPageNumber={setPageNumber}
               setInputValue={setInputValue}
+              setBigCardsData={setBigCardsData}
+              setInputFocusState={setInputFocusState}
               inputValue={inputValue}
-              pickerValue={pickerValue}
-              setLoading={setLoading}
+              sortingPickerValue={sortingPickerValue}
+              filteringPickerValue={filteringPickerValue}
             />
           ),
           headerStyle: {
@@ -171,7 +184,7 @@ function OrdersStack() {
 }
 function ChatStack() {
   const [listenerData, setListenerData] = useState([]);
-  const [isFirstMessage, setIsFirstMessage] = useState(false);
+  const [sellerIdState, setSellerIdState] = useState(null);
 
   useEffect(() => {
     const resolvePromises = async () => {
@@ -194,7 +207,9 @@ function ChatStack() {
       />
       <Stack.Screen
         name="ChatScreen"
-        component={Chat}
+        children={(props) => (
+          <Chat route={props.route} setSellerIdState={setSellerIdState} />
+        )}
         options={({ navigation, route }) => ({
           headerLeft: () => (
             <TouchableOpacity
@@ -223,6 +238,40 @@ function ChatStack() {
               </Text>
             </TouchableOpacity>
           ),
+          // headerRight: () => (
+          //   <TouchableOpacity
+          //     style={{
+          //       borderRadius: 3,
+          //       marginLeft: 12,
+
+          //       height: 30,
+          //       flexDirection: "row",
+          //       alignItems: "center",
+          //       justifyContent: "center",
+          //       backgroundColor: "#0082ff",
+
+          //       paddingHorizontal: 12,
+          //     }}
+          //     onPress={() =>
+          //       navigation.navigate("Sellers", {
+          //         screen: "SellerProfile",
+          //         params: {
+          //           sellerId: sellerIdState,
+          //         },
+          //       })
+          //     }
+          //   >
+          //     <Text
+          //       style={{
+          //         fontSize: 16,
+          //         fontWeight: "700",
+          //         color: "#121212",
+          //       }}
+          //     >
+          //       {"Other offers from this seller"}
+          //     </Text>
+          //   </TouchableOpacity>
+          // ),
           headerTintColor: "#121212",
           headerTitle: "",
           headerStyle: {
@@ -231,8 +280,10 @@ function ChatStack() {
         })}
       />
       <Stack.Screen
-        name="Chat"
-        component={StartChat}
+        name="StartChat"
+        children={(props) => (
+          <StartChat route={props.route} setSellerIdState={setSellerIdState} />
+        )}
         options={({ navigation, route }) => ({
           headerLeft: () => (
             <TouchableOpacity
@@ -261,33 +312,37 @@ function ChatStack() {
               </Text>
             </TouchableOpacity>
           ),
-          headerRight: () => (
-            <TouchableOpacity
-              style={{
-                borderRadius: 3,
-                marginLeft: 12,
+          // headerRight: () => (
+          //   <TouchableOpacity
+          //     style={{
+          //       borderRadius: 3,
+          //       marginRight: 12,
 
-                height: 34,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#0082ff",
+          //       height: 30,
+          //       flexDirection: "row",
+          //       alignItems: "center",
+          //       justifyContent: "center",
+          //       backgroundColor: "#0082ff",
 
-                paddingHorizontal: 12,
-              }}
-              onPress={() => navigation.goBack()}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#121212",
-                }}
-              >
-                {"Other offers from this seller"}
-              </Text>
-            </TouchableOpacity>
-          ),
+          //       paddingHorizontal: 12,
+          //     }}
+          //     onPress={() =>
+          //       navigation.navigate("SellerProfile", {
+          //         sellerId: sellerIdState,
+          //       })
+          //     }
+          //   >
+          //     <Text
+          //       style={{
+          //         fontSize: 16,
+          //         fontWeight: "700",
+          //         color: "#121212",
+          //       }}
+          //     >
+          //       {"Other offers from this seller"}
+          //     </Text>
+          //   </TouchableOpacity>
+          // ),
           headerTintColor: "#121212",
           headerTitle: "",
           headerStyle: {
@@ -299,29 +354,13 @@ function ChatStack() {
   );
 }
 function YourOffersStack() {
-  const [bigCardsData, setBigCardsData] = useState(null);
-  const [inputValue, setInputValue] = useState("");
-  const [pageNumber, setPageNumber] = useState(2);
-  const [loadingState, setLoading] = useState(false);
-  const [pickerValue, setPickerValue] = useState("Rarity Declining");
-
   return (
     <Stack.Navigator>
       <Stack.Screen
         name="YourOffers"
         component={YourOffers}
         options={{
-          headerTitle: () => (
-            <CustomHeader
-              version={"yourOffers"}
-              setCardsData={setBigCardsData}
-              setPageNumber={setPageNumber}
-              setInputValue={setInputValue}
-              inputValue={inputValue}
-              pickerValue={pickerValue}
-              setLoading={setLoading}
-            />
-          ),
+          headerTitle: () => <CustomHeader version={"yourOffers"} />,
           headerStyle: {
             backgroundColor: "#121212",
           },
@@ -336,7 +375,7 @@ function YourOffersStack() {
             <TouchableOpacity
               style={{
                 borderRadius: 3,
-                marginLeft: 12,
+                marginLeft: 22,
 
                 height: 30,
                 flexDirection: "row",
@@ -346,7 +385,12 @@ function YourOffersStack() {
                 borderColor: "#777777",
                 paddingHorizontal: 12,
               }}
-              onPress={() => navigation.goBack()}
+              onPress={() =>
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "YourOffers" }],
+                })
+              }
             >
               <Text
                 style={{
@@ -552,6 +596,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [finishRegisterProcess, setFinishRegisterProcess] = useState(null);
+  const [adBanenrState, setAdBannerState] = useState(true);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -659,15 +704,21 @@ export default function App() {
             <Drawer.Screen name="Sellers" component={SellersStack} />
             <Drawer.Screen name="DeletingAccount" component={DeletingAccount} />
           </Drawer.Navigator>
-          <AdMobBanner
-            bannerSize="smartBannerPortrait"
-            adUnitID="ca-app-pub-2637485113454186/2096785031"
-            //ca-app-pub-3940256099942544/6300978111
-            servePersonalizedAds // true or false
-            onDidFailToReceiveAdWithError={(error) => {
-              console.log(error);
-            }}
-          />
+          {adBanenrState ? (
+            <AdMobBanner
+              bannerSize="smartBannerPortrait"
+              adUnitID="ca-app-pub-2637485113454186/2096785031"
+              servePersonalizedAds // true or false
+              onDidFailToReceiveAdWithError={(error) => {
+                console.log(error);
+                setAdBannerState(false);
+              }}
+              //detect when add is loaded
+              onAdViewDidReceiveAd={() => {
+                setAdBannerState(true);
+              }}
+            />
+          ) : null}
         </NavigationContainer>
       );
     }

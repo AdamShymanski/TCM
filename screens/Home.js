@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,82 +6,97 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-} from 'react-native';
+  ScrollView,
+} from "react-native";
 
-import { globalStyles } from '../styles/global';
+import { globalStyles } from "../styles/global";
 
 import {
   fetchCards,
   fetchSavedOffersId,
   fetchMoreBigCards,
-} from '../authContext';
+  fetchMostRecentOffers,
+} from "../authContext";
 
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 
-import PickerModal from '../shared/PickerModal';
-import pikachu from '../assets/pikachu.png';
+import PickerModal from "../shared/PickerModal";
+import pikachu from "../assets/pikachu.png";
+import arrow from "../assets/arrow.png";
 
-import BigCardHome from '../shared/cards/BigCardHome';
-import { CardHome } from '../shared/cards/CardHome';
+import BigCardHome from "../shared/cards/BigCardHome";
+import { CardHome } from "../shared/cards/CardHome";
+
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 export default function Home({
   bigCardsData,
+  setBigCardsData,
   loadingState,
-  setPickerValue,
   setLoading,
-  pickerValue,
+  sortingPickerValue,
+  setSortingPickerValue,
+  filteringPickerValue,
+  setFilteringPickerValue,
   pageNumber,
   setPageNumber,
   nativeInputValue,
-  setBigCardsData,
+  inputFocusState,
 }) {
   const [id, setId] = useState(null);
   const [cardsData, setCardsData] = useState([]);
+  const [pickerModal, setPickerModal] = useState(true);
+  const [savedOffersId, setSavedOffersId] = useState([]);
+  const [mostRecentOffers, setMostRecentOffers] = useState([]);
+  const [pickerMode, setPickerMode] = useState("filtering");
 
   const isFocused = useIsFocused();
-  const [savedOffersId, setSavedOffersId] = useState(null);
-  const [pickerModal, setPickerModal] = useState(false);
-
-  const navigation = useNavigation();
 
   useEffect(() => {
-    const dowloads = async () => {
-      setCardsData(await fetchCards());
+    const resolvePromise = async () => {
+      await fetchSavedOffersId(setSavedOffersId, setLoading);
+      setMostRecentOffers(await fetchMostRecentOffers());
     };
-
-    dowloads();
+    resolvePromise();
   }, []);
 
   useEffect(() => {
     if (cardsData.length >= 1) setCardsData([]);
   }, [bigCardsData]);
 
-  useEffect(() => {
+  useEffect(async () => {
     if (!isFocused) {
-      setSavedOffersId(null);
+      setSavedOffersId([]);
       setLoading(true);
     }
     if (isFocused) {
-      fetchSavedOffersId(setSavedOffersId, setLoading);
+      await fetchSavedOffersId(setSavedOffersId, setLoading);
     }
   }, [isFocused]);
 
+  useEffect(() => {
+    setMostRecentOffers([]);
+  }, [loadingState]);
+
   useEffect(async () => {
     if (id != undefined || null || []) {
+      setLoading(true);
       setCardsData(await fetchCards(id));
+      setLoading(false);
     }
   }, [id]);
 
   const stateHandler = (variant) => {
-    if (variant == 'pikachu') {
+    if (variant == "pikachu") {
       if (loadingState) return false;
+      if (mostRecentOffers.length > 0) return false;
       if (cardsData === null || undefined) return true;
       if (bigCardsData === null || undefined) return true;
       if (cardsData.length > 1) return false;
       if (bigCardsData.length > 1) return false;
       return true;
     }
-    if (variant == 'list') {
+    if (variant == "list") {
       if (loadingState) return false;
       if (cardsData === null || undefined) return false;
       if (bigCardsData === null || undefined) return false;
@@ -89,21 +104,25 @@ export default function Home({
       if (bigCardsData.length < 1) return false;
       return true;
     }
-    if (variant == 'secondList') {
+    if (variant == "secondList") {
       if (loadingState) return false;
       if (cardsData === null || undefined) return false;
       if (cardsData.length >= 1) return true;
     }
-    if (variant == 'indicator') {
+    if (variant == "indicator") {
       if (loadingState) return true;
       return false;
     }
-    if (variant == 'topBar') {
-      if (loadingState) return false;
-      if (cardsData.length >= 1) return false;
-      return true;
+    if (variant == "topBar") {
+      if (
+        bigCardsData?.length >= 1 &&
+        (cardsData.length < 1 || cardsData === null)
+      ) {
+        return true;
+      }
+      return false;
     }
-    if (variant == 'goBackBar') {
+    if (variant == "goBackBar") {
       if (cardsData.length >= 1) return true;
       return false;
     }
@@ -112,28 +131,27 @@ export default function Home({
   return (
     <View style={[globalStyles.container, { paddingLeft: 0 }]}>
       <PickerModal
-        setValue={setPickerValue}
-        propsArry={[
-          // 'Price Ascending',
-          // 'Price Declining',
-          'Rarity Ascending',
-          'Rarity Declining',
-        ]}
+        setSortingPickerValue={setSortingPickerValue}
+        setFilteringPickerValue={setFilteringPickerValue}
+        filteringPickerValue={filteringPickerValue}
+        mode={pickerMode}
         visible={pickerModal}
         setVisible={setPickerModal}
       />
-      <View style={{ flex: 1, backgroundColor: '#1b1b1b' }}>
+      <View style={{ flex: 1, backgroundColor: "#1b1b1b" }}>
         <View
           style={{
-            backgroundColor: '#121212',
-
-            // borderTopColor: '#5c5c5c',
-            // borderTopWidth: 1.5,
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}>
-          {stateHandler('topBar') ? (
-            <View style={{ flexDirection: 'row', marginVertical: 12 }}>
+            backgroundColor: "#121212",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
+          {stateHandler("topBar") ? (
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              style={{ flexDirection: "row", marginVertical: 12 }}
+            >
               <TouchableOpacity
                 style={{
                   borderRadius: 4,
@@ -143,25 +161,62 @@ export default function Home({
 
                   height: 32,
                   paddingHorizontal: 14,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#1b1b1b',
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#1b1b1b",
                 }}
-                onPress={() => setPickerModal(true)}>
+                onPress={() => {
+                  setPickerMode("sorting");
+                  setPickerModal(true);
+                }}
+              >
                 <Text
                   style={{
                     fontSize: 14,
-                    fontWeight: '700',
-                    color: '#f4f4f4',
-                  }}>
-                  {' Sort by :  '}
-                  <Text style={{ color: '#0082ff' }}>{pickerValue}</Text>
+                    fontWeight: "700",
+                    color: "#f4f4f4",
+                  }}
+                >
+                  {" Sort by :  "}
+                  <Text style={{ color: "#0082ff" }}>{sortingPickerValue}</Text>
                 </Text>
               </TouchableOpacity>
-            </View>
+              <TouchableOpacity
+                style={{
+                  borderRadius: 4,
+
+                  marginLeft: 8,
+                  marginTop: 4,
+                  marginRight: 8,
+
+                  height: 32,
+                  paddingHorizontal: 14,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#1b1b1b",
+                }}
+                onPress={() => {
+                  setPickerMode("filtering");
+                  setPickerModal(true);
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "700",
+                    color: "#f4f4f4",
+                    marginRight: 10,
+                  }}
+                >
+                  {"Filters"}
+                </Text>
+                <Icon name="filter-variant" color={"#f4f4f4"} size={20} />
+              </TouchableOpacity>
+            </ScrollView>
           ) : null}
-          {stateHandler('goBackBar') ? (
+          {stateHandler("goBackBar") ? (
             <TouchableOpacity
               style={{
                 borderRadius: 3,
@@ -170,57 +225,71 @@ export default function Home({
 
                 height: 30,
                 width: 120,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
                 borderWidth: 2,
-                borderColor: '#777777',
+                borderColor: "#777777",
                 paddingHorizontal: 12,
               }}
-              onPress={() => setCardsData([])}>
+              onPress={() => {
+                setCardsData([]);
+                setId(null);
+              }}
+            >
               <Text
                 style={{
                   fontSize: 16,
-                  fontWeight: '700',
-                  color: '#777777',
-                }}>
-                {'Go back'}
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
               </Text>
             </TouchableOpacity>
           ) : null}
         </View>
-
-        {stateHandler('pikachu') ? (
+        {stateHandler("pikachu") && !inputFocusState ? (
           <View
             style={{
               flex: 1,
 
-              alignItems: 'center',
-              justifyContent: 'center',
+              alignItems: "center",
+              justifyContent: "center",
               paddingBottom: 30,
-            }}>
+            }}
+          >
             <Image
               source={pikachu}
               style={{
                 aspectRatio: 651 / 522,
-                width: '64%',
+                width: "64%",
                 height: undefined,
               }}
             />
             <Text
               style={{
-                color: '#434343',
+                color: "#434343",
                 fontSize: 20,
-                fontWeight: '600',
+                fontWeight: "600",
                 marginTop: 30,
-                fontWeight: '700',
-              }}>
-              {'Search for a card'}
+                fontWeight: "700",
+              }}
+            >
+              {"Search for a card"}
             </Text>
           </View>
         ) : null}
-
-        {stateHandler('list') ? (
+        {mostRecentOffers.length > 1 && !inputFocusState ? (
+          <FlatList
+            data={mostRecentOffers}
+            renderItem={({ item }) => {
+              return <CardHome props={item} isSavedState={savedOffersId} />;
+            }}
+            keyExtractor={(item, index) => index.toString()}
+          />
+        ) : null}
+        {stateHandler("list") ? (
           <FlatList
             style={{ paddingHorizontal: 8 }}
             data={bigCardsData}
@@ -232,7 +301,8 @@ export default function Home({
             onEndReached={async () => {
               await fetchMoreBigCards(
                 nativeInputValue,
-                pickerValue,
+                sortingPickerValue,
+                filteringPickerValue,
                 pageNumber,
                 bigCardsData,
                 setBigCardsData
@@ -242,8 +312,7 @@ export default function Home({
             onEndReachedThreshold={4}
           />
         ) : null}
-
-        {stateHandler('secondList') ? (
+        {stateHandler("secondList") ? (
           <FlatList
             data={cardsData}
             renderItem={({ item }) => {
@@ -252,15 +321,15 @@ export default function Home({
             keyExtractor={(item, index) => index.toString()}
           />
         ) : null}
-
-        {stateHandler('indicator') ? (
+        {stateHandler("indicator") ? (
           <View
             style={{
               flex: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            <ActivityIndicator size='large' color='#0082ff' />
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <ActivityIndicator size="large" color="#0082ff" />
           </View>
         ) : null}
       </View>

@@ -1,13 +1,5 @@
-import React, { useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  ScrollView,
-  View,
-  Image,
-  ImageBackground,
-  TextInput,
-} from "react-native";
+import React, { useState, useEffect } from "react";
+import { Text, View, TextInput, StyleSheet } from "react-native";
 
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -20,20 +12,36 @@ import { fetchBigCards } from "../authContext";
 
 export default function CustomHeader({
   version,
-  setBigCardsData,
+  setLoading,
   setPageNumber,
   setInputValue,
+  setBigCardsData,
+  setInputFocusState,
   inputValue,
-  pickerValue,
-  setLoading,
+  sortingPickerValue,
+  filteringPickerValue,
 }) {
   const searchForCard = async () => {
     setBigCardsData(null);
-    setBigCardsData(await fetchBigCards(inputValue, pickerValue, setLoading));
+    setBigCardsData(
+      await fetchBigCards(
+        inputValue,
+        sortingPickerValue,
+        filteringPickerValue,
+        setLoading
+      )
+    );
     setPageNumber(2);
   };
 
+  useEffect(async () => {
+    searchForCard();
+  }, [sortingPickerValue]);
+
   const navigation = useNavigation();
+  const [inputPlaceholder, setInputPlaceholder] = useState(
+    "Search for a card by name"
+  );
 
   const openMenu = () => {
     navigation.openDrawer();
@@ -87,7 +95,6 @@ export default function CustomHeader({
       </View>
     );
   }
-
   if (version == "settings") {
     return (
       <View
@@ -136,7 +143,6 @@ export default function CustomHeader({
       </View>
     );
   }
-
   if (version == "orders") {
     return (
       <View
@@ -185,7 +191,6 @@ export default function CustomHeader({
       </View>
     );
   }
-
   if (version == "chatConversations") {
     return (
       <View
@@ -234,7 +239,6 @@ export default function CustomHeader({
       </View>
     );
   }
-
   if (version == "chat") {
     return (
       <View
@@ -283,7 +287,6 @@ export default function CustomHeader({
       </View>
     );
   }
-
   if (version == "yourOffers") {
     return (
       <View
@@ -327,7 +330,6 @@ export default function CustomHeader({
       </View>
     );
   }
-
   if (version == "searchForSeller") {
     return (
       <View
@@ -393,9 +395,15 @@ export default function CustomHeader({
           }}
           value={inputValue}
           onChangeText={(text) => setInputValue(text)}
-          placeholder={"Search for a card"}
-          onFocus={() => setInput("")}
-          onBlur={() => setInput("Seach for a card")}
+          placeholder={inputPlaceholder}
+          onFocus={() => {
+            setInputPlaceholder("");
+            setInputFocusState(true);
+          }}
+          onBlur={() => {
+            setInputPlaceholder("Seach for a card by name");
+            setInputFocusState(false);
+          }}
           style={{
             width: 260,
             height: 40,

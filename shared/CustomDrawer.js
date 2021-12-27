@@ -137,7 +137,12 @@ export default function CustomDrawer({ navigation }) {
               labelStyle={{ color: "#f4f4f4" }}
               label="Chat"
               onPress={() => {
-                navigation.navigate("Chat");
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "Chat" }],
+                });
+
+                navigation.navigate("Chat", { screen: "ChatConversations" });
               }}
             />
             <DrawerItem

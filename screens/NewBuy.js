@@ -5,11 +5,11 @@ import { useNavigation } from "@react-navigation/native";
 
 import PayPal from "../assets/paypal_logo.png";
 
+import { db, auth } from "../authContext";
+
 export default function Buy({ route }) {
-  const ownerId = route.params.ownerId;
-
   const navigation = useNavigation();
-
+  const ownerId = route.params.ownerId;
   const [snackbarState, setSnackbarState] = useState(false);
 
   return (
@@ -55,8 +55,35 @@ export default function Buy({ route }) {
             alignItems: "center",
             borderRadius: 5,
           }}
-          onPress={() => {
-            navigation.navigate("StartChat", { ownerId });
+          onPress={async () => {
+            //check if user has already chat with the owner
+
+            let chatExists = false;
+
+            const chatsArray = await db
+              .collection("chats")
+              .where("members", "array-contains", auth.currentUser.uid)
+              .get();
+
+            chatsArray.forEach((doc) => {
+              if (doc.data().members.includes(ownerId)) {
+                chatExists = { data: doc.data(), uid: ownerId, id: doc.id };
+              }
+            });
+
+            if (chatExists) {
+              console.log("navigation to chatScreen");
+              console.log(chatExists);
+              navigation.navigate("Chat", {
+                screen: "ChatScreen",
+                params: { data: chatExists },
+              });
+            } else {
+              navigation.navigate("Chat", {
+                screen: "StartChat",
+                params: { ownerId },
+              });
+            }
           }}
         >
           <Text style={{ color: "#121212", fontWeight: "700", fontSize: 16 }}>
@@ -117,11 +144,10 @@ export default function Buy({ route }) {
       <Snackbar
         visible={snackbarState}
         onDismiss={() => setSnackbarState(false)}
+        duration={2000}
         action={{
-          label: "OK",
-          onPress: () => {
-            setSnackbarState(false);
-          },
+          label: "",
+          onPress: () => {},
         }}
       >
         Payments through PayPal aren't yet available

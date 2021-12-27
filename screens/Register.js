@@ -400,16 +400,18 @@ export default function Register() {
                   }}
                 />
               ) : null}
-              <Text
-                style={{
-                  color: "#b40424",
-                  fontWeight: "700",
-                  marginTop: 20,
-                  marginRight: 14,
-                }}
-              >
-                {error}
-              </Text>
+              {!loadingIndicator ? (
+                <Text
+                  style={{
+                    color: "#b40424",
+                    fontWeight: "700",
+                    marginTop: 20,
+                    marginRight: 14,
+                  }}
+                >
+                  {error}
+                </Text>
+              ) : null}
             </View>
           </View>
         )}
