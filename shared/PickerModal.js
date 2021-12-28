@@ -319,8 +319,32 @@ const PickerModal = ({
                     </View>
                   )}
                 </Formik>
-
+                <View style={{flexDirecion:"row"}}>
                 <Text>Graded?</Text>
+                <Checkbox
+                          status={"checked"}
+                          color={"#0082ff"}
+                          uncheckedColor={"#5c5c5c"}
+                          onPress={() => {
+                            setCheckbox((prevState) => {
+                              prevState[index] = !prevState[index];
+                              return prevState;
+                            });
+                            if (filteringPickerValue.rarity.includes(item)) {
+                              removeElementFromArray(
+                                filteringPickerValue,
+                                item
+                              );
+                            } else {
+                              setFilteringPickerValue((prev) => {
+                                return {
+                                  rarity: [...prev.rarity, item],
+                                };
+                              });
+                            }
+                          }}
+                        />
+                </View>
               </View>
             </SafeAreaView>
           </TouchableOpacity>
