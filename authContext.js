@@ -930,7 +930,6 @@ export async function register(email, password, nick, country, setError) {
       await db.collection("users").doc(user.uid).set({
         nick: nick.trim(),
         country: country.trim(),
-        reputation: 0,
         collectionSize: 0,
         savedOffers: [],
       });
@@ -965,8 +964,6 @@ export async function fetchSavedCards(setSavedCards, setLoading) {
   try {
     const outputArray = [];
     const doc = await db.collection("users").doc(auth.currentUser.uid).get();
-
-    //! Delete ids of not existing offers
 
     const arrLength = doc.data().savedOffers.length;
 

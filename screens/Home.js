@@ -45,7 +45,7 @@ export default function Home({
 }) {
   const [id, setId] = useState(null);
   const [cardsData, setCardsData] = useState([]);
-  const [pickerModal, setPickerModal] = useState(true);
+  const [pickerModal, setPickerModal] = useState(false);
   const [savedOffersId, setSavedOffersId] = useState([]);
   const [mostRecentOffers, setMostRecentOffers] = useState([]);
   const [pickerMode, setPickerMode] = useState("filtering");
@@ -182,6 +182,43 @@ export default function Home({
                   <Text style={{ color: "#0082ff" }}>{sortingPickerValue}</Text>
                 </Text>
               </TouchableOpacity>
+            </ScrollView>
+          ) : null}
+          {stateHandler("goBackBar") ? (
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              style={{ flexDirection: "row", marginVertical: 12 }}
+            >
+              <TouchableOpacity
+                style={{
+                  borderRadius: 3,
+                  marginLeft: 12,
+
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderWidth: 2,
+                  borderColor: "#777777",
+                  paddingHorizontal: 14,
+                  height: 32,
+                  marginTop: 4,
+                }}
+                onPress={() => {
+                  setCardsData([]);
+                  setId(null);
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "700",
+                    color: "#777777",
+                  }}
+                >
+                  {"Go back"}
+                </Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={{
                   borderRadius: 4,
@@ -215,38 +252,6 @@ export default function Home({
                 <Icon name="filter-variant" color={"#f4f4f4"} size={20} />
               </TouchableOpacity>
             </ScrollView>
-          ) : null}
-          {stateHandler("goBackBar") ? (
-            <TouchableOpacity
-              style={{
-                borderRadius: 3,
-                marginLeft: 12,
-                marginVertical: 12,
-
-                height: 30,
-                width: 120,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 2,
-                borderColor: "#777777",
-                paddingHorizontal: 12,
-              }}
-              onPress={() => {
-                setCardsData([]);
-                setId(null);
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#777777",
-                }}
-              >
-                {"Go back"}
-              </Text>
-            </TouchableOpacity>
           ) : null}
         </View>
         {stateHandler("pikachu") && !inputFocusState ? (
@@ -295,6 +300,7 @@ export default function Home({
             data={bigCardsData}
             numColumns={2}
             renderItem={({ item }) => {
+              cardsData;
               return <BigCardHome props={item} setId={setId} />;
             }}
             keyExtractor={(item, index) => index.toString()}

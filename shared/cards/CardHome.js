@@ -25,6 +25,7 @@ import {
   auth,
 } from "../../authContext";
 
+import { Snackbar } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 
 export function CardHome({ props, isSavedState }) {
@@ -59,6 +60,8 @@ export function CardHome({ props, isSavedState }) {
       props: {},
     },
   ]);
+  const [saveSnackbarState, setSaveSnackbarState] = useState(false);
+  const [buySnackbarState, setBuySnackbarState] = useState(false);
 
   const navigation = useNavigation();
 
@@ -125,7 +128,13 @@ export function CardHome({ props, isSavedState }) {
               width: 90,
             },
           ]}
-          onPress={() => clickSave()}
+          onPress={() => {
+            if (ownerId === auth.currentUser.uid) {
+              setSaveSnackbarState(true);
+            } else {
+              clickSave();
+            }
+          }}
         >
           <Text
             style={[
@@ -165,7 +174,13 @@ export function CardHome({ props, isSavedState }) {
             borderColor: "#5c5c5c",
           },
         ]}
-        onPress={() => clickSave()}
+        onPress={() => {
+          if (ownerId === auth.currentUser.uid) {
+            setSaveSnackbarState(true);
+          } else {
+            clickSave();
+          }
+        }}
       >
         <Text
           style={[
@@ -192,7 +207,7 @@ export function CardHome({ props, isSavedState }) {
     return outArray;
   };
 
-  if (!loadingState && ownerId != auth.currentUser.uid) {
+  if (!loadingState) {
     return (
       <View style={styles.card}>
         <Modal visible={imageViewerState} transparent={true}>
@@ -266,6 +281,7 @@ export function CardHome({ props, isSavedState }) {
               {owner.name}
             </Text>
             <View style={stylesCard.profileParams}>
+              {/* //!BUYER RATING!// */}
               {/* <Image
                 source={reputation_icon}
                 style={{ height: 26, width: 22.9, marginRight: 6 }}
@@ -279,7 +295,7 @@ export function CardHome({ props, isSavedState }) {
                 }}>
                 {owner.reputation}
               </Text> */}
-              <Image
+              {/* <Image
                 source={collection_icon}
                 style={{
                   height: 19,
@@ -291,7 +307,7 @@ export function CardHome({ props, isSavedState }) {
                 style={{ color: "#f4f4f4", fontWeight: "700", fontSize: 18 }}
               >
                 {owner.collectionSize}
-              </Text>
+              </Text> */}
             </View>
           </View>
 
@@ -460,7 +476,11 @@ export function CardHome({ props, isSavedState }) {
                   marginRight: 5,
                 }}
                 onPress={() => {
-                  navigation.navigate("Buy", { ownerId });
+                  if (ownerId === auth.currentUser.uid) {
+                    setBuySnackbarState(true);
+                  } else {
+                    navigation.navigate("Buy", { ownerId });
+                  }
                 }}
               >
                 <Text
@@ -477,6 +497,28 @@ export function CardHome({ props, isSavedState }) {
             </View>
           </View>
         </View>
+        <Snackbar
+          visible={buySnackbarState}
+          duration={2000}
+          onDismiss={() => setBuySnackbarState(false)}
+          action={{
+            label: "",
+            onPress: () => {},
+          }}
+        >
+          You can't buy this card
+        </Snackbar>
+        <Snackbar
+          visible={saveSnackbarState}
+          duration={2000}
+          onDismiss={() => setSaveSnackbarState(false)}
+          action={{
+            label: "",
+            onPress: () => {},
+          }}
+        >
+          You can't save this card
+        </Snackbar>
       </View>
     );
   } else {

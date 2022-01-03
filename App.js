@@ -46,34 +46,52 @@ function HomeStack() {
   const [loadingState, setLoading] = useState(false);
   const [sortingPickerValue, setSortingPickerValue] =
     useState("Rarity Declining");
+
   const [filteringPickerValue, setFilteringPickerValue] = useState({
     language: [],
     price: { from: null, to: null },
     graded: false,
-    condition: { from: null, to: null },
+    condition: null,
   });
+
   const [inputFocusState, setInputFocusState] = useState(false);
+
+  const [headerProps, setHeaderProps] = useState({
+    pageNumber: 2,
+    offersData: null,
+    loadingState: false,
+    inputValue: "",
+    inputFocusState: false,
+    sorterParams: "Rarity Declining",
+    filterParams: {
+      language: [],
+      price: { from: null, to: null },
+      graded: false,
+      condition: null,
+    },
+  });
 
   return (
     <Stack.Navigator>
       <Stack.Screen
         name="Home"
-        children={() => (
-          <Home
-            bigCardsData={bigCardsData}
-            setBigCardsData={setBigCardsData}
-            loadingState={loadingState}
-            setLoading={setLoading}
-            sortingPickerValue={sortingPickerValue}
-            setSortingPickerValue={setSortingPickerValue}
-            filteringPickerValue={filteringPickerValue}
-            setFilteringPickerValue={setFilteringPickerValue}
-            pageNumber={pageNumber}
-            setPageNumber={setPageNumber}
-            nativeInputValue={inputValue}
-            inputFocusState={inputFocusState}
-          />
-        )}
+        children={() => <Home props={headerProps} setProps={headerProps} />}
+        // children={() => (
+        //   <Home
+        //     !bigCardsData={bigCardsData}
+        //     !setBigCardsData={setBigCardsData}
+        //     !loadingState={loadingState}
+        //     !setLoading={setLoading}
+        //     !sortingPickerValue={sortingPickerValue}
+        //     !setSortingPickerValue={setSortingPickerValue}
+        //     !filteringPickerValue={filteringPickerValue}
+        //     !setFilteringPickerValue={setFilteringPickerValue}
+        //     !pageNumber={pageNumber}
+        //     !setPageNumber={setPageNumber}
+        //     nativeInputValue={inputValue}
+        //     inputFocusState={inputFocusState}
+        //   />
+        // )}
         options={{
           headerTitle: () => (
             <CustomHeader

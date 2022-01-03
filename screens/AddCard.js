@@ -33,7 +33,7 @@ export default function AddCard() {
   const navigation = useNavigation();
 
   const priceRegEx = /^\d+([.,]\d{1,2})?$/g;
-  const gradeRegEx = /^[1-9]|10*$/g;
+  const conditionRegEx = /^[1-9]|10*$/g;
 
   const reviewSchema = yup.object({
     price: yup
@@ -43,7 +43,7 @@ export default function AddCard() {
       .max(12, "Price is too long!"),
     condition: yup
       .string("Wrong format!")
-      .matches(gradeRegEx, "Wrong format!")
+      .matches(conditionRegEx, "Wrong format!")
       .required("Condition is required!")
       .max(2, "Wrong format"),
     languageVersion: yup
