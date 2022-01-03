@@ -1,22 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
 import {
   View,
   Text,
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-} from 'react-native';
+} from "react-native";
 
-import { MaterialIcons } from '@expo/vector-icons';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MaterialIcons } from "@expo/vector-icons";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-import DeleteCardModal from '../shared/DeleteCardModal';
-import { CardYourOffers } from '../shared/cards/CardYourOffers';
-import { fetchUsersCards } from '../authContext';
+import DeleteCardModal from "../shared/DeleteCardModal";
+import { CardYourOffers } from "../shared/cards/CardYourOffers";
+import { fetchUsersCards } from "../authContext";
 
-import { AlertModal } from '../shared/AlertModal';
+import { AlertModal } from "../shared/AlertModal";
 
 export default function YourOffers() {
   const navigation = useNavigation();
@@ -53,47 +53,50 @@ export default function YourOffers() {
     <View
       style={{
         flex: 1,
-        backgroundColor: '#1b1b1b',
-        flexDirection: 'column',
-      }}>
+        backgroundColor: "#1b1b1b",
+        flexDirection: "column",
+      }}
+    >
       {modalState ? <DeleteCardModal setModal={setModalState} id={id} /> : null}
       {alertModal ? <AlertModal setModal={setAlertModal} /> : null}
       {!loadingState ? (
         <View
           style={{
             flex: 1,
-          }}>
+          }}
+        >
           <TouchableOpacity
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '96%',
-              backgroundColor: '#121212',
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "96%",
+              backgroundColor: "#121212",
               paddingVertical: 10,
-              marginLeft: '2%',
+              marginLeft: "2%",
               marginTop: 10,
               marginBottom: 6,
               borderRadius: 4,
             }}
             onPress={() => {
-              navigation.navigate('AddCard');
-            }}>
+              navigation.navigate("AddCard");
+            }}
+          >
             <MaterialIcons
-              name='add'
+              name="add"
               size={24}
-              color='#f4f4f4'
-              style={{ position: 'absolute', left: '25%' }}
-              onPress={() => setAlertModal(true)}
+              color="#f4f4f4"
+              style={{ position: "absolute", left: "25%" }}
             />
             <Text
               style={{
-                color: '#f4f4f4',
-                fontWeight: '700',
+                color: "#f4f4f4",
+                fontWeight: "700",
                 fontSize: 15,
                 marginRight: 8,
-              }}>
-              {'Add a new Card'}
+              }}
+            >
+              {"Add a new Card"}
             </Text>
           </TouchableOpacity>
 
@@ -115,35 +118,38 @@ export default function YourOffers() {
             <View
               style={{
                 flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#1b1b1b',
-              }}>
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#1b1b1b",
+              }}
+            >
               <Icon
-                name='cards'
-                color={'#0082ff'}
+                name="cards"
+                color={"#0082ff"}
                 size={58}
                 style={{ marginBottom: 12 }}
               />
               <Text
                 style={{
-                  color: '#f4f4f4',
+                  color: "#f4f4f4",
                   fontSize: 38,
-                  fontWeight: '700',
+                  fontWeight: "700",
                   marginBottom: 12,
                   paddingHorizontal: 20,
-                  textAlign: 'center',
-                }}>
+                  textAlign: "center",
+                }}
+              >
                 Add New Offers!
               </Text>
               <Text
                 style={{
                   fontSize: 15,
-                  width: '80%',
-                  color: '#4f4f4f',
+                  width: "80%",
+                  color: "#4f4f4f",
                   marginBottom: 60,
-                  textAlign: 'center',
-                }}>
+                  textAlign: "center",
+                }}
+              >
                 Add photos, description, price and condition of the card and
                 sell it. It's really easy with PTCG Marketplace.
               </Text>
@@ -154,10 +160,11 @@ export default function YourOffers() {
         <View
           style={{
             flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-          <ActivityIndicator size='large' color='#0082ff' />
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ActivityIndicator size="large" color="#0082ff" />
         </View>
       )}
     </View>

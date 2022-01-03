@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-import * as yup from 'yup';
-import { Formik, ErrorMessage } from 'formik';
+import * as yup from "yup";
+import { Formik, ErrorMessage } from "formik";
 
-import { MaterialIcons } from '@expo/vector-icons';
-import IconMI from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MaterialIcons } from "@expo/vector-icons";
+import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
 import {
   View,
   TouchableOpacity,
@@ -14,15 +14,14 @@ import {
   Modal,
   TextInput as TextInputNative,
   ActivityIndicator,
-} from 'react-native';
-import { Checkbox, TextInput } from 'react-native-paper';
+} from "react-native";
+import { Checkbox, TextInput } from "react-native-paper";
 
-import { useNavigation } from '@react-navigation/native';
-import { fetchBigCards, fetchMoreBigCards, updateCard } from '../authContext';
+import { useNavigation } from "@react-navigation/native";
+import { fetchBigCards, fetchMoreBigCards, updateCard } from "../authContext";
 
-import pikachu from '../assets/pikachu.png';
-
-import PickerModal from '../shared/PickerModal';
+import pikachu from "../assets/pikachu.png";
+import PickerModal from "../shared/PickerModal";
 
 export default function EditCard({ route }) {
   const navigation = useNavigation();
@@ -32,38 +31,38 @@ export default function EditCard({ route }) {
 
   const reviewSchema = yup.object({
     price: yup
-      .string('Wrong format!')
-      .matches(priceRegEx, 'Wrong format!')
-      .required('Price is required!')
-      .max(12, 'Price is too long!'),
+      .string("Wrong format!")
+      .matches(priceRegEx, "Wrong format!")
+      .required("Price is required!")
+      .max(12, "Price is too long!"),
     condition: yup
-      .string('Wrong format!')
-      .matches(gradeRegEx, 'Wrong format!')
-      .required('Condition is required!')
-      .max(2, 'Wrong format'),
+      .string("Wrong format!")
+      .matches(gradeRegEx, "Wrong format!")
+      .required("Condition is required!")
+      .max(2, "Wrong format"),
     languageVersion: yup
-      .string('Wrong format!')
-      .required('Language Version is required!')
-      .min(4, 'Wrong format'),
+      .string("Wrong format!")
+      .required("Language Version is required!")
+      .min(4, "Wrong format"),
     description: yup
-      .string('Wrong format!')
-      .required('Description is required!')
-      .max(60, 'Description is too long!'),
+      .string("Wrong format!")
+      .required("Description is required!")
+      .max(60, "Description is too long!"),
   });
 
   const ImagePlaceHolder = () => {
     if (photoState === null || undefined) {
       return (
-        <View style={{ flexDirection: 'row' }}>
+        <View style={{ flexDirection: "row" }}>
           <View
             style={{
               aspectRatio: 3 / 4,
-              width: '28%',
+              width: "28%",
               height: undefined,
               borderWidth: 2,
               borderRadius: 8,
-              borderColor: '#5c5c5c',
-              borderStyle: 'dashed',
+              borderColor: "#5c5c5c",
+              borderStyle: "dashed",
               marginTop: 20,
               marginRight: 20,
             }}
@@ -71,12 +70,12 @@ export default function EditCard({ route }) {
           <View
             style={{
               aspectRatio: 3 / 4,
-              width: '28%',
+              width: "28%",
               height: undefined,
               borderWidth: 2,
               borderRadius: 8,
-              borderColor: '#5c5c5c',
-              borderStyle: 'dashed',
+              borderColor: "#5c5c5c",
+              borderStyle: "dashed",
               marginTop: 20,
               marginRight: 20,
             }}
@@ -84,12 +83,12 @@ export default function EditCard({ route }) {
           <View
             style={{
               aspectRatio: 3 / 4,
-              width: '28%',
+              width: "28%",
               height: undefined,
               borderWidth: 2,
               borderRadius: 8,
-              borderColor: '#5c5c5c',
-              borderStyle: 'dashed',
+              borderColor: "#5c5c5c",
+              borderStyle: "dashed",
               marginTop: 20,
             }}
           />
@@ -98,17 +97,17 @@ export default function EditCard({ route }) {
     }
     if (photoState !== null || undefined) {
       return (
-        <View style={{ flexDirection: 'row' }}>
+        <View style={{ flexDirection: "row" }}>
           {photoState[0] === undefined || null ? (
             <View
               style={{
                 aspectRatio: 3 / 4,
-                width: '28%',
+                width: "28%",
                 height: undefined,
                 borderWidth: 2,
                 borderRadius: 8,
-                borderColor: '#5c5c5c',
-                borderStyle: 'dashed',
+                borderColor: "#5c5c5c",
+                borderStyle: "dashed",
                 marginTop: 20,
                 marginRight: 20,
               }}
@@ -117,7 +116,7 @@ export default function EditCard({ route }) {
             <Image
               style={{
                 aspectRatio: 3 / 4,
-                width: '28%',
+                width: "28%",
                 height: undefined,
                 marginTop: 20,
                 marginRight: 20,
@@ -132,12 +131,12 @@ export default function EditCard({ route }) {
             <View
               style={{
                 aspectRatio: 3 / 4,
-                width: '28%',
+                width: "28%",
                 height: undefined,
                 borderWidth: 2,
                 borderRadius: 8,
-                borderColor: '#5c5c5c',
-                borderStyle: 'dashed',
+                borderColor: "#5c5c5c",
+                borderStyle: "dashed",
                 marginTop: 20,
                 marginRight: 20,
               }}
@@ -146,7 +145,7 @@ export default function EditCard({ route }) {
             <Image
               style={{
                 aspectRatio: 3 / 4,
-                width: '28%',
+                width: "28%",
                 height: undefined,
                 marginTop: 20,
                 marginRight: 20,
@@ -161,12 +160,12 @@ export default function EditCard({ route }) {
             <View
               style={{
                 aspectRatio: 3 / 4,
-                width: '28%',
+                width: "28%",
                 height: undefined,
                 borderWidth: 2,
                 borderRadius: 8,
-                borderColor: '#5c5c5c',
-                borderStyle: 'dashed',
+                borderColor: "#5c5c5c",
+                borderStyle: "dashed",
                 marginTop: 20,
               }}
             />
@@ -174,7 +173,7 @@ export default function EditCard({ route }) {
             <Image
               style={{
                 aspectRatio: 3 / 4,
-                width: '28%',
+                width: "28%",
                 height: undefined,
                 marginTop: 20,
                 marginRight: 20,
@@ -201,13 +200,13 @@ export default function EditCard({ route }) {
   const [loadingState, setLoading] = useState(false);
   const [bigCardsData, setBigCardsData] = useState(null);
 
-  const [nativeInputValue, setNativeInputValue] = useState('');
+  const [nativeInputValue, setNativeInputValue] = useState("");
   const [inputPlaceholderState, setInputPlaceholder] = useState(
-    'Number or Name of Card'
+    "Number or Name of Card"
   );
 
   const [showFilters, setShowFiletrs] = useState(true);
-  const [pickerValue, setPickerValue] = useState('Rarity Declining');
+  const [pickerValue, setPickerValue] = useState("Rarity Declining");
   const [pickerModal, setPickerModal] = useState(false);
 
   const [loadingIndicator, setLoadingIndicator] = useState(false);
@@ -220,7 +219,7 @@ export default function EditCard({ route }) {
   };
 
   const stateHandler = (variant) => {
-    if (variant == 'pikachu') {
+    if (variant == "pikachu") {
       if (loadingState) return false;
 
       if (bigCardsData == null || undefined) {
@@ -230,7 +229,7 @@ export default function EditCard({ route }) {
       }
       return false;
     }
-    if (variant == 'list') {
+    if (variant == "list") {
       if (loadingState) {
         return false;
       } else if (bigCardsData == null || undefined) {
@@ -241,7 +240,7 @@ export default function EditCard({ route }) {
         return true;
       }
     }
-    if (variant == 'indicator') {
+    if (variant == "indicator") {
       if (loadingState) return true;
       return false;
     }
@@ -249,207 +248,187 @@ export default function EditCard({ route }) {
 
   const closeModal = () => {
     setModal(false);
-    setNativeInputValue('');
+    setNativeInputValue("");
     setBigCardsData(null);
     setPageNumber(2);
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#1b1b1b', padding: 20 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: "#1b1b1b", padding: 20 }}>
       <PickerModal
         setValue={setPickerValue}
         propsArry={[
           // 'Price Ascending',
           // 'Price Declining',
-          'Rarity Ascending',
-          'Rarity Declining',
+          "Rarity Ascending",
+          "Rarity Declining",
         ]}
         visible={pickerModal}
         setVisible={setPickerModal}
       />
-      <Modal visible={modalState} animationType={'slide'}>
-        <View style={{ flex: 1, backgroundColor: '#1b1b1b' }}>
+      <Modal visible={modalState} animationType={"slide"}>
+        <View style={{ flex: 1, backgroundColor: "#1b1b1b" }}>
           <View
             style={{
-              backgroundColor: '#121212',
+              backgroundColor: "#121212",
               height: 80,
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <TouchableOpacity
               style={{
                 borderRadius: 3,
                 marginLeft: 12,
 
                 height: 30,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
                 borderWidth: 2,
-                borderColor: '#777777',
+                borderColor: "#777777",
                 paddingHorizontal: 12,
               }}
               onPress={() => {
                 closeModal();
-              }}>
+              }}
+            >
               <Text
                 style={{
                   fontSize: 16,
-                  fontWeight: '700',
-                  color: '#777777',
-                }}>
-                {'Go back'}
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
               </Text>
             </TouchableOpacity>
             <View
               style={{
-                flexDirection: 'row',
-                justifyContent: 'center',
-                alignItems: 'center',
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
                 marginRight: 12,
-              }}>
+              }}
+            >
               <TextInputNative
-                mode='outlined'
-                placeholderTextColor={'#5c5c5c'}
-                outlineColor={'#121212'}
+                mode="outlined"
+                placeholderTextColor={"#5c5c5c"}
+                outlineColor={"#121212"}
                 onEndEditing={() => {
                   searchForCard();
                 }}
                 value={nativeInputValue}
                 onChangeText={(text) => setNativeInputValue(text)}
                 placeholder={inputPlaceholderState}
-                onFocus={() => setInputPlaceholder('')}
-                onBlur={() => setInputPlaceholder('Number or Name of Card')}
+                onFocus={() => setInputPlaceholder("")}
+                onBlur={() => setInputPlaceholder("Number or Name of Card")}
                 style={{
                   width: 260,
                   height: 40,
                   marginBottom: 5,
-                  borderColor: '#121212',
-                  backgroundColor: '#1b1b1b',
+                  borderColor: "#121212",
+                  backgroundColor: "#1b1b1b",
                   borderWidth: 2,
                   borderRadius: 5,
                   paddingLeft: 10,
-                  color: '#f4f4f4',
+                  color: "#f4f4f4",
                 }}
               />
               <MaterialIcons
-                name='search'
+                name="search"
                 size={24}
-                color={'#f4f4f4'}
-                style={{ position: 'absolute', right: 14 }}
+                color={"#f4f4f4"}
+                style={{ position: "absolute", right: 14 }}
               />
             </View>
           </View>
           <View
             style={{
-              backgroundColor: '#121212',
+              backgroundColor: "#121212",
               height: showFilters ? null : 40,
-              borderTopColor: '#5c5c5c',
+              borderTopColor: "#5c5c5c",
               borderTopWidth: 1.5,
               marginBottom: 12,
-              flexDirection: 'column',
-              justifyContent: 'space-between',
+              flexDirection: "column",
+              justifyContent: "space-between",
               paddingBottom: 8,
               paddingTop: 8,
-            }}>
-            {showFilters ? (
-              <View style={{ flexDirection: 'row' }}>
-                <TouchableOpacity
+            }}
+          >
+            <View style={{ flexDirection: "row" }}>
+              <TouchableOpacity
+                style={{
+                  borderRadius: 4,
+
+                  marginLeft: 8,
+                  marginTop: 4,
+
+                  height: 32,
+                  paddingHorizontal: 14,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#1B1B1B",
+                }}
+                onPress={() => setPickerModal(true)}
+              >
+                <Text
                   style={{
-                    borderRadius: 4,
-
-                    marginLeft: 8,
-                    marginTop: 4,
-
-                    height: 32,
-                    paddingHorizontal: 14,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#1B1B1B',
+                    fontSize: 14,
+                    fontWeight: "700",
+                    color: "#f4f4f4",
                   }}
-                  onPress={() => setPickerModal(true)}>
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      fontWeight: '700',
-                      color: '#f4f4f4',
-                    }}>
-                    {' Sort by :  '}
-                    <Text style={{ color: '#0082ff' }}>{pickerValue}</Text>
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            ) : null}
-            <View
-              style={{
-                width: '100%',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginTop: showFilters ? 12 : null,
-              }}>
-              {showFilters ? (
-                <IconMI
-                  name={'arrow-up-drop-circle'}
-                  color={'#0082ff'}
-                  size={23}
-                  onPress={() => {
-                    setShowFiletrs(false);
-                  }}
-                />
-              ) : (
-                <IconMI
-                  name={'arrow-down-drop-circle'}
-                  color={'#0082ff'}
-                  size={23}
-                  onPress={() => {
-                    setShowFiletrs(true);
-                  }}
-                />
-              )}
+                >
+                  {" Sort by :  "}
+                  <Text style={{ color: "#0082ff" }}>{pickerValue}</Text>
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
-          {stateHandler('pikachu') ? (
+          {stateHandler("pikachu") ? (
             <View
               style={{
                 flex: 1,
 
-                alignItems: 'center',
-                justifyContent: 'center',
+                alignItems: "center",
+                justifyContent: "center",
                 paddingBottom: 30,
-              }}>
+              }}
+            >
               <Image
                 source={pikachu}
                 style={{
                   aspectRatio: 651 / 522,
-                  width: '80%',
+                  width: "80%",
                   height: undefined,
                 }}
               />
               <Text
                 style={{
-                  color: '#434343',
+                  color: "#434343",
                   fontSize: 20,
-                  fontWeight: '600',
+                  fontWeight: "600",
                   marginTop: 30,
-                  fontWeight: '700',
-                }}>
-                {'No cards found '}
+                  fontWeight: "700",
+                }}
+              >
+                {"No cards found "}
               </Text>
             </View>
           ) : null}
 
-          {stateHandler('indicator') ? (
+          {stateHandler("indicator") ? (
             <View
               style={{
                 flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <ActivityIndicator size='large' color='#0082ff' />
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <ActivityIndicator size="large" color="#0082ff" />
             </View>
           ) : null}
         </View>
@@ -462,26 +441,28 @@ export default function EditCard({ route }) {
 
             height: 36,
             width: 230,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#0082FF',
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#0082FF",
           }}
           onPress={() => {
-            navigation.navigate('ImageBrowser', { photoState, setPhoto });
-          }}>
+            navigation.navigate("ImageBrowser", { photoState, setPhoto });
+          }}
+        >
           <Text
             style={{
               fontSize: 16,
-              fontWeight: '700',
-              color: '#121212',
-            }}>
+              fontWeight: "700",
+              color: "#121212",
+            }}
+          >
             Add photos of the card
           </Text>
           <IconMI
-            name={'camera-image'}
+            name={"camera-image"}
             size={22}
-            color='#121212'
+            color="#121212"
             style={{ marginLeft: 10 }}
           />
         </TouchableOpacity>
@@ -490,9 +471,10 @@ export default function EditCard({ route }) {
             marginTop: 10,
             marginLeft: 12,
             fontSize: 14,
-            fontWeight: '700',
-            color: '#4c4c4c',
-          }}>
+            fontWeight: "700",
+            color: "#4c4c4c",
+          }}
+        >
           You must pick at least one photo
         </Text>
       </View>
@@ -521,11 +503,11 @@ export default function EditCard({ route }) {
             gradingSwitch,
           ];
           const valuesOrder = [
-            'price',
-            'condition',
-            'description',
-            'languageVersion',
-            'isGraded',
+            "price",
+            "condition",
+            "description",
+            "languageVersion",
+            "isGraded",
           ];
 
           const detectChanges = () => {
@@ -542,8 +524,8 @@ export default function EditCard({ route }) {
           };
 
           if (detectChanges()) {
-            if (typeof outValues[0] != 'number') {
-              outValues[0] = outValues[0].replace(/,/g, '.').replace(/ /g, '');
+            if (typeof outValues[0] != "number") {
+              outValues[0] = outValues[0].replace(/,/g, ".").replace(/ /g, "");
               outValues[0] = parseFloat(outValues[0]);
             }
 
@@ -557,20 +539,22 @@ export default function EditCard({ route }) {
             route.params.setModal(false);
             navigation.goBack();
           }
-        }}>
+        }}
+      >
         {(props) => (
           <View>
-            <View style={{ flexDirection: 'row' }}>
+            <View style={{ flexDirection: "row" }}>
               <ImagePlaceHolder />
             </View>
             <View
               style={{
                 flex: 1,
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                width: '100%',
+                flexDirection: "column",
+                alignItems: "flex-start",
+                width: "100%",
                 marginTop: 20,
-              }}>
+              }}
+            >
               <TouchableOpacity
                 style={{
                   borderRadius: 4,
@@ -580,43 +564,47 @@ export default function EditCard({ route }) {
 
                   height: 36,
                   width: 160,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#0082FF',
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#0082FF",
                 }}
                 onPress={() => {
                   setModal(true);
-                }}>
+                }}
+              >
                 <Text
                   style={{
                     fontSize: 16,
-                    fontWeight: '700',
-                    color: '#121212',
-                  }}>
+                    fontWeight: "700",
+                    color: "#121212",
+                  }}
+                >
                   Select Card
                 </Text>
                 <IconMI
-                  name={'cards'}
+                  name={"cards"}
                   size={22}
-                  color='#121212'
+                  color="#121212"
                   style={{ marginLeft: 10 }}
                 />
               </TouchableOpacity>
               {cardId ? (
                 <Text
                   style={{
-                    fontWeight: '700',
+                    fontWeight: "700",
                     fontSize: 11,
                     marginTop: 6,
                     marginLeft: 6,
-                    color: '#5c5c5c',
-                  }}>
-                  ID of seleceted Card:{' '}
+                    color: "#5c5c5c",
+                  }}
+                >
+                  ID of seleceted Card:{" "}
                   <Text
                     style={{
-                      color: '#0082FF',
-                    }}>
+                      color: "#0082FF",
+                    }}
+                  >
                     {cardId}
                   </Text>
                 </Text>
@@ -625,178 +613,185 @@ export default function EditCard({ route }) {
               {scError && !cardId ? (
                 <Text
                   style={{
-                    color: '#b80424',
-                    fontWeight: '700',
+                    color: "#b80424",
+                    fontWeight: "700",
                     marginTop: 6,
                     marginLeft: 6,
-                  }}>
+                  }}
+                >
                   You must select the card!
                 </Text>
               ) : null}
 
               <TextInput
-                mode={'outlined'}
+                mode={"outlined"}
                 value={props.values.price.toString()}
-                onChangeText={props.handleChange('price')}
-                label='Price ($)'
-                outlineColor={'#5c5c5c'}
+                onChangeText={props.handleChange("price")}
+                label="Price ($)"
+                keyboardType="numeric"
+                outlineColor={"#5c5c5c"}
                 error={props.touched.price && props.errors.price ? true : false}
                 style={{
-                  width: '85%',
-                  backgroundColor: '#1b1b1b',
-                  color: '#f4f4f4',
+                  width: "85%",
+                  backgroundColor: "#1b1b1b",
+                  color: "#f4f4f4",
                   marginTop: 20,
                 }}
                 theme={{
                   colors: {
-                    primary: '#0082ff',
-                    placeholder: '#5c5c5c',
-                    background: 'transparent',
-                    text: '#f4f4f4',
+                    primary: "#0082ff",
+                    placeholder: "#5c5c5c",
+                    background: "transparent",
+                    text: "#f4f4f4",
                   },
                 }}
               />
-              <ErrorMessage component='div' name='price'>
+              <ErrorMessage component="div" name="price">
                 {(msg) => (
                   <Text
                     style={{
-                      width: '70%',
+                      width: "70%",
                       marginTop: 8,
                       height: 20,
-                      flexDirection: 'row',
-                      justifyContent: 'flex-end',
-                      color: '#b40424',
-                      fontWeight: '700',
-                    }}>
+                      flexDirection: "row",
+                      justifyContent: "flex-end",
+                      color: "#b40424",
+                      fontWeight: "700",
+                    }}
+                  >
                     {msg}
                   </Text>
                 )}
               </ErrorMessage>
               <TextInput
-                mode={'outlined'}
+                mode={"outlined"}
                 value={props.values.languageVersion}
-                onChangeText={props.handleChange('languageVersion')}
-                label='Language Version'
-                outlineColor={'#5c5c5c'}
+                onChangeText={props.handleChange("languageVersion")}
+                label="Language Version"
+                outlineColor={"#5c5c5c"}
                 error={
                   props.touched.languageVersion && props.errors.languageVersion
                     ? true
                     : false
                 }
                 style={{
-                  width: '85%',
-                  backgroundColor: '#1b1b1b',
-                  color: '#f4f4f4',
+                  width: "85%",
+                  backgroundColor: "#1b1b1b",
+                  color: "#f4f4f4",
                   marginTop: 20,
                 }}
                 theme={{
                   colors: {
-                    primary: '#0082ff',
-                    placeholder: '#5c5c5c',
-                    background: 'transparent',
-                    text: '#f4f4f4',
+                    primary: "#0082ff",
+                    placeholder: "#5c5c5c",
+                    background: "transparent",
+                    text: "#f4f4f4",
                   },
                 }}
               />
-              <ErrorMessage component='div' name='languageVersion'>
+              <ErrorMessage component="div" name="languageVersion">
                 {(msg) => (
                   <Text
                     style={{
-                      width: '70%',
+                      width: "70%",
                       marginTop: 8,
                       height: 20,
-                      flexDirection: 'row',
-                      justifyContent: 'flex-end',
-                      color: '#b40424',
-                      fontWeight: '700',
-                    }}>
+                      flexDirection: "row",
+                      justifyContent: "flex-end",
+                      color: "#b40424",
+                      fontWeight: "700",
+                    }}
+                  >
                     {msg}
                   </Text>
                 )}
               </ErrorMessage>
               <TextInput
-                mode={'outlined'}
+                mode={"outlined"}
                 value={props.values.description}
-                onChangeText={props.handleChange('description')}
-                label='Short Description'
-                outlineColor={'#5c5c5c'}
+                onChangeText={props.handleChange("description")}
+                label="Short Description"
+                outlineColor={"#5c5c5c"}
                 error={
                   props.touched.description && props.errors.description
                     ? true
                     : false
                 }
                 style={{
-                  width: '85%',
-                  backgroundColor: '#1b1b1b',
-                  color: '#f4f4f4',
+                  width: "85%",
+                  backgroundColor: "#1b1b1b",
+                  color: "#f4f4f4",
                   marginTop: 20,
                 }}
                 theme={{
                   colors: {
-                    primary: '#0082ff',
-                    placeholder: '#5c5c5c',
-                    background: 'transparent',
-                    text: '#f4f4f4',
+                    primary: "#0082ff",
+                    placeholder: "#5c5c5c",
+                    background: "transparent",
+                    text: "#f4f4f4",
                   },
                 }}
               />
-              <ErrorMessage component='div' name='description'>
+              <ErrorMessage component="div" name="description">
                 {(msg) => (
                   <Text
                     style={{
-                      width: '70%',
+                      width: "70%",
                       marginTop: 8,
                       height: 20,
-                      flexDirection: 'row',
-                      justifyContent: 'flex-end',
-                      color: '#b40424',
-                      fontWeight: '700',
-                    }}>
+                      flexDirection: "row",
+                      justifyContent: "flex-end",
+                      color: "#b40424",
+                      fontWeight: "700",
+                    }}
+                  >
                     {msg}
                   </Text>
                 )}
               </ErrorMessage>
               <TextInput
-                mode={'outlined'}
+                mode={"outlined"}
                 value={props.values.condition}
-                onChangeText={props.handleChange('condition')}
-                label='Condition (from 1 to 10)'
-                outlineColor={'#5c5c5c'}
+                onChangeText={props.handleChange("condition")}
+                label="Condition (from 1 to 10)"
+                keyboardType="numeric"
+                outlineColor={"#5c5c5c"}
                 error={
                   props.touched.condition && props.errors.condition
                     ? true
                     : false
                 }
                 style={{
-                  width: '85%',
-                  backgroundColor: '#1b1b1b',
-                  color: '#f4f4f4',
+                  width: "85%",
+                  backgroundColor: "#1b1b1b",
+                  color: "#f4f4f4",
                   marginTop: 20,
                 }}
                 theme={{
                   colors: {
-                    primary: '#0082ff',
-                    placeholder: '#5c5c5c',
-                    background: 'transparent',
-                    text: '#f4f4f4',
+                    primary: "#0082ff",
+                    placeholder: "#5c5c5c",
+                    background: "transparent",
+                    text: "#f4f4f4",
                   },
                 }}
               />
-              <ErrorMessage component='div' name='condition'>
+              <ErrorMessage component="div" name="condition">
                 {!gradingSwitch ? (
                   (msg) => (
                     <Text
                       style={{
-                        width: '70%',
+                        width: "70%",
                         marginTop: 8,
                         height: 20,
                         marginBottom: 14,
-                        flexDirection: 'row',
-                        justifyContent: 'flex-end',
-                        display: gradingSwitch ? 'none' : 'flex',
-                        color: '#b40424',
-                        fontWeight: '700',
-                      }}>
+                        flexDirection: "row",
+                        justifyContent: "flex-end",
+                        display: gradingSwitch ? "none" : "flex",
+                        color: "#b40424",
+                        fontWeight: "700",
+                      }}
+                    >
                       {msg}
                     </Text>
                   )
@@ -808,50 +803,54 @@ export default function EditCard({ route }) {
             <View
               style={{
                 flex: 1,
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                width: '100%',
-              }}>
+                flexDirection: "column",
+                alignItems: "flex-start",
+                width: "100%",
+              }}
+            >
               <View
                 style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
+                  flexDirection: "row",
+                  alignItems: "center",
                   marginTop: 40,
-                }}>
+                }}
+              >
                 <Text
                   style={{
-                    flexDirection: 'row',
+                    flexDirection: "row",
 
-                    color: '#f4f4f4',
-                    fontWeight: '700',
+                    color: "#f4f4f4",
+                    fontWeight: "700",
                     fontSize: 20,
                     marginRight: 10,
-                  }}>
+                  }}
+                >
                   Is the card graded?
                 </Text>
                 <Checkbox
-                  status={gradingSwitch ? 'checked' : 'unchecked'}
-                  color={'#0082ff'}
-                  uncheckedColor={'#5c5c5c'}
+                  status={gradingSwitch ? "checked" : "unchecked"}
+                  color={"#0082ff"}
+                  uncheckedColor={"#5c5c5c"}
                   onPress={() => setGrading(!gradingSwitch)}
                 />
               </View>
             </View>
             <View
               style={{
-                width: '85%',
-                flexDirection: 'row-reverse',
+                width: "85%",
+                flexDirection: "row-reverse",
                 marginBottom: 40,
-              }}>
+              }}
+            >
               <TouchableOpacity
                 style={{
                   height: 30,
                   marginTop: 20,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
 
-                  backgroundColor: '#0082FF',
+                  backgroundColor: "#0082FF",
                   borderRadius: 3,
                   paddingHorizontal: 20,
                 }}
@@ -861,20 +860,22 @@ export default function EditCard({ route }) {
                     setScError(true);
                   }
                 }}
-                type={'submit'}>
+                type={"submit"}
+              >
                 <Text
                   style={{
                     fontSize: 16,
-                    fontWeight: '700',
-                    color: '#121212',
-                  }}>
+                    fontWeight: "700",
+                    color: "#121212",
+                  }}
+                >
                   Submit
                 </Text>
               </TouchableOpacity>
               {loadingIndicator ? (
                 <ActivityIndicator
                   size={30}
-                  color='#0082ff'
+                  color="#0082ff"
                   animating={loadingIndicator}
                   style={{
                     marginRight: 14,

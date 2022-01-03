@@ -8,35 +8,30 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-import { globalStyles } from '../styles/global';
-
 import {
-  fetchCards,
+  fetchOffers,
+  fetchMoreCards,
   fetchSavedOffersId,
-  fetchMoreBigCards,
-} from '../authContext';
+  fetchMostRecentOffers,
+} from "../authContext";
 
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useIsFocused } from "@react-navigation/native";
 
-import PickerModal from '../shared/PickerModal';
-import pikachu from '../assets/pikachu.png';
+import PickerModal from "../shared/PickerModal";
+import pikachu from "../assets/pikachu.png";
 
-import BigCardHome from '../shared/cards/BigCardHome';
-import { CardHome } from '../shared/cards/CardHome';
+import DefaultCard from "../shared/cards/DefaultCard";
+import OfferCard from "../shared/cards/OfferCard";
 
-export default function Home({
-  bigCardsData,
-  loadingState,
-  setPickerValue,
-  setLoading,
-  pickerValue,
-  pageNumber,
-  setPageNumber,
-  nativeInputValue,
-  setBigCardsData,
-}) {
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+
+export default function Home({ props, setProps }) {
   const [id, setId] = useState(null);
-  const [cardsData, setCardsData] = useState([]);
+  const [offersData, setOffersData] = useState([]);
+  const [pickerModal, setPickerModal] = useState(false);
+  const [savedOffersId, setSavedOffersId] = useState([]);
+  const [mostRecentOffers, setMostRecentOffers] = useState([]);
+  const [pickerMode, setPickerMode] = useState("filtering");
 
   const isFocused = useIsFocused();
   const [savedOffersId, setSavedOffersId] = useState(null);
@@ -45,95 +40,152 @@ export default function Home({
   const navigation = useNavigation();
 
   useEffect(() => {
-    const dowloads = async () => {
-      setCardsData(await fetchCards());
+    const resolvePromise = async () => {
+      await fetchSavedOffersId(setSavedOffersId, setProps);
+      setMostRecentOffers(await fetchMostRecentOffers());
     };
 
     dowloads();
   }, []);
 
   useEffect(() => {
-    if (cardsData.length >= 1) setCardsData([]);
-  }, [bigCardsData]);
+    if (props.cardsData.length >= 1) {
+      setProps((prevState) => ({
+        ...prevState,
+        screen: "cards",
+      }));
+    }
+  }, [props.cardsData]);
 
   useEffect(() => {
     if (!isFocused) {
-      setSavedOffersId(null);
-      setLoading(true);
+      setMostRecentOffers([]);
+      setSavedOffersId([]);
+      setProps((prevState) => ({
+        ...prevState,
+        loadingState: true,
+      }));
     }
     if (isFocused) {
-      fetchSavedOffersId(setSavedOffersId, setLoading);
+      await fetchSavedOffersId(setSavedOffersId, setProps);
     }
   }, [isFocused]);
 
   useEffect(async () => {
-    if (id != undefined || null || []) {
-      setCardsData(await fetchCards(id));
-    }
-  }, [id]);
+    if (id !== undefined || null || []) {
+      setProps((prevState) => ({
+        ...prevState,
+        loadingState: true,
+      }));
 
-  const stateHandler = (variant) => {
-    if (variant == 'pikachu') {
-      if (loadingState) return false;
-      if (cardsData === null || undefined) return true;
-      if (bigCardsData === null || undefined) return true;
-      if (cardsData.length > 1) return false;
-      if (bigCardsData.length > 1) return false;
-      return true;
+      setOffersData(await fetchOffers(id, props.filterParams));
+
+      setProps((prevState) => ({
+        ...prevState,
+        loadingState: false,
+      }));
     }
-    if (variant == 'list') {
-      if (loadingState) return false;
-      if (cardsData === null || undefined) return false;
-      if (bigCardsData === null || undefined) return false;
-      if (cardsData.length >= 1) return false;
-      if (bigCardsData.length < 1) return false;
-      return true;
-    }
-    if (variant == 'secondList') {
-      if (loadingState) return false;
-      if (cardsData === null || undefined) return false;
-      if (cardsData.length >= 1) return true;
-    }
-    if (variant == 'indicator') {
-      if (loadingState) return true;
-      return false;
-    }
-    if (variant == 'topBar') {
-      if (loadingState) return false;
-      if (cardsData.length >= 1) return false;
-      return true;
-    }
-    if (variant == 'goBackBar') {
-      if (cardsData.length >= 1) return true;
-      return false;
-    }
-  };
+  }, [id, props.filterParams]);
 
   return (
-    <View style={[globalStyles.container, { paddingLeft: 0 }]}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: "#1b1b1b",
+      }}
+    >
       <PickerModal
-        setValue={setPickerValue}
-        propsArry={[
-          // 'Price Ascending',
-          // 'Price Declining',
-          'Rarity Ascending',
-          'Rarity Declining',
-        ]}
+        props={props}
+        setProps={setProps}
+        mode={pickerMode}
         visible={pickerModal}
         setVisible={setPickerModal}
       />
       <View style={{ flex: 1, backgroundColor: '#1b1b1b' }}>
         <View
           style={{
-            backgroundColor: '#121212',
+            backgroundColor: "#121212",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
+          {props.screen === "cards" && !props.loadingState ? (
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              style={{ flexDirection: "row", marginVertical: 12 }}
+            >
+              <TouchableOpacity
+                style={{
+                  borderRadius: 4,
 
-            // borderTopColor: '#5c5c5c',
-            // borderTopWidth: 1.5,
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}>
-          {stateHandler('topBar') ? (
-            <View style={{ flexDirection: 'row', marginVertical: 12 }}>
+                  marginLeft: 8,
+                  marginTop: 4,
+
+                  height: 32,
+                  paddingHorizontal: 14,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#1b1b1b",
+                }}
+                onPress={() => {
+                  setPickerMode("sorting");
+                  setPickerModal(true);
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "700",
+                    color: "#f4f4f4",
+                  }}
+                >
+                  {" Sort by :  "}
+                  <Text style={{ color: "#0082ff" }}>{props.sorterParams}</Text>
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          ) : null}
+          {props.screen === "offers" && !props.loadingState ? (
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+              style={{ flexDirection: "row", marginVertical: 12 }}
+            >
+              <TouchableOpacity
+                style={{
+                  borderRadius: 3,
+                  marginLeft: 12,
+
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderWidth: 2,
+                  borderColor: "#777777",
+                  paddingHorizontal: 14,
+                  height: 32,
+                  marginTop: 4,
+                }}
+                onPress={() => {
+                  setOffersData([]);
+                  setId([]);
+                  setProps((prevState) => ({
+                    ...prevState,
+                    screen: "cards",
+                  }));
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "700",
+                    color: "#777777",
+                  }}
+                >
+                  {"Go back"}
+                </Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={{
                   borderRadius: 4,
@@ -158,47 +210,20 @@ export default function Home({
                   {' Sort by :  '}
                   <Text style={{ color: '#0082ff' }}>{pickerValue}</Text>
                 </Text>
+                <Icon name="filter-variant" color={"#0082ff"} size={20} />
               </TouchableOpacity>
             </View>
           ) : null}
-          {stateHandler('goBackBar') ? (
-            <TouchableOpacity
-              style={{
-                borderRadius: 3,
-                marginLeft: 12,
-                marginVertical: 12,
-
-                height: 30,
-                width: 120,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderWidth: 2,
-                borderColor: '#777777',
-                paddingHorizontal: 12,
-              }}
-              onPress={() => setCardsData([])}>
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '700',
-                  color: '#777777',
-                }}>
-                {'Go back'}
-              </Text>
-            </TouchableOpacity>
-          ) : null}
         </View>
-
-        {stateHandler('pikachu') ? (
+        {props.screen === "noCards" && !props.loadingState ? (
           <View
             style={{
               flex: 1,
 
-              alignItems: 'center',
-              justifyContent: 'center',
-              paddingBottom: 30,
-            }}>
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Image
               source={pikachu}
               style={{
@@ -219,41 +244,79 @@ export default function Home({
             </Text>
           </View>
         ) : null}
-
-        {stateHandler('list') ? (
+        {props.screen === "mostRecentOffers" && !props.loadingState ? (
+          <FlatList
+            data={mostRecentOffers}
+            renderItem={({ item }) => {
+              return (
+                <OfferCard
+                  props={item}
+                  isSavedState={savedOffersId}
+                  nameOfCard={true}
+                />
+              );
+            }}
+            keyExtractor={(item, index) => index.toString()}
+          />
+        ) : null}
+        {props.screen === "cards" && !props.loadingState ? (
           <FlatList
             style={{ paddingHorizontal: 8 }}
-            data={bigCardsData}
+            data={props.cardsData}
             numColumns={2}
             renderItem={({ item }) => {
-              return <BigCardHome props={item} setId={setId} />;
+              return (
+                <DefaultCard props={item} setId={setId} setProps={setProps} />
+              );
             }}
             keyExtractor={(item, index) => index.toString()}
             onEndReached={async () => {
-              await fetchMoreBigCards(
-                nativeInputValue,
-                pickerValue,
-                pageNumber,
-                bigCardsData,
-                setBigCardsData
-              );
-              setPageNumber(pageNumber + 1);
+              await fetchMoreCards(props, setProps);
+              setProps((prevState) => ({
+                ...prevState,
+                pageNumber: props.pageNumber + 1,
+              }));
             }}
             onEndReachedThreshold={4}
           />
         ) : null}
-
-        {stateHandler('secondList') ? (
+        {props.screen === "offers" &&
+        offersData?.length > 0 &&
+        !props.loadingState ? (
           <FlatList
-            data={cardsData}
+            data={offersData}
             renderItem={({ item }) => {
-              return <CardHome props={item} isSavedState={savedOffersId} />;
+              return (
+                <OfferCard
+                  props={item}
+                  isSavedState={savedOffersId}
+                  nameOfCard={false}
+                />
+              );
             }}
             keyExtractor={(item, index) => index.toString()}
           />
         ) : null}
-
-        {stateHandler('indicator') ? (
+        {props.screen === "offers" &&
+        (offersData?.length === 0 || offersData === undefined) &&
+        !props.loadingState ? (
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
+            <Text
+              style={{
+                color: "#5c5c5c",
+                fontWeight: "700",
+                fontSize: 20,
+                width: "80%",
+                textAlign: "center",
+              }}
+            >
+              There are no offers with the specified filters
+            </Text>
+          </View>
+        ) : null}
+        {props.loadingState ? (
           <View
             style={{
               flex: 1,

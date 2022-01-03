@@ -7,6 +7,8 @@ import { View, Text, TouchableOpacity } from "react-native";
 
 import { createStackNavigator } from "@react-navigation/stack";
 
+import { useFonts } from "expo-font";
+
 import Home from "./screens/Home.js";
 import SavedOffers from "./screens/SavedOffers.js";
 import Settings from "./screens/Settings.js";
@@ -40,39 +42,33 @@ const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
 function HomeStack() {
-  const [bigCardsData, setBigCardsData] = useState(null);
-  const [inputValue, setInputValue] = useState("");
-  const [pageNumber, setPageNumber] = useState(2);
-  const [loadingState, setLoading] = useState(false);
-  const [pickerValue, setPickerValue] = useState("Rarity Declining");
+  const [headerProps, setHeaderProps] = useState({
+    pageNumber: 2,
+    cardsData: [],
+    loadingState: false,
+    inputValue: "",
+    inputFocusState: false,
+    sorterParams: "Rarity Declining",
+    screen: "mostRecentOffers",
+    filterParams: {
+      language: [],
+      price: { from: null, to: null },
+      graded: null,
+      condition: null,
+    },
+  });
 
   return (
     <Stack.Navigator>
       <Stack.Screen
         name="Home"
-        children={() => (
-          <Home
-            bigCardsData={bigCardsData}
-            loadingState={loadingState}
-            setPickerValue={setPickerValue}
-            setLoading={setLoading}
-            pickerValue={pickerValue}
-            pageNumber={pageNumber}
-            setPageNumber={setPageNumber}
-            nativeInputValue={inputValue}
-            setBigCardsData={setBigCardsData}
-          />
-        )}
+        children={() => <Home props={headerProps} setProps={setHeaderProps} />}
         options={{
           headerTitle: () => (
             <CustomHeader
-              version={"drawer"}
-              setBigCardsData={setBigCardsData}
-              setPageNumber={setPageNumber}
-              setInputValue={setInputValue}
-              inputValue={inputValue}
-              pickerValue={pickerValue}
-              setLoading={setLoading}
+              version={"home"}
+              props={headerProps}
+              setProps={setHeaderProps}
             />
           ),
           headerStyle: {
@@ -258,33 +254,6 @@ function ChatStack() {
                 }}
               >
                 {"Go back"}
-              </Text>
-            </TouchableOpacity>
-          ),
-          headerRight: () => (
-            <TouchableOpacity
-              style={{
-                borderRadius: 3,
-                marginLeft: 12,
-
-                height: 34,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#0082ff",
-
-                paddingHorizontal: 12,
-              }}
-              onPress={() => navigation.goBack()}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#121212",
-                }}
-              >
-                {"Other offers from this seller"}
               </Text>
             </TouchableOpacity>
           ),

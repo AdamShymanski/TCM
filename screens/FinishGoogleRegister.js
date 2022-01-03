@@ -68,7 +68,7 @@ export default function FinishGoogleRegister({ callback, name }) {
             .set({
               nick: name,
               country: values.country,
-              reputation: 0,
+              rating: [],
               collectionSize: 0,
               savedOffers: [],
             })

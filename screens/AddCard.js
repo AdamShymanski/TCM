@@ -20,11 +20,11 @@ import {
 import { Checkbox, TextInput } from "react-native-paper";
 
 import { useNavigation } from "@react-navigation/native";
-import { addCard, fetchBigCards, fetchMoreBigCards } from "../authContext";
+import { addCard, fetchCards, fetchMoreCards } from "../authContext";
 
 import pikachu from "../assets/pikachu.png";
 
-import CardAddCardPage from "../shared/cards/CardAddCardPage";
+import SelectingCard from "../shared/cards/SelectingCard";
 
 import PickerModal from "../shared/PickerModal";
 import { LanguagePickerModal } from "../shared/LanguagePickerModal";
@@ -33,7 +33,7 @@ export default function AddCard() {
   const navigation = useNavigation();
 
   const priceRegEx = /^\d+([.,]\d{1,2})?$/g;
-  const gradeRegEx = /^[1-9]|10*$/g;
+  const conditionRegEx = /^[1-9]|10*$/g;
 
   const reviewSchema = yup.object({
     price: yup
@@ -43,7 +43,7 @@ export default function AddCard() {
       .max(12, "Price is too long!"),
     condition: yup
       .string("Wrong format!")
-      .matches(gradeRegEx, "Wrong format!")
+      .matches(conditionRegEx, "Wrong format!")
       .required("Condition is required!")
       .max(2, "Wrong format"),
     languageVersion: yup
@@ -55,6 +55,50 @@ export default function AddCard() {
       .required("Description is required!")
       .max(60, "Description is too long!"),
   });
+
+  const [props, setProps] = useState({
+    pageNumber: 2,
+    cardsData: [],
+    loadingState: false,
+    inputValue: "",
+    inputFocusState: false,
+    sorterParams: "Rarity Declining",
+    filterParams: {
+      language: [],
+      price: { from: null, to: null },
+      graded: false,
+      condition: null,
+    },
+  });
+
+  const submitForm = async (values) => {
+    if (cardId) {
+      if (photoState) {
+        values.price = values.price.replace(/,/g, ".").replace(/ /g, "");
+
+        await addCard(values, gradingSwitch, photoState, cardId);
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Thanks" }],
+        });
+      }
+    } else {
+      setScError(true);
+    }
+  };
+
+  const searchForCard = async () => {
+    setProps((prevState) => ({
+      ...prevState,
+      loadingState: true,
+    }));
+    await fetchCards(props, setProps);
+    setProps((prevState) => ({
+      ...prevState,
+      pageNumber: 2,
+      loadingState: false,
+    }));
+  };
 
   const ImagePlaceHolder = () => {
     if (photoState === null || undefined) {
@@ -188,59 +232,43 @@ export default function AddCard() {
     }
   };
 
-  const submitForm = async (values) => {
-    if (cardId) {
-      if (photoState) {
-        values.price = values.price.replace(/,/g, ".").replace(/ /g, "");
-
-        await addCard(values, gradingSwitch, photoState, cardId);
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "Thanks" }],
-        });
-      }
-    } else {
-      setScError(true);
-    }
-  };
-  const searchForCard = async () => {
-    setBigCardsData(
-      await fetchBigCards(nativeInputValue, pickerValue, setLoading)
-    );
-    setPageNumber(2);
-  };
   const stateHandler = (variant) => {
     if (variant == "pikachu") {
-      if (loadingState) return false;
+      if (props.loadingState) return false;
 
-      if (bigCardsData == null || undefined) {
+      if (props.cardsData == null || undefined) {
         return true;
-      } else if (bigCardsData.length < 1) {
+      } else if (props.cardsData.length < 1) {
         return true;
       }
       return false;
     }
     if (variant == "list") {
-      if (loadingState) {
+      if (props.loadingState) {
         return false;
-      } else if (bigCardsData == null || undefined) {
+      } else if (props.cardsData == null || undefined) {
         return false;
-      } else if (bigCardsData.length < 1) {
+      } else if (props.cardsData.length < 1) {
         return false;
       } else {
         return true;
       }
     }
     if (variant == "indicator") {
-      if (loadingState) return true;
+      if (props?.loadingState) return true;
       return false;
     }
   };
-  const closeModal = () => {
+
+  const closeModal = (setProps) => {
     setModal(false);
-    setNativeInputValue("");
-    setBigCardsData(null);
-    setPageNumber(2);
+
+    setProps((prevState) => ({
+      ...prevState,
+      pageNumber: 2,
+      cardsData: null,
+      inputValue: "",
+    }));
   };
 
   const [photoState, setPhoto] = useState(null);
@@ -251,36 +279,24 @@ export default function AddCard() {
 
   const [cardId, setId] = useState(null);
 
-  const [loadingState, setLoading] = useState(false);
-  const [bigCardsData, setBigCardsData] = useState(null);
-
-  const [nativeInputValue, setNativeInputValue] = useState("");
   const [inputPlaceholderState, setInputPlaceholder] = useState(
     "Number or Name of Card"
   );
 
-  const [pickerValue, setPickerValue] = useState("Rarity Declining");
   const [pickerModal, setPickerModal] = useState(false);
-  const [pageNumber, setPageNumber] = useState(2);
 
   const [languagePickerState, setLanguagePickerState] = useState(false);
   const [languageInputTouched, setLanguageInputTouched] = useState(false);
 
   //state exclusively for Language Version
   const [submitClicked, setSubmitClicked] = useState(false);
-
   const [loadingIndicator, setLoadingIndicator] = useState(false);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#1b1b1b", padding: 20 }}>
       <PickerModal
-        setValue={setPickerValue}
-        propsArry={[
-          // 'Price Ascending',
-          // 'Price Declining',
-          "Rarity Ascending",
-          "Rarity Declining",
-        ]}
+        setProps={setProps}
+        mode={"sorting"}
         visible={pickerModal}
         setVisible={setPickerModal}
       />
@@ -308,9 +324,7 @@ export default function AddCard() {
                 borderColor: "#777777",
                 paddingHorizontal: 12,
               }}
-              onPress={() => {
-                closeModal();
-              }}
+              onPress={() => closeModal(setProps)}
             >
               <Text
                 style={{
@@ -337,8 +351,13 @@ export default function AddCard() {
                 onEndEditing={() => {
                   searchForCard();
                 }}
-                value={nativeInputValue}
-                onChangeText={(text) => setNativeInputValue(text)}
+                value={props.inputValue}
+                onChangeText={(text) => {
+                  setProps((prevState) => ({
+                    ...prevState,
+                    inputValue: text,
+                  }));
+                }}
                 placeholder={inputPlaceholderState}
                 onFocus={() => setInputPlaceholder("")}
                 onBlur={() => setInputPlaceholder("Number or Name of Card")}
@@ -400,7 +419,7 @@ export default function AddCard() {
                   }}
                 >
                   {" Sort by :  "}
-                  <Text style={{ color: "#0082ff" }}>{pickerValue}</Text>
+                  <Text style={{ color: "#0082ff" }}>{props.sorterParams}</Text>
                 </Text>
               </TouchableOpacity>
             </View>
@@ -441,12 +460,13 @@ export default function AddCard() {
           {stateHandler("list") ? (
             <FlatList
               style={{ paddingHorizontal: 8 }}
-              data={bigCardsData}
+              data={props.cardsData}
               numColumns={2}
               renderItem={({ item }) => {
                 return (
-                  <CardAddCardPage
+                  <SelectingCard
                     props={item}
+                    setProps={setProps}
                     setId={setId}
                     closeModal={closeModal}
                   />
@@ -454,14 +474,11 @@ export default function AddCard() {
               }}
               keyExtractor={(item, index) => index.toString()}
               onEndReached={async () => {
-                await fetchMoreBigCards(
-                  nativeInputValue,
-                  pickerValue,
-                  pageNumber,
-                  bigCardsData,
-                  setBigCardsData
-                );
-                setPageNumber(pageNumber + 1);
+                await fetchMoreCards(props, setProps);
+                setProps((prevState) => ({
+                  ...prevState,
+                  pageNumber: prevState.pageNumber + 1,
+                }));
               }}
               onEndReachedThreshold={4}
             />
@@ -540,12 +557,12 @@ export default function AddCard() {
           setLoadingIndicator(false);
         }}
       >
-        {(props) => (
+        {(formikProps) => (
           <View>
             {languagePickerState ? (
               <LanguagePickerModal
                 setValue={(value) => {
-                  props.setFieldValue("languageVersion", value);
+                  formikProps.setFieldValue("languageVersion", value);
                 }}
                 setVisible={setLanguagePickerState}
               />
@@ -607,7 +624,7 @@ export default function AddCard() {
                     color: "#5c5c5c",
                   }}
                 >
-                  ID of seleceted Card:
+                  ID of seleceted Card:{" "}
                   <Text
                     style={{
                       color: "#0082FF",
@@ -633,11 +650,16 @@ export default function AddCard() {
 
               <TextInput
                 mode={"outlined"}
-                value={props.values.price}
-                onChangeText={props.handleChange("price")}
+                value={formikProps.values.price}
+                onChangeText={formikProps.handleChange("price")}
                 label="Price ($)"
+                keyboardType="numeric"
                 outlineColor={"#5c5c5c"}
-                error={props.touched.price && props.errors.price ? true : false}
+                error={
+                  formikProps.touched.price && formikProps.errors.price
+                    ? true
+                    : false
+                }
                 style={{
                   width: "85%",
                   backgroundColor: "#1b1b1b",
@@ -689,11 +711,11 @@ export default function AddCard() {
               >
                 <TextInput
                   mode={"outlined"}
-                  value={props.values.languageVersion}
-                  onChangeText={props.handleChange("languageVersion")}
+                  value={formikProps.values.languageVersion}
+                  onChangeText={formikProps.handleChange("languageVersion")}
                   label="Language Version"
                   outlineColor={
-                    props.errors.languageVersion &&
+                    formikProps.errors.languageVersion &&
                     (languageInputTouched || submitClicked)
                       ? "#b40424"
                       : "#5c5c5c"
@@ -709,7 +731,7 @@ export default function AddCard() {
                     colors: {
                       text: "#f4f4f4",
                       disabled:
-                        props.errors.languageVersion &&
+                        formikProps.errors.languageVersion &&
                         (languageInputTouched || submitClicked)
                           ? "#b40424"
                           : "#5c5c5c",
@@ -738,12 +760,13 @@ export default function AddCard() {
               </ErrorMessage>
               <TextInput
                 mode={"outlined"}
-                value={props.values.description}
-                onChangeText={props.handleChange("description")}
+                value={formikProps.values.description}
+                onChangeText={formikProps.handleChange("description")}
                 label="Short Description"
                 outlineColor={"#5c5c5c"}
                 error={
-                  props.touched.description && props.errors.description
+                  formikProps.touched.description &&
+                  formikProps.errors.description
                     ? true
                     : false
                 }
@@ -781,12 +804,13 @@ export default function AddCard() {
               </ErrorMessage>
               <TextInput
                 mode={"outlined"}
-                value={props.values.condition}
-                onChangeText={props.handleChange("condition")}
+                value={formikProps.values.condition}
+                onChangeText={formikProps.handleChange("condition")}
                 label="Condition (from 1 to 10)"
                 outlineColor={"#5c5c5c"}
+                keyboardType="numeric"
                 error={
-                  props.touched.condition && props.errors.condition
+                  formikProps.touched.condition && formikProps.errors.condition
                     ? true
                     : false
                 }
@@ -885,7 +909,7 @@ export default function AddCard() {
                 }}
                 onPress={() => {
                   setSubmitClicked(true);
-                  props.submitForm();
+                  formikProps.submitForm();
                   if (!cardId) {
                     setScError(true);
                   }
