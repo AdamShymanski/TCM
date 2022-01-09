@@ -18,11 +18,13 @@
     "@react-navigation/drawer": "^5.12.5",
     "@react-navigation/native": "^5.9.4",
     "@react-navigation/stack": "^5.14.5",
+    "@stripe/stripe-react-native": "^0.2.3",
     "@unimodules/core": "^7.2.0",
     "@unimodules/react-native-adapter": "^6.5.0",
     "expo": "^43.0.1",
     "expo-ads-admob": "^11.0.3",
     "expo-dev-client": "^0.6.3",
+    "expo-font": "~10.0.3",
     "expo-google-app-auth": "^8.2.4",
     "expo-google-sign-in": "^10.0.3",
     "expo-image-manipulator": "^10.1.2",
@@ -36,6 +38,8 @@
     "expo-system-ui": "^1.0.0",
     "expo-updates": "~0.10.13",
     "firebase": "8.2.3",
+    "firebase-admin": "^10.0.1",
+    "firebase-functions": "^3.16.0",
     "formik": "^2.2.9",
     "pokemontcgsdk": "^2.0.0",
     "react": "17.0.1",
@@ -60,6 +64,11 @@
   },
   "devDependencies": {
     "@babel/core": "^7.15.8"
+  },
+  "rnpm": {
+    "assets": [
+      "./assets/fonts"
+    ]
   },
   "private": true,
   "name": "PTCG_Marketplace",

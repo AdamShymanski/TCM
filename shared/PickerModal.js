@@ -17,24 +17,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Formik, ErrorMessage } from "formik";
 import * as yup from "yup";
 
-const PickerModal = ({
-  setSortingPickerValue,
-  setFilteringPickerValue,
-  filteringPickerValue,
-  mode,
-  visible,
-  setVisible,
-}) => {
-  const removeElementFromArray = (obj, element) => {
-    let arr = obj.rarity;
-    arr.forEach((item, index) => {
-      if (item === element) {
-        arr.splice(index, 1);
-        setFilteringPickerValue({ rarity: arr });
-      }
-    });
-  };
-
+const PickerModal = ({ props, setProps, mode, visible, setVisible }) => {
   const conditionRegEx = /^[1-9]{1,2}([.][5]{1})?/;
   const priceRegEx = /^\d+([.,]\d{1,2})?$/g;
 
@@ -47,8 +30,7 @@ const PickerModal = ({
           is: (val) => (val !== undefined || null ? true : false),
           then: yup.string().required("Both values are required!"),
         }),
-      // require when value "from" is not empty
-      // prevent value "to" from being less than value "from"
+
       to: yup
         .string("Wrong format!")
         .matches(priceRegEx, "Wrong format!")
@@ -59,7 +41,10 @@ const PickerModal = ({
       condition: yup
         .string("Wrong format!")
         .matches(conditionRegEx, "Wrong value!")
-        .test("max", "Value is to high!", (val) => parseFloat(val) <= 10),
+        .test("max", "Value is to high!", (val) => {
+          if (val === undefined || null || "" || " ") return true;
+          if (parseFloat(val) <= 10) return false;
+        }),
     },
     ["from", "to", "condition"]
   );
@@ -80,7 +65,6 @@ const PickerModal = ({
   ];
 
   const [checkbox, setCheckbox] = useState(false);
-
   const [languages, setLanguages] = useState({
     PL: false,
     JP: false,
@@ -95,6 +79,30 @@ const PickerModal = ({
     CN: false,
     RU: false,
   });
+
+  useEffect(() => {
+    if (visible) {
+      if (props.filterParams.graded) {
+        setCheckbox(true);
+      } else {
+        setCheckbox(false);
+      }
+
+      //setting up languages object
+      if (props.filterParams.language.lenght >= 1) {
+        props.filterParams.language.forEach((element) => {
+          countryCodes.forEach((item) => {
+            if (element === item.Name) {
+              setLanguages({
+                ...languages,
+                [item.Code]: true,
+              });
+            }
+          });
+        });
+      }
+    }
+  }, [visible]);
 
   if (visible) {
     if (mode === "sorting") {
@@ -149,7 +157,10 @@ const PickerModal = ({
                       }}
                       onPress={() => {
                         setVisible(false);
-                        setSortingPickerValue(item);
+                        setProps((prevState) => ({
+                          ...prevState,
+                          sorterParams: item,
+                        }));
                       }}
                     >
                       <View
@@ -308,9 +319,15 @@ const PickerModal = ({
                 </Text>
                 <Formik
                   initialValues={{
-                    from: "",
-                    to: "",
-                    condition: "",
+                    from: props.filterParams.price.from
+                      ? props.filterParams.price.from.toString()
+                      : "",
+                    to: props.filterParams.price.to
+                      ? props.filterParams.price.to.toString()
+                      : "",
+                    condition: props.filterParams.condition
+                      ? props.filterParams.condition.toString()
+                      : "",
                   }}
                   validationSchema={reviewSchema}
                   onSubmit={async (values, actions) => {
@@ -352,7 +369,10 @@ const PickerModal = ({
                       outObj.condition = null;
                     }
 
-                    setFilteringPickerValue(outObj);
+                    setProps((prevState) => ({
+                      ...prevState,
+                      filterParams: outObj,
+                    }));
                     setVisible(false);
                   }}
                   style={{

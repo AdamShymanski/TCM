@@ -14,13 +14,18 @@ import { fetchBigCardsDetails } from "../../authContext";
 import bluePricetag from "../../assets/blue_pricetag.png";
 import inStock from "../../assets/in_stock.png";
 
-export default function CardAddCardPage({ props, setId, closeModal }) {
+export default function SelectingCard({ props, setProps, setId, closeModal }) {
   const [imageViewerState, setImageViewer] = useState(false);
 
   const [details, setDetails] = useState([0, 0, 0]);
 
   useEffect(() => {
-    return fetchBigCardsDetails(props.id, setDetails);
+    let mounted = true;
+    const resolvePromises = async () => {
+      await fetchBigCardsDetails(props.id, setDetails, mounted);
+    };
+    resolvePromises();
+    return () => (mounted = false);
   }, []);
 
   const returnFontSize = (string) => {
@@ -221,7 +226,8 @@ export default function CardAddCardPage({ props, setId, closeModal }) {
             }}
             onPress={() => {
               setId(props.id);
-              closeModal();
+              
+              closeModal(setProps);
             }}
           >
             <Text style={{ fontWeight: "700", fontSize: 15, color: "#121212" }}>

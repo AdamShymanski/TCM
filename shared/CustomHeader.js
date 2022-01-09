@@ -8,44 +8,30 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import IconM from "react-native-vector-icons/MaterialIcons";
 import IconF from "react-native-vector-icons/Feather";
 
-import { fetchBigCards } from "../authContext";
+import { fetchCards } from "../authContext";
 
-export default function CustomHeader({
-  version,
-  setLoading,
-  setPageNumber,
-  setInputValue,
-  setBigCardsData,
-  setInputFocusState,
-  inputValue,
-  sortingPickerValue,
-  filteringPickerValue,
-}) {
+export default function CustomHeader({ version, props, setProps }) {
   const searchForCard = async () => {
-    setBigCardsData(null);
-    setBigCardsData(
-      await fetchBigCards(
-        inputValue,
-        sortingPickerValue,
-        filteringPickerValue,
-        setLoading
-      )
-    );
-    setPageNumber(2);
+    setProps((prevState) => ({
+      ...prevState,
+      loadingState: true,
+    }));
+    await fetchCards(props, setProps);
+    setProps((prevState) => ({
+      ...prevState,
+      pageNumber: 2,
+      loadingState: false,
+    }));
   };
 
-  useEffect(async () => {
-    searchForCard();
-  }, [sortingPickerValue]);
+  const openMenu = () => {
+    navigation.openDrawer();
+  };
 
   const navigation = useNavigation();
   const [inputPlaceholder, setInputPlaceholder] = useState(
     "Search for a card by name"
   );
-
-  const openMenu = () => {
-    navigation.openDrawer();
-  };
 
   if (version == "savedOffers") {
     return (
@@ -373,58 +359,71 @@ export default function CustomHeader({
       </View>
     );
   }
+  if (version == "home") {
+    useEffect(async () => {
+      searchForCard();
+    }, [props.sorterParams]);
 
-  return (
-    <View style={styles.header}>
-      <MaterialIcons
-        name="menu"
-        size={28}
-        color={"#f4f4f4"}
-        onPress={() => {
-          openMenu();
-        }}
-        style={styles.icon}
-      />
-      <View style={styles.headerTitle}>
-        <TextInput
-          mode="outlined"
-          placeholderTextColor={"#5c5c5c"}
-          outlineColor={"#121212"}
-          onEndEditing={() => {
-            searchForCard();
-          }}
-          value={inputValue}
-          onChangeText={(text) => setInputValue(text)}
-          placeholder={inputPlaceholder}
-          onFocus={() => {
-            setInputPlaceholder("");
-            setInputFocusState(true);
-          }}
-          onBlur={() => {
-            setInputPlaceholder("Seach for a card by name");
-            setInputFocusState(false);
-          }}
-          style={{
-            width: 260,
-            height: 40,
-            marginBottom: 5,
-            borderColor: "#121212",
-            backgroundColor: "#1b1b1b",
-            borderWidth: 2,
-            borderRadius: 5,
-            paddingLeft: 10,
-            color: "#f4f4f4",
-          }}
-        />
+    return (
+      <View style={styles.header}>
         <MaterialIcons
-          name="search"
-          size={26}
+          name="menu"
+          size={28}
           color={"#f4f4f4"}
-          style={{ position: "absolute", right: 14, top: 8 }}
+          onPress={() => {
+            openMenu();
+          }}
+          style={styles.icon}
         />
+        <View style={styles.headerTitle}>
+          <TextInput
+            mode="outlined"
+            placeholderTextColor={"#5c5c5c"}
+            outlineColor={"#121212"}
+            onEndEditing={() => {
+              searchForCard();
+            }}
+            value={props.inputValue}
+            onChangeText={(text) => {
+              setProps((prevState) => ({ ...prevState, inputValue: text }));
+            }}
+            placeholder={inputPlaceholder}
+            onFocus={() => {
+              setInputPlaceholder("");
+              setProps((prevState) => ({
+                ...prevState,
+                inputFocusState: true,
+              }));
+            }}
+            onBlur={() => {
+              setInputPlaceholder("Seach for a card by name");
+              setProps((prevState) => ({
+                ...prevState,
+                inputFocusState: false,
+              }));
+            }}
+            style={{
+              width: 260,
+              height: 40,
+              marginBottom: 5,
+              borderColor: "#121212",
+              backgroundColor: "#1b1b1b",
+              borderWidth: 2,
+              borderRadius: 5,
+              paddingLeft: 10,
+              color: "#f4f4f4",
+            }}
+          />
+          <MaterialIcons
+            name="search"
+            size={26}
+            color={"#f4f4f4"}
+            style={{ position: "absolute", right: 14, top: 8 }}
+          />
+        </View>
       </View>
-    </View>
-  );
+    );
+  }
 }
 
 // export default withNavigation(Header);

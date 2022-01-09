@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Image } from "react-native";
+import { View, StyleSheet, Image, Text } from "react-native";
 import {
   useTheme,
   Title,
@@ -67,6 +67,12 @@ export default function CustomDrawer({ navigation }) {
                   {owner.collectionSize}
                 </Paragraph>
                 <Caption style={styles.caption}>Cards</Caption>
+              </View>
+              <View style={styles.section}>
+                <Paragraph style={[styles.paragraph, styles.caption]}>
+                  {/* <Text>-</Text> */}-
+                </Paragraph>
+                <Caption style={styles.caption}>Rating</Caption>
               </View>
             </View>
           </View>

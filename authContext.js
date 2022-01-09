@@ -310,6 +310,18 @@ export async function deleteCard(id) {
     console.log(error);
   }
 }
+export async function fetchCardsName(id) {
+  try {
+    const promise = new Promise(async (resolve, reject) => {
+      pokemon.card.find(id).then((card) => {
+        resolve(card.name);
+      });
+    });
+    return promise;
+  } catch (error) {
+    console.log(error);
+  }
+}
 export async function deleteAccount() {
   try {
     let arr = [];
@@ -353,236 +365,6 @@ export async function deleteAccount() {
         auth.signOut();
       }
     }
-  } catch (error) {
-    console.log(error);
-  }
-}
-export async function fetchBigCards(
-  arg,
-  sortingPickerValue,
-  filteringPickerValue,
-  setLoading
-) {
-  try {
-    pokemon.configure({ apiKey: "3c362cd9-2286-48d4-989a-0d2a65b9d5a8" });
-
-    setLoading(true);
-
-    let initArray = [];
-
-    if (sortingPickerValue === "Rarity Declining") {
-      sortingPickerValue = "-rarity";
-    }
-    if (sortingPickerValue === "Rarity Ascending") {
-      sortingPickerValue = "+rarity";
-    }
-
-    if (arg) {
-      const sArg = arg.split(" ");
-
-      if (!/\d/.test(arg)) {
-        if (arg.split(" ").length > 1) {
-          let parsedArg;
-          arg.split(" ").forEach((item, index) => {
-            if (index == 0) {
-              parsedArg = item + "*";
-              return;
-            }
-            if (index == arg.split(" ").length - 1) {
-              parsedArg = parsedArg + item;
-              return;
-            }
-            parsedArg = parsedArg + item + "*";
-          });
-
-          try {
-            const result = await pokemon.card.where({
-              q: `name:${parsedArg}`,
-              pageSize: 10,
-              page: 1,
-              orderBy: sortingPickerValue,
-            });
-
-            initArray = [...initArray, ...result.data];
-          } catch (error) {
-            console.log(error);
-          }
-        } else {
-          try {
-            const result = await pokemon.card.where({
-              q: `name:${sArg}`,
-              pageSize: 10,
-              page: 1,
-              orderBy: sortingPickerValue,
-            });
-
-            initArray = [...initArray, ...result.data];
-          } catch (error) {
-            console.log(error);
-          }
-        }
-
-        if (arg.split(" ").length > 1) {
-          try {
-            const result1 = await pokemon.card.where({
-              q: `name:${sArg[1]} subtypes:${sArg[0]}`,
-              pageSize: 5,
-              page: 1,
-              orderBy: sortingPickerValue,
-            });
-
-            initArray = [...initArray, ...result1.data];
-          } catch (error) {
-            console.log(error);
-          }
-
-          try {
-            const result2 = await pokemon.card.where({
-              q: `name:${sArg[0]} subtypes:${sArg[1]}`,
-              pageSize: 5,
-              page: 1,
-              orderBy: sortingPickerValue,
-            });
-
-            initArray = [...initArray, ...result2.data];
-          } catch (error) {
-            console.log(error);
-          }
-        }
-      } else {
-        const sArg = arg.split("/");
-        try {
-          const result = await pokemon.card.where({
-            q: `number:${sArg[0]} set.printedTotal:${sArg[1]}`,
-            pageSize: 5,
-            page: 1,
-            orderBy: sortingPickerValue,
-          });
-          initArray = [...initArray, ...result.data];
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    }
-
-    setLoading(false);
-    return initArray;
-  } catch (error) {
-    console.log(error);
-    setLoading(false);
-  }
-}
-export async function fetchMoreBigCards(
-  arg,
-  sortingPickerValue,
-  filteringPickerValue,
-  pageNumber,
-  bigCardsData,
-  setBigCardsData
-) {
-  try {
-    pokemon.configure({ apiKey: "6aa1ef65-fa80-4ea4-b35f-9466d2add1a6" });
-
-    let initArray = [...bigCardsData];
-
-    if (sortingPickerValue === "Rarity Declining") {
-      sortingPickerValue = "-rarity";
-    }
-    if (sortingPickerValue === "Rarity Ascending") {
-      sortingPickerValue = "+rarity";
-    }
-
-    if (!/\d/.test(arg)) {
-      const result = await pokemon.card.where({
-        q: `name:${arg}`,
-        pageSize: 5,
-        page: pageNumber,
-        orderBy: sortingPickerValue,
-      });
-
-      initArray = [...initArray, ...result.data];
-
-      if (arg.split(" ").length > 1) {
-        const sArg = arg.split(" ");
-
-        const result1 = await pokemon.card.where({
-          q: `name:${sArg[1]} subtypes:${sArg[0]}`,
-          pageSize: 5,
-          page: pageNumber,
-          orderBy: sortingPickerValue,
-        });
-
-        initArray = [...initArray, ...result1.data];
-
-        const result2 = await pokemon.card.where({
-          q: `name:${sArg[0]} subtypes:${sArg[1]}`,
-          pageSize: 5,
-          page: pageNumber,
-          orderBy: sortingPickerValue,
-        });
-
-        initArray = [...initArray, ...result2.data];
-
-        const result3 = await pokemon.card.where({
-          q: `name:${arg} rarity:${parseRarity(sArg[0])}`,
-          pageSize: 5,
-          page: pageNumber,
-          orderBy: sortingPickerValue,
-        });
-
-        initArray = [...initArray, ...result3.data];
-
-        const result4 = await pokemon.card.where({
-          q: `name:${arg} rarity:${parseRarity(sArg[1])}`,
-          pageSize: 5,
-          page: pageNumber,
-          orderBy: sortingPickerValue,
-        });
-
-        initArray = [...initArray, ...result4.data];
-
-        const result5 = await pokemon.card.where({
-          q: `name:${arg} rarity:${parseRarity(sArg[1] + sArg[2])}`,
-          pageSize: 5,
-          page: pageNumber,
-          orderBy: sortingPickerValue,
-        });
-
-        initArray = [...initArray, ...result5.data];
-
-        const result6 = await pokemon.card.where({
-          q: `name:${arg} rarity:${parseRarity(sArg[2])}`,
-          pageSize: 5,
-          page: pageNumber,
-          orderBy: sortingPickerValue,
-        });
-
-        initArray = [...initArray, ...result6.data];
-      }
-    } else {
-      const sArg = arg.split("/");
-      const result = await pokemon.card.where({
-        q: `number:${sArg[0]} set.printedTotal:${sArg[1]}`,
-        pageSize: 5,
-        page: pageNumber,
-        orderBy: sortingPickerValue,
-      });
-      initArray = [...initArray, ...result.data];
-    }
-
-    //! Look for dupliactes
-    const idsArray = [];
-    initArray.forEach((item, index, array) => {
-      idsArray.forEach((id) => {
-        if (id == item.id) {
-          array.splice(index, 1);
-        } else {
-          idsArray.push(item.id);
-        }
-      });
-    });
-
-    setBigCardsData([...initArray]);
   } catch (error) {
     console.log(error);
   }
@@ -841,17 +623,17 @@ export async function fetchOwnerData(ownerId) {
   ];
 
   try {
-    let name, reputation, collectionSize, country, savedOffers, countryCode;
+    let name, rating, country, savedOffers, countryCode, collectionSize;
     await db
       .collection("users")
       .doc(ownerId)
       .get()
       .then((doc) => {
-        reputation = doc.data().reputation;
-        collectionSize = doc.data().collectionSize;
-        savedOffers = doc.data().savedOffers;
-        country = doc.data().country;
-        name = doc.data().nick;
+        name = doc.data()?.nick;
+        rating = doc.data()?.rating;
+        country = doc.data()?.country;
+        savedOffers = doc.data()?.savedOffers;
+        collectionSize = doc.data()?.collectionSize;
 
         countryCodes.forEach((item, i) => {
           if (item.Name == country) {
@@ -861,11 +643,11 @@ export async function fetchOwnerData(ownerId) {
       });
     return {
       name,
-      collectionSize,
-      reputation,
+      rating,
       country,
       savedOffers,
       countryCode,
+      collectionSize,
     };
   } catch (error) {
     console.log(error);
@@ -999,24 +781,337 @@ export async function saveOffer(ownerId, offerId) {
     return false;
   }
 }
-export async function fetchCards(id) {
+export async function fetchOffers(id, filterParams) {
   try {
-    let arr = [];
+    const arr = [];
+
+    //language filter localy
 
     if (id) {
-      const docArr = await db
-        .collection("cards")
-        .where("cardId", "==", id)
-        .get();
+      let docArr = db.collection("cards").where("cardId", "==", id);
 
-      docArr.forEach((doc) => {
-        let cardObj = doc.data();
-        cardObj.id = doc.id;
-        arr.push(cardObj);
+      const languageFilter = (offer) => {
+        if (filterParams.language.length === 0) return true;
+        return filterParams.language.includes(offer.language);
+      };
+
+      if (filterParams.graded) {
+        if (
+          filterParams.price.from &&
+          filterParams.price.to &&
+          filterParams.condition
+        ) {
+          docArr = db
+            .collection("cards")
+            .where("cardId", "==", id)
+            .where("price", ">=", filterParams.price.from)
+            .where("price", "<=", filterParams.price.to)
+            .where("condition", "==", filterParams.condition)
+            .where("isGraded", "==", true);
+        } else if (filterParams.condition) {
+          docArr = db
+            .collection("cards")
+            .where("cardId", "==", id)
+            .where("condition", "==", filterParams.condition)
+            .where("isGraded", "==", true);
+        } else if (filterParams.price.from && filterParams.price.to) {
+          docArr = db
+            .collection("cards")
+            .where("cardId", "==", id)
+            .where("price", ">=", filterParams.price.from)
+            .where("price", "<=", filterParams.price.to)
+            .where("isGraded", "==", true);
+        } else {
+          docArr = db
+            .collection("cards")
+            .where("cardId", "==", id)
+            .where("isGraded", "==", true);
+        }
+      } else if (filterParams.condition) {
+        if (filterParams.price.from && filterParams.price.to) {
+          docArr = db
+            .collection("cards")
+            .where("cardId", "==", id)
+            .where("price", ">=", filterParams.price.from)
+            .where("price", "<=", filterParams.price.to)
+            .where("condition", "==", filterParams.condition);
+        } else {
+          docArr = db
+            .collection("cards")
+            .where("cardId", "==", id)
+            .where("condition", "==", filterParams.condition);
+        }
+      } else if (filterParams.price.from && filterParams.price.to) {
+        docArr = db
+          .collection("cards")
+          .where("cardId", "==", id)
+          .where("price", ">=", filterParams.price.from)
+          .where("price", "<=", filterParams.price.to);
+      }
+
+      const snapshot = await docArr.get();
+
+      snapshot.forEach((doc) => {
+        let offers = doc.data();
+        offers.id = doc.id;
+        console.log(doc.data());
+
+        if (languageFilter(offers)) arr.push(offers);
       });
 
       return arr;
     } else return [];
+  } catch (error) {
+    console.log(error);
+  }
+}
+export async function fetchMoreCards(props, setProps) {
+  try {
+    pokemon.configure({ apiKey: "6aa1ef65-fa80-4ea4-b35f-9466d2add1a6" });
+
+    let initArray = [...props.cardsData];
+
+    const clearOutArray = (array) => {
+      let arrayOfIds = [];
+
+      array.forEach((item, index) => {
+        if (arrayOfIds.includes(item.id) || props.cardsData.includes(item.id)) {
+          array.splice(index, 1);
+        } else {
+          arrayOfIds.push(item.id);
+        }
+      });
+
+      // arrayOfIds = [];
+
+      return array;
+    };
+
+    if (!/\d/.test(props.inputValue)) {
+      const result = await pokemon.card.where({
+        q: `name:${props.inputValue}`,
+        pageSize: 5,
+        page: props.pageNumber,
+        orderBy:
+          props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+      });
+
+      initArray = [...initArray, ...result.data];
+
+      if (props.inputValue.split(" ").length > 1) {
+        const sArg = props.inputValue.split(" ");
+
+        const result1 = await pokemon.card.where({
+          q: `name:${sArg[1]} subtypes:${sArg[0]}`,
+          pageSize: 5,
+          page: props.pageNumber,
+          orderBy:
+            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+        });
+
+        initArray = [...initArray, ...result1.data];
+
+        const result2 = await pokemon.card.where({
+          q: `name:${sArg[0]} subtypes:${sArg[1]}`,
+          pageSize: 5,
+          page: props.pageNumber,
+          orderBy:
+            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+        });
+
+        initArray = [...initArray, ...result2.data];
+
+        const result3 = await pokemon.card.where({
+          q: `name:${props.inputValue} rarity:${parseRarity(sArg[0])}`,
+          pageSize: 5,
+          page: props.pageNumber,
+          orderBy:
+            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+        });
+
+        initArray = [...initArray, ...result3.data];
+
+        const result4 = await pokemon.card.where({
+          q: `name:${props.inputValue} rarity:${parseRarity(sArg[1])}`,
+          pageSize: 5,
+          page: props.pageNumber,
+          orderBy:
+            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+        });
+
+        initArray = [...initArray, ...result4.data];
+
+        const result5 = await pokemon.card.where({
+          q: `name:${props.inputValue} rarity:${parseRarity(
+            sArg[1] + sArg[2]
+          )}`,
+          pageSize: 5,
+          page: props.pageNumber,
+          orderBy:
+            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+        });
+
+        initArray = [...initArray, ...result5.data];
+
+        const result6 = await pokemon.card.where({
+          q: `name:${props.inputValue} rarity:${parseRarity(sArg[2])}`,
+          pageSize: 5,
+          page: props.pageNumber,
+          orderBy:
+            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+        });
+
+        initArray = [...initArray, ...result6.data];
+      }
+    } else {
+      const sArg = props.inputValue.split("/");
+      const result = await pokemon.card.where({
+        q: `number:${sArg[0]} set.printedTotal:${sArg[1]}`,
+        pageSize: 5,
+        page: props.pageNumber,
+        orderBy:
+          props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+      });
+      initArray = [...initArray, ...result.data];
+    }
+
+    const idsArray = [];
+    initArray.forEach((item, index, array) => {
+      idsArray.forEach((id) => {
+        if (id == item.id) {
+          array.splice(index, 1);
+        } else {
+          idsArray.push(item.id);
+        }
+      });
+    });
+
+    setProps((prevState) => ({
+      ...prevState,
+      cardsData: clearOutArray(initArray),
+    }));
+
+    // setBigCardsData([...initArray]);
+  } catch (error) {
+    console.log(error);
+  }
+}
+export async function fetchCards(props, setProps) {
+  try {
+    pokemon.configure({ apiKey: "3c362cd9-2286-48d4-989a-0d2a65b9d5a8" });
+
+    // setProps((prevState) => ({ ...prevState, loadingState: true }));
+
+    let initArray = [];
+
+    const clearOutArray = (array) => {
+      let arrayOfIds = [];
+
+      array.forEach((item, index) => {
+        if (arrayOfIds.includes(item.id) || props.cardsData.includes(item.id)) {
+          array.splice(index, 1);
+        } else {
+          arrayOfIds.push(item.id);
+        }
+      });
+
+      // arrayOfIds = [];
+
+      return array;
+    };
+
+    if (props.inputValue) {
+      const sArg = props.inputValue.split(" ");
+
+      if (!/\d/.test(props.inputValue)) {
+        if (props.inputValue.split(" ").length > 1) {
+          let parsedArg;
+          props.inputValue.split(" ").forEach((item, index) => {
+            if (index == 0) {
+              parsedArg = item + "*";
+              return;
+            }
+            if (index == props.inputValue.split(" ").length - 1) {
+              parsedArg = parsedArg + item;
+              return;
+            }
+            parsedArg = parsedArg + item + "*";
+          });
+
+          try {
+            const result = await pokemon.card.where({
+              q: `name:${parsedArg}`,
+              pageSize: 10,
+              page: 1,
+              orderBy: props.sorterParams,
+            });
+
+            initArray = [...initArray, ...result.data];
+          } catch (error) {
+            console.log(error);
+          }
+        } else {
+          try {
+            const result = await pokemon.card.where({
+              q: `name:${sArg}`,
+              pageSize: 10,
+              page: 1,
+              orderBy: props.sorterParams,
+            });
+
+            initArray = [...initArray, ...result.data];
+          } catch (error) {
+            console.log(error);
+          }
+        }
+
+        if (props.inputValue.split(" ").length > 1) {
+          try {
+            const result1 = await pokemon.card.where({
+              q: `name:${sArg[1]} subtypes:${sArg[0]}`,
+              pageSize: 5,
+              page: 1,
+              orderBy: props.sorterParams,
+            });
+
+            initArray = [...initArray, ...result1.data];
+          } catch (error) {
+            console.log(error);
+          }
+
+          try {
+            const result2 = await pokemon.card.where({
+              q: `name:${sArg[0]} subtypes:${sArg[1]}`,
+              pageSize: 5,
+              page: 1,
+              orderBy: props.sorterParams,
+            });
+
+            initArray = [...initArray, ...result2.data];
+          } catch (error) {
+            console.log(error);
+          }
+        }
+      } else {
+        const sArg = props.inputValue.split("/");
+        try {
+          const result = await pokemon.card.where({
+            q: `number:${sArg[0]} set.printedTotal:${sArg[1]}`,
+            pageSize: 5,
+            page: 1,
+            orderBy: props.sorterParams,
+          });
+          initArray = [...initArray, ...result.data];
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    }
+
+    setProps((prevState) => ({
+      ...prevState,
+      cardsData: clearOutArray(initArray),
+    }));
   } catch (error) {
     console.log(error);
   }
@@ -1057,13 +1152,16 @@ export async function fetchUsersCards() {
     console.log(error);
   }
 }
-export async function fetchSavedOffersId(setSavedOffersId, setLoading) {
+export async function fetchSavedOffersId(setSavedOffersId, setProps) {
   try {
     db.collection("users")
       .doc(auth.currentUser.uid)
       .onSnapshot(async (doc) => {
         setSavedOffersId(doc.data().savedOffers);
-        setLoading(false);
+        setProps((prevState) => ({
+          ...prevState,
+          loadingState: false,
+        }));
       });
   } catch (error) {
     console.log(error);
@@ -1152,18 +1250,6 @@ export async function fetchLastMessage(
   } else {
     setNotificationState(false);
   }
-}
-export async function googleSignIn(logInResult) {
-  // try {
-  //   const credential = firebase.auth.GoogleAuthProvider.credential(
-  //     logInResult.idToken,
-  //     logInResult.accessToken
-  //   );
-  //   await firebase.auth().signInWithCredential(credential);
-  // } catch (error) {
-  //   console.log(error);
-  //   return false;
-  // }
 }
 export async function googleReSignIn(result) {
   try {

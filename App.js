@@ -7,6 +7,8 @@ import { View, Text, TouchableOpacity } from "react-native";
 
 import { createStackNavigator } from "@react-navigation/stack";
 
+import { useFonts } from "expo-font";
+
 import Home from "./screens/Home.js";
 import SavedOffers from "./screens/SavedOffers.js";
 import Settings from "./screens/Settings.js";
@@ -40,33 +42,18 @@ const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
 function HomeStack() {
-  const [bigCardsData, setBigCardsData] = useState(null);
-  const [inputValue, setInputValue] = useState("");
-  const [pageNumber, setPageNumber] = useState(2);
-  const [loadingState, setLoading] = useState(false);
-  const [sortingPickerValue, setSortingPickerValue] =
-    useState("Rarity Declining");
-
-  const [filteringPickerValue, setFilteringPickerValue] = useState({
-    language: [],
-    price: { from: null, to: null },
-    graded: false,
-    condition: null,
-  });
-
-  const [inputFocusState, setInputFocusState] = useState(false);
-
   const [headerProps, setHeaderProps] = useState({
     pageNumber: 2,
-    offersData: null,
+    cardsData: [],
     loadingState: false,
     inputValue: "",
     inputFocusState: false,
     sorterParams: "Rarity Declining",
+    screen: "mostRecentOffers",
     filterParams: {
       language: [],
       price: { from: null, to: null },
-      graded: false,
+      graded: null,
       condition: null,
     },
   });
@@ -75,35 +62,13 @@ function HomeStack() {
     <Stack.Navigator>
       <Stack.Screen
         name="Home"
-        children={() => <Home props={headerProps} setProps={headerProps} />}
-        // children={() => (
-        //   <Home
-        //     !bigCardsData={bigCardsData}
-        //     !setBigCardsData={setBigCardsData}
-        //     !loadingState={loadingState}
-        //     !setLoading={setLoading}
-        //     !sortingPickerValue={sortingPickerValue}
-        //     !setSortingPickerValue={setSortingPickerValue}
-        //     !filteringPickerValue={filteringPickerValue}
-        //     !setFilteringPickerValue={setFilteringPickerValue}
-        //     !pageNumber={pageNumber}
-        //     !setPageNumber={setPageNumber}
-        //     nativeInputValue={inputValue}
-        //     inputFocusState={inputFocusState}
-        //   />
-        // )}
+        children={() => <Home props={headerProps} setProps={setHeaderProps} />}
         options={{
           headerTitle: () => (
             <CustomHeader
-              version={"drawer"}
-              setLoading={setLoading}
-              setPageNumber={setPageNumber}
-              setInputValue={setInputValue}
-              setBigCardsData={setBigCardsData}
-              setInputFocusState={setInputFocusState}
-              inputValue={inputValue}
-              sortingPickerValue={sortingPickerValue}
-              filteringPickerValue={filteringPickerValue}
+              version={"home"}
+              props={headerProps}
+              setProps={setHeaderProps}
             />
           ),
           headerStyle: {
@@ -256,40 +221,6 @@ function ChatStack() {
               </Text>
             </TouchableOpacity>
           ),
-          // headerRight: () => (
-          //   <TouchableOpacity
-          //     style={{
-          //       borderRadius: 3,
-          //       marginLeft: 12,
-
-          //       height: 30,
-          //       flexDirection: "row",
-          //       alignItems: "center",
-          //       justifyContent: "center",
-          //       backgroundColor: "#0082ff",
-
-          //       paddingHorizontal: 12,
-          //     }}
-          //     onPress={() =>
-          //       navigation.navigate("Sellers", {
-          //         screen: "SellerProfile",
-          //         params: {
-          //           sellerId: sellerIdState,
-          //         },
-          //       })
-          //     }
-          //   >
-          //     <Text
-          //       style={{
-          //         fontSize: 16,
-          //         fontWeight: "700",
-          //         color: "#121212",
-          //       }}
-          //     >
-          //       {"Other offers from this seller"}
-          //     </Text>
-          //   </TouchableOpacity>
-          // ),
           headerTintColor: "#121212",
           headerTitle: "",
           headerStyle: {
@@ -330,37 +261,6 @@ function ChatStack() {
               </Text>
             </TouchableOpacity>
           ),
-          // headerRight: () => (
-          //   <TouchableOpacity
-          //     style={{
-          //       borderRadius: 3,
-          //       marginRight: 12,
-
-          //       height: 30,
-          //       flexDirection: "row",
-          //       alignItems: "center",
-          //       justifyContent: "center",
-          //       backgroundColor: "#0082ff",
-
-          //       paddingHorizontal: 12,
-          //     }}
-          //     onPress={() =>
-          //       navigation.navigate("SellerProfile", {
-          //         sellerId: sellerIdState,
-          //       })
-          //     }
-          //   >
-          //     <Text
-          //       style={{
-          //         fontSize: 16,
-          //         fontWeight: "700",
-          //         color: "#121212",
-          //       }}
-          //     >
-          //       {"Other offers from this seller"}
-          //     </Text>
-          //   </TouchableOpacity>
-          // ),
           headerTintColor: "#121212",
           headerTitle: "",
           headerStyle: {
@@ -403,12 +303,7 @@ function YourOffersStack() {
                 borderColor: "#777777",
                 paddingHorizontal: 12,
               }}
-              onPress={() =>
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: "YourOffers" }],
-                })
-              }
+              onPress={() => navigation.goBack()}
             >
               <Text
                 style={{

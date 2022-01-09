@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Image,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-} from "react-native";
+import { View, Image, Text, TouchableOpacity, Modal } from "react-native";
 
 import ImageViewer from "react-native-image-zoom-viewer";
 
@@ -15,7 +8,7 @@ import { fetchBigCardsDetails } from "../../authContext";
 import bluePricetag from "../../assets/blue_pricetag.png";
 import inStock from "../../assets/in_stock.png";
 
-export default function BigCardHome({ props, setId }) {
+export default function DefaultCard({ props, setId, setProps }) {
   const [imageViewerState, setImageViewer] = useState(false);
   const [details, setDetails] = useState([0, 0, 0]);
 
@@ -27,6 +20,11 @@ export default function BigCardHome({ props, setId }) {
     resolvePromises();
     return () => (mounted = false);
   }, []);
+
+  // useEffect(() => {
+  //   console.log(props);
+  //   console.log(details);
+  // }, [details]);
 
   const returnFontSize = (string) => {
     if (string.length > 20) {
@@ -76,7 +74,6 @@ export default function BigCardHome({ props, setId }) {
                   borderRadius: 3,
                   marginLeft: 12,
                   marginTop: 12,
-
                   height: 30,
                   flexDirection: "row",
                   alignItems: "center",
@@ -127,7 +124,7 @@ export default function BigCardHome({ props, setId }) {
           style={{
             width: "90%",
             height: undefined,
-            aspectRatio: 1 / 1.2,
+            aspectRatio: 1 / 1.22,
             backgroundColor: "#121212",
             borderRadius: 8,
 
@@ -192,22 +189,35 @@ export default function BigCardHome({ props, setId }) {
                   marginRight: 8,
                 }}
               />
-              <Text
-                style={{ fontWeight: "700", fontSize: 12, color: "#f4f4f4" }}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  width: "60%",
+                  justifyContent: "space-evenly",
+                }}
               >
                 <Text
                   style={{ fontWeight: "600", fontSize: 10, color: "#696969" }}
                 >
                   from
-                </Text>{" "}
-                {details[2]}{" "}
+                </Text>
+                <Text
+                  style={{ fontWeight: "700", color: "#f4f4f4", fontSize: 12 }}
+                >
+                  {details[2]}
+                </Text>
                 <Text
                   style={{ fontWeight: "600", fontSize: 10, color: "#696969" }}
                 >
                   to
-                </Text>{" "}
-                {details[1]} USD
-              </Text>
+                </Text>
+                <Text
+                  style={{ fontWeight: "700", color: "#f4f4f4", fontSize: 12 }}
+                >
+                  {details[1]} USD
+                </Text>
+              </View>
             </View>
           </View>
           <TouchableOpacity
@@ -225,7 +235,13 @@ export default function BigCardHome({ props, setId }) {
               paddingVertical: 1.6,
             }}
             onPress={() => {
-              setId(props.id);
+              if (details[0] !== 0) {
+                setId(props.id);
+                setProps((prevProps) => ({
+                  ...prevProps,
+                  screen: "offers",
+                }));
+              }
             }}
           >
             <Text style={{ fontWeight: "700", fontSize: 15, color: "#121212" }}>
