@@ -8,12 +8,18 @@ import {
   Drawer,
 } from "react-native-paper";
 import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
+import { CommonActions } from "@react-navigation/native";
 
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import IconM from "react-native-vector-icons/MaterialIcons";
 import IconF from "react-native-vector-icons/Feather";
 
-import { fetchOwnerData, auth } from "../authContext";
+import {
+  db,
+  auth,
+  fetchOwnerData,
+  checkForUnreadedMessages,
+} from "../authContext";
 
 export default function CustomDrawer({ navigation }) {
   const [owner, setOwner] = useState({
@@ -22,13 +28,24 @@ export default function CustomDrawer({ navigation }) {
     collectionSize: 0,
     countryCode: "",
   });
+  const [notificationState, setNotificationState] = useState(false);
 
   useEffect(() => {
     const resolvePromises = async () => {
       setOwner(await fetchOwnerData(auth.currentUser.uid));
+      setNotificationState(await checkForUnreadedMessages());
+    };
+
+    const chatNotificationListener = () => {
+      db.collection("users")
+        .doc(auth.currentUser.uid)
+        .onSnapshot((snapshot) => {
+          setNotificationState(!snapshot.data().lastSupportMessageReaded);
+        });
     };
 
     resolvePromises();
+    return chatNotificationListener();
   }, []);
 
   return (
@@ -70,7 +87,7 @@ export default function CustomDrawer({ navigation }) {
               </View>
               <View style={styles.section}>
                 <Paragraph style={[styles.paragraph, styles.caption]}>
-                  {/* <Text>-</Text> */}-
+                  -
                 </Paragraph>
                 <Caption style={styles.caption}>Rating</Caption>
               </View>
@@ -99,7 +116,7 @@ export default function CustomDrawer({ navigation }) {
               labelStyle={{ color: "#f4f4f4" }}
               label="Sellers"
               onPress={() => {
-                navigation.navigate("Sellers");
+                navigation.navigate("Sellers", { screen: "SearchForSeller" });
               }}
             />
             <DrawerItem
@@ -107,9 +124,9 @@ export default function CustomDrawer({ navigation }) {
                 <Icon name="cart-outline" color={"#f4f4f4"} size={size} />
               )}
               labelStyle={{ color: "#f4f4f4" }}
-              label="Orders"
+              label="Cart"
               onPress={() => {
-                navigation.navigate("Orders");
+                navigation.navigate("Cart");
               }}
             />
             <DrawerItem
@@ -133,13 +150,39 @@ export default function CustomDrawer({ navigation }) {
               }}
             />
             <DrawerItem
-              icon={({ color, size }) => (
-                <IconM
-                  name="chat-bubble-outline"
-                  color={"#f4f4f4"}
-                  size={size - 2}
-                />
-              )}
+              icon={({ color, size }) => {
+                if (notificationState) {
+                  return (
+                    <View>
+                      <View
+                        style={{
+                          backgroundColor: "#ed400b",
+                          width: 10,
+                          height: 10,
+                          borderRadius: 8,
+                          top: 9,
+                          left: 14,
+                          zIndex: 2,
+                        }}
+                      />
+                      <IconM
+                        name="chat-bubble-outline"
+                        color={"#f4f4f4"}
+                        size={size - 2}
+                        style={{ zIndex: 1 }}
+                      />
+                    </View>
+                  );
+                } else {
+                  return (
+                    <IconM
+                      name="chat-bubble-outline"
+                      color={"#f4f4f4"}
+                      size={size - 2}
+                    />
+                  );
+                }
+              }}
               labelStyle={{ color: "#f4f4f4" }}
               label="Chat"
               onPress={() => {
@@ -178,7 +221,7 @@ export default function CustomDrawer({ navigation }) {
           </Drawer.Section>
         </View>
       </DrawerContentScrollView>
-      <Drawer.Section style={styles.bottomDrawerSection}>
+      {/* <Drawer.Section style={styles.bottomDrawerSection}>
         <DrawerItem
           icon={({ color, size }) => (
             <Icon name="exit-to-app" color={"#f4f4f4"} size={size} />
@@ -190,7 +233,7 @@ export default function CustomDrawer({ navigation }) {
             auth.signOut();
           }}
         />
-      </Drawer.Section>
+      </Drawer.Section> */}
     </View>
   );
 }

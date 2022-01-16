@@ -6,34 +6,38 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import { View, Text, TouchableOpacity } from "react-native";
 
 import { createStackNavigator } from "@react-navigation/stack";
+import { StripeProvider } from "@stripe/stripe-react-native";
 
-import { useFonts } from "expo-font";
-
-import Home from "./screens/Home.js";
-import SavedOffers from "./screens/SavedOffers.js";
-import Settings from "./screens/Settings.js";
-import YourOffers from "./screens/YourOffers.js";
-import AddCard from "./screens/AddCard.js";
-import EditCard from "./screens/EditCard.js";
-import Welcome from "./screens/Welcome.js";
-import Register from "./screens/Register.js";
-import Login from "./screens/Login.js";
-import ImageBrowser from "./screens/ImageBrowser";
-import Thanks from "./screens/Thanks";
-import Orders from "./screens/Orders";
-import DeletingAccount from "./screens/DeletingAccount";
-import ChatConversations from "./screens/ChatConverstations";
+import Buy from "./screens/Buy";
 import Chat from "./screens/Chat";
+import Home from "./screens/Home.js";
+import Thanks from "./screens/Thanks";
+import Cart from "./screens/Cart";
+import Login from "./screens/Login.js";
+import Welcome from "./screens/Welcome.js";
+import AddCard from "./screens/AddCard.js";
 import StartChat from "./screens/StartChat";
+import EditCard from "./screens/EditCard.js";
+import Settings from "./screens/Settings.js";
+import Register from "./screens/Register.js";
+import SupportChat from "./screens/SupportChat";
+import YourOffers from "./screens/YourOffers.js";
+import ImageBrowser from "./screens/ImageBrowser";
+import SavedOffers from "./screens/SavedOffers.js";
 import SellerProfile from "./screens/SellerProfile";
+import DeletingAccount from "./screens/DeletingAccount";
 import SearchForSeller from "./screens/SearchForSeller";
+import ChatConversations from "./screens/ChatConverstations";
+import FinishGoogleRegister from "./screens/FinishGoogleRegister";
 
-import Buy from "./screens/NewBuy";
+import StripeCheckout from "./screens/StripeCheckout";
+import Test from "./screens/Test";
+
+import * as Font from "expo-font";
 
 import { db, auth, setChatListeners } from "./authContext.js";
 
 import { AdMobBanner } from "expo-ads-admob";
-import FinishGoogleRegister from "./screens/FinishGoogleRegister";
 
 import CustomHeader from "./shared/CustomHeader";
 import CustomDrawer from "./shared/CustomDrawer";
@@ -149,14 +153,14 @@ function SettingsStack() {
     </Stack.Navigator>
   );
 }
-function OrdersStack() {
+function CartStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="Orders"
-        component={Orders}
+        name="Cart"
+        component={Cart}
         options={{
-          headerTitle: () => <CustomHeader version={"orders"} />,
+          headerTitle: () => <CustomHeader version={"cart"} />,
           headerStyle: {
             backgroundColor: "#121212",
           },
@@ -193,6 +197,44 @@ function ChatStack() {
         children={(props) => (
           <Chat route={props.route} setSellerIdState={setSellerIdState} />
         )}
+        options={({ navigation, route }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 12,
+
+                height: 30,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: "#777777",
+                paddingHorizontal: 12,
+              }}
+              onPress={() => navigation.goBack()}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerTintColor: "#121212",
+          headerTitle: "",
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        })}
+      />
+      <Stack.Screen
+        name="SupportChatScreen"
+        component={SupportChat}
         options={({ navigation, route }) => ({
           headerLeft: () => (
             <TouchableOpacity
@@ -511,6 +553,8 @@ export default function App() {
   const [finishRegisterProcess, setFinishRegisterProcess] = useState(null);
   const [adBanenrState, setAdBannerState] = useState(true);
 
+  const [cartList, setCartList] = useState(true);
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -532,10 +576,21 @@ export default function App() {
 
     const resolvePromises = async () => {
       try {
-        const update = await Updates.checkForUpdateAsync();
-        if (update.isAvailable) {
-          await Updates.fetchUpdateAsync();
-          Updates.reloadAsync();
+        await Font.loadAsync({
+          Roboto_Thin: require("./assets/fonts/Roboto-Thin.ttf"),
+          Roboto_Light: require("./assets/fonts/Roboto-Light.ttf"),
+          Roboto_Regular: require("./assets/fonts/Roboto-Regular.ttf"),
+          Roboto_Medium: require("./assets/fonts/Roboto-Medium.ttf"),
+        });
+
+        if (__DEV__) {
+          // do dev stuff 🤘
+        } else {
+          const update = await Updates.checkForUpdateAsync();
+          if (update.isAvailable) {
+            await Updates.fetchUpdateAsync();
+            Updates.reloadAsync();
+          }
         }
       } catch (e) {
         console.log(e);
@@ -601,38 +656,44 @@ export default function App() {
       );
     } else {
       return (
-        <NavigationContainer>
-          <Drawer.Navigator
-            style={{ backgroundColor: "#82ff00" }}
-            drawerContent={({ navigation }) => (
-              <CustomDrawer navigation={navigation} />
-            )}
-          >
-            <Drawer.Screen name="Home" component={HomeStack} />
-            <Drawer.Screen name="Settings" component={SettingsStack} />
-            <Drawer.Screen name="YourOffers" component={YourOffersStack} />
-            <Drawer.Screen name="Chat" component={ChatStack} />
-            <Drawer.Screen name="Orders" component={OrdersStack} />
-            <Drawer.Screen name="SavedOffers" component={SavedOffersStack} />
-            <Drawer.Screen name="Sellers" component={SellersStack} />
-            <Drawer.Screen name="DeletingAccount" component={DeletingAccount} />
-          </Drawer.Navigator>
-          {adBanenrState ? (
-            <AdMobBanner
-              bannerSize="smartBannerPortrait"
-              adUnitID="ca-app-pub-2637485113454186/2096785031"
-              servePersonalizedAds // true or false
-              onDidFailToReceiveAdWithError={(error) => {
-                console.log(error);
-                setAdBannerState(false);
-              }}
-              //detect when add is loaded
-              onAdViewDidReceiveAd={() => {
-                setAdBannerState(true);
-              }}
-            />
-          ) : null}
-        </NavigationContainer>
+        <StripeProvider publishableKey="pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX">
+          <NavigationContainer>
+            <Drawer.Navigator
+              style={{ backgroundColor: "#82ff00" }}
+              drawerContent={({ navigation }) => (
+                <CustomDrawer navigation={navigation} />
+              )}
+            >
+              <Drawer.Screen name="StripeCheckout" component={Test} />
+              <Drawer.Screen name="Cart" component={CartStack} />
+              <Drawer.Screen name="Home" component={HomeStack} />
+              <Drawer.Screen name="Settings" component={SettingsStack} />
+              <Drawer.Screen name="YourOffers" component={YourOffersStack} />
+              <Drawer.Screen name="Chat" component={ChatStack} />
+              <Drawer.Screen name="SavedOffers" component={SavedOffersStack} />
+              <Drawer.Screen name="Sellers" component={SellersStack} />
+              <Drawer.Screen
+                name="DeletingAccount"
+                component={DeletingAccount}
+              />
+            </Drawer.Navigator>
+            {adBanenrState ? (
+              <AdMobBanner
+                bannerSize="smartBannerPortrait"
+                adUnitID="ca-app-pub-2637485113454186/2096785031"
+                servePersonalizedAds // true or false
+                onDidFailToReceiveAdWithError={(error) => {
+                  console.log(error);
+                  setAdBannerState(false);
+                }}
+                //detect when add is loaded
+                onAdViewDidReceiveAd={() => {
+                  setAdBannerState(true);
+                }}
+              />
+            ) : null}
+          </NavigationContainer>
+        </StripeProvider>
       );
     }
   } else {

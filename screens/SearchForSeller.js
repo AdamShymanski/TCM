@@ -84,7 +84,7 @@ export default function SearchForSeller() {
                 mode={"outlined"}
                 value={props.values.sellerId}
                 onChangeText={props.handleChange("sellerId")}
-                label="Seller ID"
+                label="> Enter seller ID <"
                 outlineColor={"#5c5c5c"}
                 error={
                   props.touched.sellerId && props.errors.sellerId ? true : false
@@ -104,6 +104,7 @@ export default function SearchForSeller() {
                   },
                 }}
               />
+
               <ErrorMessage component="div" name="sellerId">
                 {(msg) => (
                   <Text

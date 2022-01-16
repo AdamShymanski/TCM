@@ -44,6 +44,10 @@ export default function Chat({ route, setSellerIdState }) {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    console.log(messages);
+  }, [messages]);
+
   const appendMessages = useCallback(
     (messages) => {
       setMessages((previousMessages) =>

@@ -1,191 +1,157 @@
-import React from 'react';
-import { Image, View, Text, TouchableOpacity, Clipboard } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState } from "react";
+import { Image, View, Text, TouchableOpacity } from "react-native";
+import { Snackbar } from "react-native-paper";
+import { useNavigation } from "@react-navigation/native";
 
-import discordIcon from '../assets/discordIcon.png';
-import instagramIcon from '../assets/instagramIcon.png';
-import whatsAppIcon from '../assets/whatsAppIcon.png';
-import copyIcon from '../assets/copy_icon.png';
+import PayPal from "../assets/paypal_logo.png";
 
-export default function Buy({ route }) {
+import { db, auth } from "../authContext";
+
+export default function Buy({ route, setCartList }) {
   const navigation = useNavigation();
-
-  const discordContact = route.params.discordContact;
-  const instagramContact = route.params.instagramContact;
-  const whatsAppContact = route.params.whatsAppContact;
+  const ownerId = route.params.ownerId;
+  const [snackbarState, setSnackbarState] = useState(false);
 
   return (
     <View
       style={{
         flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#1b1b1b',
-      }}>
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#1b1b1b",
+      }}
+    >
       <Text
         style={{
-          color: '#f4f4f4',
+          color: "#f4f4f4",
           fontSize: 38,
-          fontWeight: '700',
+          fontWeight: "700",
           marginBottom: 6,
-        }}>
+        }}
+      >
         Contact with seller!
       </Text>
       <Text
         style={{
-          color: '#4f4f4f',
+          color: "#4f4f4f",
           fontSize: 15,
-          width: '88%',
+          width: "88%",
           marginBottom: 60,
-          textAlign: 'center',
-        }}>
+          textAlign: "center",
+        }}
+      >
         We don't support in-app purchases yet, but you can contact the seller
         via WhatsApp, Instagram or Discord to buy the card and learn more
         details about it.
       </Text>
-      <View style={{ width: '80%' }}>
-        {discordContact ? (
+      <View
+        style={{ width: "80%", flexDirection: "column", alignItems: "center" }}
+      >
+        <TouchableOpacity
+          style={{
+            backgroundColor: "#0082ff",
+            width: "100%",
+            paddingVertical: 8,
+            alignItems: "center",
+            borderRadius: 5,
+          }}
+          onPress={async () => {
+            //check if user has already chat with the owner
+
+            let chatExists = false;
+
+            const chatsArray = await db
+              .collection("chats")
+              .where("members", "array-contains", auth.currentUser.uid)
+              .get();
+
+            chatsArray.forEach((doc) => {
+              if (doc.data().members.includes(ownerId)) {
+                chatExists = { data: doc.data(), uid: ownerId, id: doc.id };
+              }
+            });
+
+            if (chatExists) {
+              console.log("navigation to chatScreen");
+              console.log(chatExists);
+              navigation.navigate("Chat", {
+                screen: "ChatScreen",
+                params: { data: chatExists },
+              });
+            } else {
+              navigation.navigate("Chat", {
+                screen: "StartChat",
+                params: { ownerId },
+              });
+            }
+          }}
+        >
+          <Text style={{ color: "#121212", fontWeight: "700", fontSize: 16 }}>
+            Start Chat
+          </Text>
+        </TouchableOpacity>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+            marginVertical: 10,
+          }}
+        >
           <View
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              backgroundColor: '#121212',
-
-              borderRadius: 4,
-              marginTop: 28,
-              paddingVertical: 10,
-              paddingHorizontal: 18,
-            }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Image
-                source={discordIcon}
-                style={{ width: 38, height: 38, marginRight: 10 }}
-              />
-              <View
-                style={{
-                  paddingHorizontal: 10,
-                  paddingVertical: 6,
-                  backgroundColor: '#121212',
-                  borderRadius: 3,
-                }}>
-                <Text
-                  style={{ color: '#f4f4f4', fontSize: 20, fontWeight: '700' }}>
-                  {discordContact}
-                </Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              onPress={() => {
-                Clipboard.setString(discordContact);
-              }}>
-              <Image
-                source={copyIcon}
-                style={{
-                  aspectRatio: 63 / 63,
-                  width: 30,
-                  height: undefined,
-                }}
-              />
-            </TouchableOpacity>
-          </View>
-        ) : null}
-        {instagramContact ? (
+              backgroundColor: "#5c5c5c",
+              width: "42%",
+              height: 3,
+              borderRadius: 2,
+            }}
+          />
+          <Text style={{ fontSize: 15, fontWeight: "700", color: "#777" }}>
+            or
+          </Text>
           <View
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              backgroundColor: '#121212',
-
-              borderRadius: 4,
-              marginTop: 28,
-              paddingVertical: 10,
-              paddingHorizontal: 18,
-            }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Image
-                source={instagramIcon}
-                style={{ width: 38, height: 38, marginRight: 10 }}
-              />
-              <View
-                style={{
-                  paddingHorizontal: 10,
-                  paddingVertical: 6,
-                  backgroundColor: '#121212',
-                  borderRadius: 3,
-                }}>
-                <Text
-                  style={{ color: '#f4f4f4', fontSize: 20, fontWeight: '700' }}>
-                  {instagramContact}
-                </Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              onPress={() => {
-                Clipboard.setString(instagramContact);
-              }}>
-              <Image
-                source={copyIcon}
-                style={{
-                  aspectRatio: 63 / 63,
-                  width: 30,
-                  height: undefined,
-                }}
-              />
-            </TouchableOpacity>
-          </View>
-        ) : null}
-        {whatsAppContact ? (
-          <View
+              backgroundColor: "#5c5c5c",
+              width: "42%",
+              height: 3,
+              borderRadius: 2,
+            }}
+          />
+        </View>
+        <TouchableOpacity
+          style={{
+            backgroundColor: "#997523",
+            //#ffc43c default background color
+            width: "100%",
+            paddingVertical: 8,
+            alignItems: "center",
+            borderRadius: 5,
+          }}
+          onPress={() => {
+            setCartList(["hello"]);
+          }}
+        >
+          <Image
+            source={PayPal}
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              backgroundColor: '#121212',
-
-              borderRadius: 4,
-              marginTop: 28,
-              paddingVertical: 10,
-              paddingHorizontal: 18,
-            }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Image
-                source={whatsAppIcon}
-                style={{ width: 38, height: 38, marginRight: 10 }}
-              />
-              <View
-                style={{
-                  paddingHorizontal: 10,
-                  paddingVertical: 6,
-                  backgroundColor: '#121212',
-                  borderRadius: 3,
-                }}>
-                <Text
-                  style={{ color: '#f4f4f4', fontSize: 20, fontWeight: '700' }}>
-                  {whatsAppContact}
-                </Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              onPress={() => {
-                Clipboard.setString(whatsAppContact);
-              }}>
-              <Image
-                source={copyIcon}
-                style={{
-                  aspectRatio: 63 / 63,
-                  width: 30,
-                  height: undefined,
-                }}
-              />
-            </TouchableOpacity>
-          </View>
-        ) : null}
+              height: 20,
+              aspectRatio: 80 / 32,
+            }}
+          />
+        </TouchableOpacity>
       </View>
+      <Snackbar
+        visible={snackbarState}
+        onDismiss={() => setSnackbarState(false)}
+        duration={2000}
+        action={{
+          label: "",
+          onPress: () => {},
+        }}
+      >
+        Payments through PayPal aren't yet available
+      </Snackbar>
     </View>
   );
 }

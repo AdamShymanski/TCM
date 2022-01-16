@@ -506,6 +506,7 @@ export default function Settings() {
                 Delete Account
               </Text>
             </TouchableOpacity>
+
             {auth.currentUser?.providerData[0].providerId != "google.com" ? (
               <TouchableOpacity
                 style={{
@@ -536,6 +537,33 @@ export default function Settings() {
                 </Text>
               </TouchableOpacity>
             ) : null}
+            <TouchableOpacity
+              style={{
+                height: 30,
+                marginTop: 20,
+                width: "70%",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+
+                backgroundColor: "#0082FF",
+                borderRadius: 3,
+                paddingHorizontal: 12,
+              }}
+              onPress={async () => {
+                auth.signOut();
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#121212",
+                }}
+              >
+                Sign Out
+              </Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
         <Snackbar

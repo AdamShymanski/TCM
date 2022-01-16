@@ -3,14 +3,15 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
+  Modal,
   ActivityIndicator,
 } from "react-native";
 
 import * as yup from "yup";
 
-import { TextInput } from "react-native-paper";
-import { login } from "../authContext";
+import { Snackbar, TextInput } from "react-native-paper";
+
+import { login, auth } from "../authContext";
 import { Formik, ErrorMessage } from "formik";
 
 const reviewSchema = yup.object({
@@ -20,10 +21,22 @@ const reviewSchema = yup.object({
     .required("Email is required!"),
   password: yup.string("Wrong format!").required("Password is required!"),
 });
+const modalReviewSchema = yup.object({
+  email: yup
+    .string("Wrong format!")
+    .email("Email is invalid!")
+    .required("Email is required!"),
+});
 
 export default function Login() {
+  const [modalState, setModalVisible] = useState(false);
+  const [snackbarState, setSnackbar] = useState(false);
+
   const [error, setError] = useState("");
+  const [modalError, setModalError] = useState("");
+
   const [loadingIndicator, setLoadingIndicator] = useState(false);
+  const [modalLoadingIndicator, setModalLoadingIndicator] = useState(false);
 
   return (
     <View
@@ -35,6 +48,214 @@ export default function Login() {
         alignItems: "center",
       }}
     >
+      <Modal
+        visible={modalState}
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+        transparent={true}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              width: "87%",
+
+              backgroundColor: "#121212",
+              borderRadius: 8,
+              paddingVertical: 18,
+              paddingHorizontal: 18,
+            }}
+          >
+            <Text style={{ color: "#f4f4f4", fontSize: 26, fontWeight: "700" }}>
+              Reset Password
+            </Text>
+            <Formik
+              initialValues={{
+                email: "",
+              }}
+              validationSchema={modalReviewSchema}
+              onSubmit={async (values, actions) => {
+                console.log("submit");
+
+                setModalError(false);
+                setModalLoadingIndicator(true);
+
+                auth
+                  .sendPasswordResetEmail(values.email)
+                  .then(() => {
+                    setModalLoadingIndicator(false);
+                    setModalVisible(false);
+                    setSnackbar("Email sent successfully!");
+                  })
+                  .catch((error) => {
+                    if (error.code === "auth/user-not-found") {
+                      setModalError("User not found!");
+                    } else {
+                      setModalError("Something went wrong!");
+                    }
+                    setModalLoadingIndicator(false);
+                  });
+              }}
+            >
+              {(props) => (
+                <View
+                  style={{
+                    flexDirection: "column",
+                    width: "100%",
+                  }}
+                >
+                  <View style={{ flexDirection: "row" }}>
+                    <TextInput
+                      mode={"outlined"}
+                      value={props.values.email}
+                      onChangeText={props.handleChange("email")}
+                      onFocus={() => setModalError("")}
+                      label="Email"
+                      outlineColor={"#5c5c5c"}
+                      error={
+                        props.touched.email && props.errors.email ? true : false
+                      }
+                      style={{
+                        width: "80%",
+
+                        backgroundColor: "#1b1b1b",
+                        color: "#f4f4f4",
+                        marginTop: 20,
+                      }}
+                      theme={{
+                        colors: {
+                          primary: "#0082ff",
+                          placeholder: "#5c5c5c",
+                          background: "transparent",
+                          text: "#f4f4f4",
+                        },
+                      }}
+                    />
+                    {modalLoadingIndicator ? (
+                      <ActivityIndicator
+                        size={30}
+                        color="#0082ff"
+                        animating={modalLoadingIndicator}
+                        style={{
+                          marginLeft: 14,
+                          marginTop: 20,
+                        }}
+                      />
+                    ) : null}
+                  </View>
+
+                  <ErrorMessage component="div" name="email">
+                    {(msg) => (
+                      <Text
+                        style={{
+                          width: "70%",
+                          marginTop: 8,
+                          height: 20,
+                          flexDirection: "row",
+                          justifyContent: "flex-end",
+                          color: "#b40424",
+                          fontWeight: "700",
+                        }}
+                      >
+                        {msg}
+                      </Text>
+                    )}
+                  </ErrorMessage>
+
+                  {!modalLoadingIndicator ? (
+                    <Text
+                      style={{
+                        color: "#b40424",
+                        fontWeight: "700",
+                        marginTop: 20,
+                        marginRight: 14,
+                      }}
+                    >
+                      {modalError}
+                    </Text>
+                  ) : (
+                    <View
+                      style={{
+                        marginTop: 20,
+                      }}
+                    />
+                  )}
+
+                  <View
+                    style={{
+                      flexDirection: "row-reverse",
+                      width: "100%",
+                    }}
+                  >
+                    <TouchableOpacity
+                      style={{
+                        width: 76,
+                        height: 30,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+
+                        backgroundColor: "#0082FF",
+                        borderRadius: 3,
+                      }}
+                      onPress={() => {
+                        console.log("click");
+                        props.submitForm();
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: "700",
+                          color: "#121212",
+                        }}
+                      >
+                        Submit
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{
+                        width: 76,
+                        height: 30,
+                        marginRight: 12,
+                        alignItems: "center",
+                        flexDirection: "row",
+                        justifyContent: "center",
+
+                        borderRadius: 3,
+                        borderWidth: 2,
+                        borderColor: "#5c5c5c",
+                      }}
+                      onPress={() => {
+                        setModalVisible(false);
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: "700",
+                          color: "#5c5c5c",
+                        }}
+                      >
+                        Cancel
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </Formik>
+          </View>
+        </View>
+      </Modal>
       <View style={{ alignItems: "center", width: "100%" }}>
         <Text
           style={{
@@ -69,6 +290,7 @@ export default function Login() {
         validationSchema={reviewSchema}
         onSubmit={async (values, actions) => {
           setLoadingIndicator(true);
+          setError("");
           await login(values.email, values.password, setError);
           setLoadingIndicator(false);
         }}
@@ -233,9 +455,24 @@ export default function Login() {
           </View>
         )}
       </Formik>
-      <TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => {
+          setModalVisible(true);
+        }}
+      >
         <Text style={{ color: "#5c5c5c" }}>Forgot password?</Text>
       </TouchableOpacity>
+      <Snackbar
+        visible={snackbarState}
+        duration={2000}
+        onDismiss={() => setSnackbar(false)}
+        action={{
+          label: "",
+          onPress: () => {},
+        }}
+      >
+        {snackbarState}
+      </Snackbar>
     </View>
   );
 }
