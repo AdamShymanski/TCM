@@ -11,18 +11,19 @@ import {
 } from "react-native";
 
 import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
+import IconIO from "react-native-vector-icons/Ionicons";
+
 import language_icon from "./../../assets/language.png";
 import condition_icon from "./../../assets/condition.png";
 
 import {
-  fetchPhotos,
-  fetchOwnerData,
-  unsaveOffer,
-  saveOffer,
   auth,
+  saveOffer,
+  fetchPhotos,
+  unsaveOffer,
+  fetchOwnerData,
+  fetchCardsName,
 } from "../../authContext";
-
-import { useNavigation } from "@react-navigation/native";
 
 export function CardSellerProfile({ props, isSavedState }) {
   const condition = props.condition;
@@ -32,29 +33,14 @@ export function CardSellerProfile({ props, isSavedState }) {
 
   let cardPhotos = [];
 
-  const [loadingState, setLoading] = useState(true);
-  const [imageViewerState, setImageViewer] = useState(false);
-
-  const [owner, setOwner] = useState({
-    name: "",
-    reputation: 0,
-    collectionSize: 0,
-    countryCodes: "",
-  });
   const [isSaved, setSaveOffer] = useState(false);
-
-  const navigation = useNavigation();
+  const [loadingState, setLoading] = useState(true);
+  const [pokemonName, setPokemonName] = useState("");
+  const [imageViewerState, setImageViewer] = useState(false);
 
   const [photosArray, setPhotosArray] = useState([
     {
-      // Simplest usage.
       url: "https://firebasestorage.googleapis.com/v0/b/ptcg-marketplace.appspot.com/o/global%2Fplacegolder.png?alt=media&token=ed9d1f9b-9a3b-4c82-b86f-132da3e75957",
-
-      // width: number
-      // height: number
-      // Optional, if you know the image size, you can set the optimization performance
-
-      // You can pass props to <Image />.
       props: {},
     },
   ]);
@@ -62,16 +48,17 @@ export function CardSellerProfile({ props, isSavedState }) {
   useEffect(() => {
     const resolvePromises = async () => {
       cardPhotos = await fetchPhotos(props.id);
-      setOwner(await fetchOwnerData(props.owner));
       setPhotosArray(fillPhotosArray(cardPhotos));
 
       isSavedState.forEach((item) => {
         if (item == props.id) setSaveOffer(true);
       });
+      setPokemonName(await fetchCardsName(props.cardId));
+      console.log(props);
+      setLoading(false);
     };
 
     resolvePromises();
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -186,7 +173,15 @@ export function CardSellerProfile({ props, isSavedState }) {
 
   if (!loadingState) {
     return (
-      <View style={styles.card}>
+      <View
+        style={{
+          backgroundColor: "transparent",
+          marginHorizontal: 4,
+          marginVertical: 6,
+          marginRight: 20,
+          marginLeft: 20,
+        }}
+      >
         <Modal visible={imageViewerState} transparent={true}>
           <ImageViewer
             imageUrls={photosArray}
@@ -216,7 +211,6 @@ export function CardSellerProfile({ props, isSavedState }) {
                     borderWidth: 2,
                     borderColor: "#777777",
                     paddingHorizontal: 12,
-                    paddingVertical: 8,
                   }}
                   onPress={() => setImageViewer(false)}
                 >
@@ -235,8 +229,19 @@ export function CardSellerProfile({ props, isSavedState }) {
           />
         </Modal>
 
-        <View style={styles.cardContent}>
-          {/* <View style={stylesCard.top}>
+        <View style={{ marginVertical: 20 }}>
+          {/* <View
+            style={{
+              position: "relative",
+
+              marginBottom: 18,
+              flexDirection: "row",
+              alignItems: "center",
+
+              borderRadius: 3,
+              backgroundColor: "#121212",
+            }}
+          >
             <View
               style={{
                 backgroundColor: "#404040",
@@ -251,14 +256,37 @@ export function CardSellerProfile({ props, isSavedState }) {
               <Image
                 style={{ width: 28, height: 21 }}
                 source={{
-                  uri: `https://flagcdn.com/160x120/${owner.countryCode}.png`,
+                  uri: `https://flagcdn.com/160x120/${owner?.countryCode}.png`,
                 }}
               />
             </View>
-            <Text style={[globalStyles.titleText, { color: "white" }]}>
-              {owner.name}
-            </Text>
-            <View style={stylesCard.profileParams}>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate("Sellers", {
+                  screen: "SellerProfile",
+                  params: { sellerId: ownerId },
+                });
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 18,
+                  color: "#333",
+                  color: "white",
+                  fontWeight: "700",
+                }}
+              >
+                {owner.name}
+              </Text>
+            </TouchableOpacity>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                position: "absolute",
+                right: 20,
+              }}
+            >
               <Image
                 source={reputation_icon}
                 style={{ height: 26, width: 22.9, marginRight: 6 }}
@@ -268,28 +296,26 @@ export function CardSellerProfile({ props, isSavedState }) {
                   color: "#f4f4f4",
                   fontSize: 18,
                   fontWeight: "700",
-                  marginRight: 20,
+                  marginRight: 12,
                 }}
               >
-                {owner.reputation}
+                -
               </Text>
-              <Image
-                source={collection_icon}
-                style={{
-                  height: 19,
-                  width: 16,
-                  marginRight: 6,
-                }}
-              />
-              <Text
-                style={{ color: "#f4f4f4", fontWeight: "700", fontSize: 18 }}
-              >
-                {owner.collectionSize}
-              </Text>
-            </View> 
+            </View>
           </View> */}
 
-          <View style={stylesCard.body}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "flex-start",
+              backgroundColor: "#121212",
+              paddingVertical: 12,
+
+              borderRadius: 6,
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
+            }}
+          >
             <TouchableOpacity
               onPress={() => {
                 setImageViewer(true);
@@ -302,11 +328,31 @@ export function CardSellerProfile({ props, isSavedState }) {
                   marginLeft: 12,
                   borderRadius: 3,
                 }}
-                source={{ uri: photosArray[0].url }}
+                source={{ uri: photosArray[0]?.url }}
               />
             </TouchableOpacity>
 
-            <View style={stylesCard.description}>
+            <View
+              style={{
+                height: "100%",
+                flex: 1,
+                flexDirection: "column",
+
+                paddingLeft: 12,
+
+                borderRadius: 5,
+              }}
+            >
+              <Text
+                style={{
+                  color: "#d6d6d6",
+                  fontSize: 16,
+                  paddingBottom: 12,
+                  fontWeight: "700",
+                }}
+              >
+                {pokemonName}
+              </Text>
               <View
                 style={{
                   flexDirection: "row",
@@ -320,7 +366,6 @@ export function CardSellerProfile({ props, isSavedState }) {
                     marginRight: 6,
                     borderRadius: 3,
                     paddingHorizontal: 16,
-                    backgroundColor: "#1b1b1b",
                   }}
                 >
                   <Image
@@ -347,18 +392,19 @@ export function CardSellerProfile({ props, isSavedState }) {
                     borderRadius: 3,
                     paddingHorizontal: 16,
                     paddingVertical: 8,
-                    backgroundColor: "#1b1b1b",
                   }}
                 >
-                  <Image
-                    source={language_icon}
-                    style={{ width: 20, height: 20, marginRight: 10 }}
+                  <IconIO
+                    name={"language"}
+                    size={22}
+                    color="#0082FF"
+                    style={{ marginRight: 10 }}
                   />
                   <Text
                     style={{
                       color: "#f4f4f4",
                       fontWeight: "700",
-                      fontSize: 16,
+                      fontSize: 12.5,
                     }}
                   >
                     {languageVersion}
@@ -371,14 +417,14 @@ export function CardSellerProfile({ props, isSavedState }) {
               >
                 <View
                   style={{
-                    padding: 6,
-                    paddingHorizontal: 16,
                     flex: 1,
 
-                    borderRadius: 3,
-                    backgroundColor: "#1b1b1b",
+                    borderTopWidth: 1.5,
+                    borderTopColor: "#777777",
+
                     width: 210,
-                    height: 90,
+                    height: 52,
+                    padding: 6,
                   }}
                 >
                   <Text
@@ -451,14 +497,18 @@ export function CardSellerProfile({ props, isSavedState }) {
 
                   backgroundColor: "#0082FF",
                   borderRadius: 3,
+                  marginRight: 5,
                 }}
-                onPress={() => navigation.navigate("Buy", owner)}
+                onPress={() => {
+                  navigation.navigate("Buy", { ownerId });
+                }}
               >
                 <Text
                   style={{
                     fontSize: 16,
                     fontWeight: "700",
                     color: "#121212",
+                    marginRight: 5,
                   }}
                 >
                   Buy

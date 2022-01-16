@@ -25,13 +25,15 @@ import OfferCard from "../shared/cards/OfferCard";
 
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-export default function Home({ props, setProps }) {
+export default function Home({ props, setProps, setCartList }) {
   const [id, setId] = useState(null);
   const [offersData, setOffersData] = useState([]);
   const [pickerModal, setPickerModal] = useState(false);
   const [savedOffersId, setSavedOffersId] = useState([]);
   const [mostRecentOffers, setMostRecentOffers] = useState([]);
   const [pickerMode, setPickerMode] = useState("filtering");
+
+  const [noCardsState, setNoCards] = useState(false);
 
   const isFocused = useIsFocused();
   const [savedOffersId, setSavedOffersId] = useState(null);
@@ -41,8 +43,10 @@ export default function Home({ props, setProps }) {
 
   useEffect(() => {
     const resolvePromise = async () => {
+      setProps((prev) => ({ ...prev, loadingState: true }));
       await fetchSavedOffersId(setSavedOffersId, setProps);
       setMostRecentOffers(await fetchMostRecentOffers());
+      setProps((prev) => ({ ...prev, loadingState: false }));
     };
 
     dowloads();
@@ -55,11 +59,20 @@ export default function Home({ props, setProps }) {
         screen: "cards",
       }));
     }
+    if (props.cardsData.length === 0 && noCardsState) {
+      setProps((prevState) => ({
+        ...prevState,
+        screen: "noCards",
+      }));
+    }
   }, [props.cardsData]);
 
   useEffect(() => {
+    if (props.loadingState) setNoCards(true);
+  }, [props.loadingState]);
+
+  useEffect(async () => {
     if (!isFocused) {
-      setMostRecentOffers([]);
       setSavedOffersId([]);
       setProps((prevState) => ({
         ...prevState,
@@ -210,7 +223,7 @@ export default function Home({ props, setProps }) {
                   {' Sort by :  '}
                   <Text style={{ color: '#0082ff' }}>{pickerValue}</Text>
                 </Text>
-                <Icon name="filter-variant" color={"#0082ff"} size={20} />
+                <Icon name="filter-plus" color={"#0082ff"} size={20} />
               </TouchableOpacity>
             </View>
           ) : null}

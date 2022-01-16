@@ -40,6 +40,10 @@ export default function Chat({ route }) {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    console.log(messages);
+  }, [messages]);
+
   const appendMessages = useCallback(
     (messages) => {
       setMessages((previousMessages) =>

@@ -3,12 +3,11 @@ import React, { useState, useEffect } from "react";
 import ImageViewer from "react-native-image-zoom-viewer";
 import { View, Text, Image, TouchableOpacity, Modal } from "react-native";
 
-import language_icon from "./../../assets/language.png";
 import condition_icon from "./../../assets/condition.png";
-import reputation_icon from "./../../assets/reputation_icon.png";
 
-import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
 import IconIO from "react-native-vector-icons/Ionicons";
+import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
+import IconM from "react-native-vector-icons/MaterialIcons";
 
 import {
   auth,
@@ -21,6 +20,10 @@ import {
 
 import { Snackbar } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
+
+import { LinearGradient } from "expo-linear-gradient";
+
+import SellerDetailsBar from "../SellerDetailsBar";
 
 export default function OfferCard({ props, isSavedState, nameOfCard }) {
   const condition = props.condition;
@@ -35,8 +38,9 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
   const [loadingState, setLoading] = useState(true);
   const [imageViewerState, setImageViewer] = useState(false);
   const [owner, setOwner] = useState({
-    name: "",
-    countryCodes: "",
+    name: null,
+    countryCodes: null,
+    collectionSize: null,
   });
   const [isSaved, setSaveOffer] = useState(false);
   const [photosArray, setPhotosArray] = useState([
@@ -45,8 +49,10 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
       props: {},
     },
   ]);
-  const [saveSnackbarState, setSaveSnackbarState] = useState(false);
-  const [buySnackbarState, setBuySnackbarState] = useState(false);
+
+  const [snackbarState, setSnackbar] = useState(false);
+  const [detailsBarState, setDetailsBar] = useState(true);
+
   const [pokemonName, setPokemonName] = useState(false);
 
   const navigation = useNavigation();
@@ -74,7 +80,6 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
     resolvePromises();
     return () => (mounted = false);
   }, []);
-
   useEffect(() => {
     setSaveOffer(false);
     isSavedState.forEach((item) => {
@@ -118,11 +123,7 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
             },
           ]}
           onPress={() => {
-            if (ownerId === auth.currentUser.uid) {
-              setSaveSnackbarState(true);
-            } else {
-              clickSave();
-            }
+            clickSave();
           }}
         >
           <Text
@@ -165,7 +166,7 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
         ]}
         onPress={() => {
           if (ownerId === auth.currentUser.uid) {
-            setSaveSnackbarState(true);
+            setSnackbar("You can't save your own offer");
           } else {
             clickSave();
           }
@@ -258,22 +259,23 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
             style={{
               position: "relative",
 
-              marginBottom: 18,
               flexDirection: "row",
               alignItems: "center",
+              marginBottom: !detailsBarState ? 0 : 18,
 
               borderRadius: 3,
+              borderBottomRightRadius: !detailsBarState ? 0 : 3,
+              borderBottomLeftRadius: !detailsBarState ? 0 : 3,
               backgroundColor: "#121212",
             }}
           >
             <View
               style={{
                 backgroundColor: "#404040",
-                height: "100%",
                 paddingVertical: 8,
                 paddingHorizontal: 12,
                 borderTopLeftRadius: 3,
-                borderBottomLeftRadius: 3,
+                borderBottomLeftRadius: !detailsBarState ? 0 : 3,
                 marginRight: 10,
               }}
             >
@@ -284,40 +286,51 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
                 }}
               />
             </View>
-            <Text
-              style={{
-                fontSize: 18,
-                color: "#333",
-                color: "white",
-                fontWeight: "700",
+            <TouchableOpacity
+              onPress={() => {
+                if (ownerId !== auth.currentUser.uid) {
+                  navigation.navigate("Sellers", {
+                    screen: "SellerProfile",
+                    params: { sellerId: ownerId },
+                  });
+                }
               }}
             >
-              {owner.name}
-            </Text>
-            <View
+              <Text
+                style={{
+                  fontSize: 18,
+                  color: "#333",
+                  color: "white",
+                  fontWeight: "700",
+                }}
+              >
+                {owner.name}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               style={{
                 flexDirection: "row",
                 alignItems: "center",
                 position: "absolute",
                 right: 20,
               }}
+              onPress={() => {
+                setDetailsBar((prevState) => !prevState);
+              }}
             >
-              <Image
-                source={reputation_icon}
-                style={{ height: 26, width: 22.9, marginRight: 6 }}
+              <IconM
+                name={!detailsBarState ? "expand-less" : "expand-more"}
+                size={26}
+                color="#f4f4f4"
               />
-              <Text
-                style={{
-                  color: "#f4f4f4",
-                  fontSize: 18,
-                  fontWeight: "700",
-                  marginRight: 12,
-                }}
-              >
-                -
-              </Text>
-            </View>
+            </TouchableOpacity>
           </View>
+          <SellerDetailsBar
+            props={{
+              collectionSize: owner.collectionSize,
+              hide: detailsBarState,
+            }}
+          />
 
           <View
             style={{
@@ -516,7 +529,7 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
                 }}
                 onPress={() => {
                   if (ownerId === auth.currentUser.uid) {
-                    setBuySnackbarState(true);
+                    setSnackbar("You can't buy your own card");
                   } else {
                     navigation.navigate("Buy", { ownerId });
                   }
@@ -537,26 +550,15 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
           </View>
         </View>
         <Snackbar
-          visible={buySnackbarState}
+          visible={snackbarState}
           duration={2000}
-          onDismiss={() => setBuySnackbarState(false)}
+          onDismiss={() => setSnackbar(false)}
           action={{
             label: "",
             onPress: () => {},
           }}
         >
-          You can't buy this card
-        </Snackbar>
-        <Snackbar
-          visible={saveSnackbarState}
-          duration={2000}
-          onDismiss={() => setSaveSnackbarState(false)}
-          action={{
-            label: "",
-            onPress: () => {},
-          }}
-        >
-          You can't save this card
+          {snackbarState}
         </Snackbar>
       </View>
     );
@@ -623,22 +625,23 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
             style={{
               position: "relative",
 
-              marginBottom: 18,
               flexDirection: "row",
               alignItems: "center",
+              marginBottom: detailsBarState ? 0 : 18,
 
               borderRadius: 3,
+              borderBottomRightRadius: detailsBarState ? 0 : 3,
+              borderBottomLeftRadius: detailsBarState ? 0 : 3,
               backgroundColor: "#121212",
             }}
           >
             <View
               style={{
                 backgroundColor: "#404040",
-                height: "100%",
                 paddingVertical: 8,
                 paddingHorizontal: 12,
                 borderTopLeftRadius: 3,
-                borderBottomLeftRadius: 3,
+                borderBottomLeftRadius: detailsBarState ? 0 : 3,
                 marginRight: 10,
               }}
             >
@@ -649,40 +652,51 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
                 }}
               />
             </View>
-            <Text
-              style={{
-                fontSize: 18,
-                color: "#333",
-                color: "white",
-                fontWeight: "700",
+            <TouchableOpacity
+              onPress={() => {
+                if (ownerId !== auth.currentUser.uid) {
+                  navigation.navigate("Sellers", {
+                    screen: "SellerProfile",
+                    params: { sellerId: ownerId },
+                  });
+                }
               }}
             >
-              {owner.name}
-            </Text>
-            <View
+              <Text
+                style={{
+                  fontSize: 18,
+                  color: "#333",
+                  color: "white",
+                  fontWeight: "700",
+                }}
+              >
+                {owner.name}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               style={{
                 flexDirection: "row",
                 alignItems: "center",
                 position: "absolute",
                 right: 20,
               }}
+              onPress={() => {
+                setDetailsBar((prevState) => !prevState);
+              }}
             >
-              <Image
-                source={reputation_icon}
-                style={{ height: 26, width: 22.9, marginRight: 6 }}
+              <IconM
+                name={detailsBarState ? "expand-less" : "expand-more"}
+                size={26}
+                color="#f4f4f4"
               />
-              <Text
-                style={{
-                  color: "#f4f4f4",
-                  fontSize: 18,
-                  fontWeight: "700",
-                  marginRight: 12,
-                }}
-              >
-                -
-              </Text>
-            </View>
+            </TouchableOpacity>
           </View>
+          <SellerDetailsBar
+            props={{
+              collectionSize: owner.collectionSize,
+              hide: detailsBarState,
+            }}
+          />
 
           <View
             style={{
@@ -870,7 +884,7 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
                 }}
                 onPress={() => {
                   if (ownerId === auth.currentUser.uid) {
-                    setBuySnackbarState(true);
+                    setSnackbar("You can't buy your own card");
                   } else {
                     navigation.navigate("Buy", { ownerId });
                   }
@@ -891,26 +905,15 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
           </View>
         </View>
         <Snackbar
-          visible={buySnackbarState}
+          visible={snackbarState}
           duration={2000}
-          onDismiss={() => setBuySnackbarState(false)}
+          onDismiss={() => setSnackbar(false)}
           action={{
             label: "",
             onPress: () => {},
           }}
         >
           You can't buy this card
-        </Snackbar>
-        <Snackbar
-          visible={saveSnackbarState}
-          duration={2000}
-          onDismiss={() => setSaveSnackbarState(false)}
-          action={{
-            label: "",
-            onPress: () => {},
-          }}
-        >
-          You can't save this card
         </Snackbar>
       </View>
     );

@@ -1,5 +1,6 @@
 import firebase from "firebase/app";
 import "firebase/firestore";
+import "firebase/functions";
 import "firebase/storage";
 import "firebase/auth";
 
@@ -21,6 +22,11 @@ if (firebase.apps.length === 0) {
 export const db = firebase.firestore();
 export const auth = firebase.auth();
 export const storage = firebase.storage();
+export const functions = firebase.functions();
+
+// if (location.hostname === "localhost") {
+//   functions.useEmulator("localhost", 5001);
+// }
 
 export async function fetchUserData() {
   const response = await db.collection("users").doc(auth.currentUser.uid).get();
@@ -620,16 +626,29 @@ export async function fetchOwnerData(ownerId) {
   ];
 
   try {
-    let name, rating, country, savedOffers, countryCode, collectionSize;
+    let name,
+      country,
+      savedOffers,
+      countryCode,
+      rating,
+      collectionSize,
+      sold,
+      visits,
+      bought;
+
     await db
       .collection("users")
       .doc(ownerId)
       .get()
       .then((doc) => {
         name = doc.data()?.nick;
-        rating = doc.data()?.rating;
         country = doc.data()?.country;
         savedOffers = doc.data()?.savedOffers;
+
+        sold = doc.data()?.sold;
+        rating = doc.data()?.rating;
+        visits = doc.data()?.visits;
+        bought = doc.data()?.bought;
         collectionSize = doc.data()?.collectionSize;
 
         countryCodes.forEach((item, i) => {
@@ -640,10 +659,13 @@ export async function fetchOwnerData(ownerId) {
       });
     return {
       name,
-      rating,
       country,
       savedOffers,
       countryCode,
+      sold,
+      rating,
+      visits,
+      bought,
       collectionSize,
     };
   } catch (error) {
@@ -1238,6 +1260,68 @@ export async function googleReSignIn(result) {
     } else {
       return false;
     }
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+export async function checkForUnreadedMessages(result) {
+  try {
+    let returnStatement = false;
+    await db
+      .collection("users")
+      .doc(auth.currentUser.uid)
+      .get()
+      .then((doc) => {
+        const result = doc.data();
+        if (result.lastSupportMessageReaded) {
+          returnStatement = false;
+        } else {
+          returnStatement = true;
+        }
+      });
+
+    // await db.collection("chats");
+    // search for unreaded messages
+    return returnStatement;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+export async function sendResetPasswordMail(email, setError) {
+  try {
+    firebase
+      .auth()
+      .sendPasswordResetEmail(email)
+      .then(() => {})
+      .catch((error) => {
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        setError(errorMessage);
+        // ..
+      });
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+export async function requestApi() {
+  try {
+    // firebase.functions().useFunctionsEmulator("http://0.0.0.0:5000");
+    // firebase.functions().useFunctionsEmulator("http://0.0.0.0:5001");
+
+    // firebase.functions().useEmulator("0.0.0.0", 5001);
+    // firebase.functions("us-central1").useEmulator("0.0.0.0", 5001);
+    const addMessage = firebase.functions().httpsCallable("paymentSheet");
+
+    addMessage()
+      .then((result) => {
+        console.log(result);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   } catch (error) {
     console.log(error);
     return false;

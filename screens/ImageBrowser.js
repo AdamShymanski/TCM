@@ -1,16 +1,15 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
   ActivityIndicator,
-} from 'react-native';
-import * as ImageManipulator from 'expo-image-manipulator';
-import { ImageBrowser } from 'expo-image-picker-multiple';
+} from "react-native";
+import * as ImageManipulator from "expo-image-manipulator";
+import { ImageBrowser } from "expo-image-picker-multiple";
 
-import globalState from '../global.js';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
 
 const ImageBrowserScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -19,7 +18,7 @@ const ImageBrowserScreen = ({ route }) => {
   let photoState = route.params.photoState;
 
   const _getHeaderLoader = () => {
-    <ActivityIndicator size='big' color={'#0082ff'} />;
+    <ActivityIndicator size="big" color={"#0082ff"} />;
   };
 
   const imagesCallback = (callback) => {
@@ -36,7 +35,7 @@ const ImageBrowserScreen = ({ route }) => {
           cPhotos.push({
             uri: pPhoto.uri,
             name: photo.filename,
-            type: 'image/jpg',
+            type: "image/jpg",
           });
         }
         setPhoto(cPhotos);
@@ -65,22 +64,24 @@ const ImageBrowserScreen = ({ route }) => {
 
           height: 30,
           width: 80,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
           borderWidth: 2,
-          backgroundColor: '#0082ff',
-          borderColor: '#0082ff',
+          backgroundColor: "#0082ff",
+          borderColor: "#0082ff",
           paddingHorizontal: 12,
         }}
-        onPress={onSubmit}>
+        onPress={onSubmit}
+      >
         <Text
           style={{
             fontSize: 16,
-            fontWeight: '700',
-            color: '#121212',
-          }}>
-          {'Done'}
+            fontWeight: "700",
+            color: "#121212",
+          }}
+        >
+          {"Done"}
         </Text>
       </TouchableOpacity>
     );
@@ -118,29 +119,29 @@ const ImageBrowserScreen = ({ route }) => {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
-    backgroundColor: '#1b1b1b',
+    backgroundColor: "#1b1b1b",
   },
   container: {
-    position: 'relative',
+    position: "relative",
   },
   emptyStay: {
-    textAlign: 'center',
+    textAlign: "center",
   },
   countBadge: {
     paddingHorizontal: 10.6,
     paddingVertical: 5,
     borderRadius: 50,
-    position: 'absolute',
+    position: "absolute",
     right: 3,
     bottom: 3,
-    justifyContent: 'center',
-    backgroundColor: '#0580FF',
+    justifyContent: "center",
+    backgroundColor: "#0580FF",
   },
   countBadgeText: {
-    fontWeight: 'bold',
-    alignSelf: 'center',
-    padding: 'auto',
-    color: '#ffffff',
+    fontWeight: "bold",
+    alignSelf: "center",
+    padding: "auto",
+    color: "#ffffff",
   },
 });
 

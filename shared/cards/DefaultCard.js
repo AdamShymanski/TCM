@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
+
+import ImageViewer from "react-native-image-zoom-viewer";
 import { View, Image, Text, TouchableOpacity, Modal } from "react-native";
 
-import ImageViewer from 'react-native-image-zoom-viewer';
+import inStock from "../../assets/in_stock.png";
+import bluePricetag from "../../assets/blue_pricetag.png";
 
-import { fetchBigCardsDetails } from '../../authContext';
-
-import bluePricetag from '../../assets/blue_pricetag.png';
-import inStock from '../../assets/in_stock.png';
+import { fetchBigCardsDetails } from "../../authContext";
 
 export default function DefaultCard({ props, setId, setProps }) {
   const [imageViewerState, setImageViewer] = useState(false);
@@ -15,11 +15,6 @@ export default function DefaultCard({ props, setId, setProps }) {
   useEffect(() => {
     return fetchBigCardsDetails(props.id, setDetails);
   }, []);
-
-  // useEffect(() => {
-  //   console.log(props);
-  //   console.log(details);
-  // }, [details]);
 
   const returnFontSize = (string) => {
     if (string.length > 20) {

@@ -135,8 +135,7 @@ export default function CustomHeader({ version, props, setProps }) {
       </View>
     );
   }
-
-  if (version == "orders") {
+  if (version == "cart") {
     return (
       <View
         style={{
@@ -172,7 +171,7 @@ export default function CustomHeader({ version, props, setProps }) {
               marginRight: 8,
             }}
           >
-            {"Orders"}
+            {"Cart"}
           </Text>
           <Icon
             name="cart-outline"

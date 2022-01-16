@@ -436,9 +436,78 @@ export default function Settings() {
                 Change Password
               </Text>
             </TouchableOpacity>
-          ) : null}
-        </View>
-      </ScrollView>
+
+            {auth.currentUser?.providerData[0].providerId != "google.com" ? (
+              <TouchableOpacity
+                style={{
+                  height: 30,
+                  marginTop: 20,
+                  width: "70%",
+
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+
+                  backgroundColor: "#0082FF",
+                  borderRadius: 3,
+                  paddingHorizontal: 12,
+                }}
+                onPress={() => {
+                  setChangePasswordModal(true);
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#121212",
+                  }}
+                >
+                  Change Password
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity
+              style={{
+                height: 30,
+                marginTop: 20,
+                width: "70%",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+
+                backgroundColor: "#0082FF",
+                borderRadius: 3,
+                paddingHorizontal: 12,
+              }}
+              onPress={async () => {
+                auth.signOut();
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#121212",
+                }}
+              >
+                Sign Out
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+        <Snackbar
+          visible={snackbarState}
+          duration={2000}
+          onDismiss={() => setSnackbarState(false)}
+          action={{
+            label: "",
+            onPress: () => {},
+          }}
+        >
+          Seller ID is copied to clipboard
+        </Snackbar>
+      </View>
     );
   }
 }
