@@ -3,31 +3,24 @@ import React, { useState, useEffect } from "react";
 import { View, TouchableOpacity, Text } from "react-native";
 import { useStripe } from "@stripe/stripe-react-native";
 
-import { requestApi } from "../authContext";
+import { functions } from "../authContext";
 
 export default function StripeCheckout() {
-  const [loading, setLoading] = useState(false);
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    initializePaymentSheet();
+    const resolvePromise = async () => {
+      const query = functions.httpsCallable("paymentSheet");
+      let result = await query();
+      initializePaymentSheet(result.data);
+    };
+
+    resolvePromise();
   }, []);
 
-  const fetchPaymentSheetParams = async () => {
-    let reqResult = { data: "a" };
-    requestApi();
-
-    const { paymentIntent, ephemeralKey, customer } = reqResult.data;
-
-    return {
-      paymentIntent,
-      ephemeralKey,
-      customer,
-    };
-  };
-  const initializePaymentSheet = async () => {
-    const { paymentIntent, ephemeralKey, customer, publishableKey } =
-      await fetchPaymentSheetParams();
+  const initializePaymentSheet = async (data) => {
+    const { paymentIntent, ephemeralKey, customer, publishableKey } = data;
 
     const { error } = await initPaymentSheet({
       customerId: customer,
@@ -35,7 +28,7 @@ export default function StripeCheckout() {
       paymentIntentClientSecret: paymentIntent,
       // Set `allowsDelayedPaymentMethods` to true if your business can handle payment
       //methods that complete payment after a delay, like SEPA Debit and Sofort.
-      allowsDelayedPaymentMethods: false,
+      allowsDelayedPaymentMethods: true,
     });
     if (!error) {
       setLoading(true);
@@ -52,17 +45,11 @@ export default function StripeCheckout() {
   };
 
   return (
-    <View style={{ alignItems: "center", justifyContent: "center", flex: 1 }}>
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
       <TouchableOpacity
-        style={{
-          backgroundColor: "#997523",
-          //#ffc43c default background color
-          width: "100%",
-          paddingVertical: 8,
-          alignItems: "center",
-          borderRadius: 5,
-        }}
-        onPress={() => requestApi()}
+        style={{ width: "80%", height: 20, backgroundColor: "#0082ff" }}
+        disabled={!loading}
+        onPress={openPaymentSheet}
       >
         <Text>Checkout</Text>
       </TouchableOpacity>

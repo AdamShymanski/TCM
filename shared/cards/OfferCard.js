@@ -408,6 +408,16 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
                     }}
                   >
                     {condition}
+                    <Text
+                      style={{
+                        color: "#7c7c7c",
+                        fontFamily: "Roboto_Medium",
+                        fontSize: 9,
+                        marginLeft: 4,
+                      }}
+                    >
+                      /10
+                    </Text>
                   </Text>
                 </View>
 

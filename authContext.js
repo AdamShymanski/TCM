@@ -696,7 +696,7 @@ export async function fetchMostRecentOffers() {
     await db
       .collection("cards")
       .orderBy("timestamp", "desc")
-      .limit(4)
+      .limit(10)
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach((doc) => {
@@ -1340,8 +1340,8 @@ export async function requestApi() {
     // firebase.functions().useFunctionsEmulator("http://0.0.0.0:5000");
     // firebase.functions().useFunctionsEmulator("http://0.0.0.0:5001");
 
-    // firebase.functions().useEmulator("0.0.0.0", 5001);
     // firebase.functions("us-central1").useEmulator("0.0.0.0", 5001);
+    // firebase.functions().useEmulator("0.0.0.0", 5001);
     const addMessage = firebase.functions().httpsCallable("paymentSheet");
 
     addMessage()
@@ -1350,6 +1350,18 @@ export async function requestApi() {
       })
       .catch((error) => {
         console.log(error);
+      });
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+export async function addToCart(offerID) {
+  try {
+    db.collection("users")
+      .doc(auth.currentUser.uid)
+      .update({
+        cart: firebase.firestore.FieldValue.arrayUnion(offerID),
       });
   } catch (error) {
     console.log(error);

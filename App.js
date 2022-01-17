@@ -664,9 +664,9 @@ export default function App() {
                 <CustomDrawer navigation={navigation} />
               )}
             >
-              <Drawer.Screen name="StripeCheckout" component={Test} />
-              <Drawer.Screen name="Cart" component={CartStack} />
               <Drawer.Screen name="Home" component={HomeStack} />
+              <Drawer.Screen name="Cart" component={CartStack} />
+              <Drawer.Screen name="StripeCheckout" component={StripeCheckout} />
               <Drawer.Screen name="Settings" component={SettingsStack} />
               <Drawer.Screen name="YourOffers" component={YourOffersStack} />
               <Drawer.Screen name="Chat" component={ChatStack} />

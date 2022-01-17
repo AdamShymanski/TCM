@@ -1,7 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 
-export default function CartObecjt({ route }) {
+import Icon from "react-native-vector-icons/Octicons";
+
+export default function CartObecjt({ props }) {
+  useEffect(() => {
+    console.log(props);
+  }, []);
   return (
     <View
       style={{
@@ -19,7 +24,7 @@ export default function CartObecjt({ route }) {
     >
       <Image
         source={{
-          uri: "https://firebasestorage.googleapis.com/v0/b/ptcg-marketpla.appspot.com/o/cards%2FT4rdYfdAn5rTNDhgqavy%2F0?alt=media&token=46cfacab-e38d-4027-8c25-1f7d72824539",
+          uri: `${props.images[0]}`,
         }}
         style={{ aspectRatio: 105 / 140, width: undefined, height: 70 }}
       />
@@ -44,7 +49,7 @@ export default function CartObecjt({ route }) {
               fontSize: 15,
             }}
           >
-            Umbreon GX
+            {props.name}
           </Text>
           <View style={{ flexDirection: "row" }}>
             <Text
@@ -64,7 +69,7 @@ export default function CartObecjt({ route }) {
                 marginLeft: 4,
               }}
             >
-              6.25 USD
+              {`${props.price} USD`}
             </Text>
           </View>
           <View style={{ flexDirection: "row" }}>
@@ -85,7 +90,11 @@ export default function CartObecjt({ route }) {
                 marginLeft: 4,
               }}
             >
-              Graded
+              {props.graded ? (
+                <Icon name="check" color={"#0dff25"} size={14} />
+              ) : (
+                <Text style={{ fontSize: 11, color: "#CD0000" }}>X</Text>
+              )}
             </Text>
           </View>
           <View style={{ flexDirection: "row" }}>
@@ -106,7 +115,17 @@ export default function CartObecjt({ route }) {
                 marginLeft: 4,
               }}
             >
-              10/10
+              {props.condition}
+              <Text
+                style={{
+                  color: "#7c7c7c",
+                  fontFamily: "Roboto_Medium",
+                  fontSize: 8,
+                  marginLeft: 4,
+                }}
+              >
+                /10
+              </Text>
             </Text>
           </View>
         </View>
@@ -125,7 +144,7 @@ export default function CartObecjt({ route }) {
               style={{
                 color: "#f4f4f4",
                 fontWeight: "700",
-                fontSize: 15,
+                fontSize: 11.8,
               }}
             >
               Remove
