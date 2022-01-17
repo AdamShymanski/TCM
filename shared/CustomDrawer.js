@@ -216,19 +216,23 @@ export default function CustomDrawer({ navigation }) {
           </Drawer.Section>
         </View>
       </DrawerContentScrollView>
-      {/* <Drawer.Section style={styles.bottomDrawerSection}>
+      <Drawer.Section style={styles.bottomDrawerSection}>
         <DrawerItem
-          icon={({ color, size }) => (
-            <Icon name="exit-to-app" color={"#f4f4f4"} size={size} />
-          )}
-          labelStyle={{ color: "#121212" }}
-          label="Sign Out"
-          labelStyle={{ color: "#f4f4f4" }}
-          onPress={() => {
-            auth.signOut();
+          // icon={({ color, size }) => (
+          //   <Icon name="exit-to-app" color={"#f4f4f4"} size={size} />
+          // )}
+          labelStyle={{
+            color: "#121212",
+            textAlign: "center",
+            justifyContent: "center",
           }}
+          label="Terms & Conditions"
+          labelStyle={{ color: "#7c7c7c" }}
+          // onPress={() => {
+          //   auth.signOut();
+          // }}
         />
-      </Drawer.Section> */}
+      </Drawer.Section>
     </View>
   );
 }
@@ -272,9 +276,9 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   bottomDrawerSection: {
-    marginBottom: 15,
-    borderTopColor: "#5c5c5c",
-    borderTopWidth: 2,
+    marginBottom: 10,
+    // borderTopColor: "#5c5c5c",
+    // borderTopWidth: 2,
     backgroundColor: "#121212",
   },
   preference: {

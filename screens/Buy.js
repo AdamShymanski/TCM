@@ -87,7 +87,7 @@ export default function Buy({ route, setCartList }) {
           }}
         >
           <Text style={{ color: "#121212", fontWeight: "700", fontSize: 16 }}>
-            Start Chat
+            Contact With Seller
           </Text>
         </TouchableOpacity>
         <View
@@ -129,7 +129,7 @@ export default function Buy({ route, setCartList }) {
             borderRadius: 5,
           }}
           onPress={() => {
-            setCartList(["hello"]);
+            setSnackbarState(true);
           }}
         >
           <Image
