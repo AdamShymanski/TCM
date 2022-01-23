@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Image, View, ActivityIndicator, Text, FlatList } from "react-native";
 import { db, fetchOwnerData, fetchSavedOffersId } from "../authContext";
 
-import { CardSellerProfile } from "../shared/cards/CardSellerProfile";
+import { CardSellerProfile } from "../shared/Cards/CardSellerProfile";
 import { useIsFocused } from "@react-navigation/native";
 import SellerDetailsBar from "../shared/SellerDetailsBar";
 

@@ -369,7 +369,118 @@ export default function CustomHeader({ version, props, setProps }) {
       </View>
     );
   }
+  if (version == "transactions") {
+    return (
+      <View
+        style={{
+          width: "100%",
+          height: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <MaterialIcons
+          name="menu"
+          size={28}
+          color={"#f4f4f4"}
+          onPress={() => {
+            openMenu();
+          }}
+          style={{
+            color: "#f4f4f4",
+            marginLeft: 16,
+          }}
+        />
+        <View
+          style={{
+            flexDirection: "row",
+          }}
+        >
+          <Text
+            style={{
+              color: "#f4f4f4",
+              fontWeight: "700",
+              fontSize: 21,
+              marginRight: 8,
+            }}
+          >
+            {"Transactions"}
+          </Text>
+          <Icon name="swap-vertical" color={"#0082ff"} size={30} />
+        </View>
+      </View>
+    );
+  }
   if (version == "home") {
+    // useEffect(async () => {
+    //   searchForCard();
+    // }, [props.sorterParams]);
+
+    return (
+      <View style={styles.header}>
+        <MaterialIcons
+          name="menu"
+          size={28}
+          color={"#f4f4f4"}
+          onPress={() => {
+            openMenu();
+          }}
+          style={styles.icon}
+        />
+        <View style={styles.headerTitle}>
+          <Text style={{ color: "#f4f4f4", size: 34, fontWeight: "700" }}>
+            Hello Again!
+          </Text>
+          {/* <TextInput
+            mode="outlined"
+            placeholderTextColor={"#5c5c5c"}
+            outlineColor={"#121212"}
+            onEndEditing={() => {
+              searchForCard();
+            }}
+            value={props.inputValue}
+            onChangeText={(text) => {
+              setProps((prevState) => ({ ...prevState, inputValue: text }));
+            }}
+            placeholder={inputPlaceholder}
+            onFocus={() => {
+              setInputPlaceholder("");
+              setProps((prevState) => ({
+                ...prevState,
+                inputFocusState: true,
+              }));
+            }}
+            onBlur={() => {
+              setInputPlaceholder("Seach for a card by name");
+              setProps((prevState) => ({
+                ...prevState,
+                inputFocusState: false,
+              }));
+            }}
+            style={{
+              width: 260,
+              height: 40,
+              marginBottom: 5,
+              borderColor: "#121212",
+              backgroundColor: "#1b1b1b",
+              borderWidth: 2,
+              borderRadius: 5,
+              paddingLeft: 10,
+              color: "#f4f4f4",
+            }}
+          />
+          <MaterialIcons
+            name="search"
+            size={26}
+            color={"#f4f4f4"}
+            style={{ position: "absolute", right: 14, top: 8 }}
+          /> */}
+        </View>
+      </View>
+    );
+  }
+  if (version == "search") {
     useEffect(async () => {
       searchForCard();
     }, [props.sorterParams]);

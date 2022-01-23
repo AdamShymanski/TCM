@@ -29,6 +29,10 @@ import DeletingAccount from "./screens/DeletingAccount";
 import SearchForSeller from "./screens/SearchForSeller";
 import ChatConversations from "./screens/ChatConverstations";
 import FinishGoogleRegister from "./screens/FinishGoogleRegister";
+import Search from "./screens/Search";
+import SellerRating from "./screens/SellerRating";
+import Checkout from "./screens/Checkout";
+import Transactions from "./screens/Transactions";
 
 import StripeCheckout from "./screens/StripeCheckout";
 import Test from "./screens/Test";
@@ -45,7 +49,7 @@ import CustomDrawer from "./shared/CustomDrawer";
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
-function HomeStack() {
+function SearchStack() {
   const [headerProps, setHeaderProps] = useState({
     pageNumber: 2,
     cardsData: [],
@@ -65,12 +69,14 @@ function HomeStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="Home"
-        children={() => <Home props={headerProps} setProps={setHeaderProps} />}
+        name="Search"
+        children={() => (
+          <Search props={headerProps} setProps={setHeaderProps} />
+        )}
         options={{
           headerTitle: () => (
             <CustomHeader
-              version={"home"}
+              version={"search"}
               props={headerProps}
               setProps={setHeaderProps}
             />
@@ -154,6 +160,10 @@ function SettingsStack() {
   );
 }
 function CartStack() {
+  const [progessState, setProgressState] = useState("shippingAddress");
+  //"shippingAddress"
+  //"payment"
+  //"finish"
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -165,6 +175,104 @@ function CartStack() {
             backgroundColor: "#121212",
           },
         }}
+      />
+      <Stack.Screen
+        name="Checkout"
+        component={Checkout}
+        options={({ navigation, route }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 12,
+
+                height: 30,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: "#777777",
+                paddingHorizontal: 12,
+              }}
+              onPress={() => navigation.goBack()}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Cancel"}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerRight: () => {
+            return (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "flex-start",
+                  justifyContent: "center",
+                }}
+              >
+                <View style={{ alignItems: "center" }}>
+                  <View
+                    style={{
+                      borderRadius: 8,
+                      width: 8,
+                      height: 8,
+                      backgroundColor: "#0082ff",
+                    }}
+                  />
+                  <Text
+                    style={{
+                      fontFamily: "Roboto_Medium",
+                      color: "#f4f4f4",
+                      fontSize: 12,
+                      marginTop: 6,
+                    }}
+                  >
+                    Finish
+                  </Text>
+                </View>
+                <View
+                  style={{ width: 38, height: 2, backgroundColor: "#0082ff" }}
+                />
+                <View>
+                  <View
+                    style={{
+                      borderRadius: 6,
+                      width: 6,
+                      height: 6,
+                      backgroundColor: "#0082ff",
+                    }}
+                  />
+                  <Text>Finish</Text>
+                </View>
+                <View
+                  style={{ width: 18, height: 2, backgroundColor: "#0082ff" }}
+                />
+                <View>
+                  <View
+                    style={{
+                      borderRadius: 6,
+                      width: 6,
+                      height: 6,
+                      backgroundColor: "#0082ff",
+                    }}
+                  />
+                  <Text>Finish</Text>
+                </View>
+              </View>
+            );
+          },
+          headerTintColor: "#121212",
+          headerTitle: "",
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        })}
       />
     </Stack.Navigator>
   );
@@ -557,6 +665,76 @@ function SellersStack() {
           },
         })}
       />
+      <Stack.Screen
+        name="SellerRating"
+        component={SellerRating}
+        options={({ navigation, route }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 12,
+
+                height: 30,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: "#777777",
+                paddingHorizontal: 12,
+              }}
+              onPress={() => navigation.goBack()}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerTintColor: "#121212",
+          headerTitle: "",
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        })}
+      />
+    </Stack.Navigator>
+  );
+}
+function HomeStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Home"
+        component={Home}
+        options={{
+          headerTitle: () => <CustomHeader version={"home"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+function TransactionsStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Transactions"
+        component={Transactions}
+        options={{
+          headerTitle: () => <CustomHeader version={"transactions"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
     </Stack.Navigator>
   );
 }
@@ -565,8 +743,6 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [finishRegisterProcess, setFinishRegisterProcess] = useState(null);
-
-  const [cartList, setCartList] = useState(true);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -679,12 +855,17 @@ export default function App() {
             >
               <Drawer.Screen name="Home" component={HomeStack} />
               <Drawer.Screen name="Cart" component={CartStack} />
-              <Drawer.Screen name="StripeCheckout" component={StripeCheckout} />
+              <Drawer.Screen
+                name="Transactions"
+                component={TransactionsStack}
+              />
+              <Drawer.Screen name="Search" component={SearchStack} />
               <Drawer.Screen name="Settings" component={SettingsStack} />
-              <Drawer.Screen name="YourOffers" component={YourOffersStack} />
               <Drawer.Screen name="Chat" component={ChatStack} />
-              <Drawer.Screen name="SavedOffers" component={SavedOffersStack} />
               <Drawer.Screen name="Sellers" component={SellersStack} />
+              <Drawer.Screen name="SavedOffers" component={SavedOffersStack} />
+              <Drawer.Screen name="YourOffers" component={YourOffersStack} />
+              <Drawer.Screen name="StripeCheckout" component={StripeCheckout} />
               <Drawer.Screen
                 name="DeletingAccount"
                 component={DeletingAccount}

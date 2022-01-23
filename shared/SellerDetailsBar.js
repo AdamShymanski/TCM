@@ -56,7 +56,7 @@ export default function SellerDetailsBar({ props }) {
                 color: "#f4f4f4",
                 fontSize: 13,
                 marginLeft: 5,
-                fontWeight: "700",
+                fontFamily: "Roboto_Medium",
               }}
             >
               0

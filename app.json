@@ -1,5 +1,13 @@
 {
   "expo": {
+    "plugins": [
+      [
+        "@stripe/stripe-react-native",
+        {
+          "enableGooglePay": true
+        }
+      ]
+    ],
     "userInterfaceStyle": "dark",
     "name": "PTCG Marketplace",
     "slug": "ptcg_marketplace",

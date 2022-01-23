@@ -1,345 +1,230 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-} from 'react-native';
+import React, { useState } from "react";
 
-import {
-  fetchOffers,
-  fetchMoreCards,
-  fetchSavedOffersId,
-  fetchMostRecentOffers,
-} from "../authContext";
+import { View, Image, Text, TouchableOpacity } from "react-native";
 
-import { useIsFocused } from "@react-navigation/native";
+import referral_background from "../assets/images/referral_background.png";
+import add_an_offer_background from "../assets/images/add_an_offer_background.png";
+import search_card from "../assets/images/search_card.png";
 
-import PickerModal from "../shared/PickerModal";
-import pikachu from "../assets/pikachu.png";
+import { useNavigation } from "@react-navigation/native";
 
-import DefaultCard from "../shared/cards/DefaultCard";
-import OfferCard from "../shared/cards/OfferCard";
-
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-
-export default function Home({ props, setProps, setCartList }) {
-  const [id, setId] = useState(null);
-  const [offersData, setOffersData] = useState([]);
-  const [pickerModal, setPickerModal] = useState(false);
-  const [savedOffersId, setSavedOffersId] = useState([]);
-  const [mostRecentOffers, setMostRecentOffers] = useState([]);
-  const [pickerMode, setPickerMode] = useState("filtering");
-
-  const [noCardsState, setNoCards] = useState(false);
-
-  const isFocused = useIsFocused();
-  const [savedOffersId, setSavedOffersId] = useState(null);
-  const [pickerModal, setPickerModal] = useState(false);
-
+export default function Home() {
   const navigation = useNavigation();
-
-  useEffect(() => {
-    const resolvePromise = async () => {
-      setProps((prev) => ({ ...prev, loadingState: true }));
-      await fetchSavedOffersId(setSavedOffersId, setProps);
-      setMostRecentOffers(await fetchMostRecentOffers());
-      setProps((prev) => ({ ...prev, loadingState: false }));
-    };
-
-    dowloads();
-  }, []);
-
-  useEffect(() => {
-    if (props.cardsData.length >= 1) {
-      setProps((prevState) => ({
-        ...prevState,
-        screen: "cards",
-      }));
-    }
-    if (props.cardsData.length === 0 && noCardsState) {
-      setProps((prevState) => ({
-        ...prevState,
-        screen: "noCards",
-      }));
-    }
-  }, [props.cardsData]);
-
-  useEffect(() => {
-    if (props.loadingState) setNoCards(true);
-  }, [props.loadingState]);
-
-  useEffect(async () => {
-    if (!isFocused) {
-      setSavedOffersId([]);
-      setProps((prevState) => ({
-        ...prevState,
-        loadingState: true,
-      }));
-    }
-    if (isFocused) {
-      await fetchSavedOffersId(setSavedOffersId, setProps);
-    }
-  }, [isFocused]);
-
-  useEffect(async () => {
-    if (id !== undefined || null || []) {
-      setProps((prevState) => ({
-        ...prevState,
-        loadingState: true,
-      }));
-
-      setOffersData(await fetchOffers(id, props.filterParams));
-
-      setProps((prevState) => ({
-        ...prevState,
-        loadingState: false,
-      }));
-    }
-  }, [id, props.filterParams]);
-
   return (
     <View
       style={{
         flex: 1,
         backgroundColor: "#1b1b1b",
+        justifyContent: "space-evenly",
+        alignItems: "center",
       }}
     >
-      <PickerModal
-        props={props}
-        setProps={setProps}
-        mode={pickerMode}
-        visible={pickerModal}
-        setVisible={setPickerModal}
-      />
-      <View style={{ flex: 1, backgroundColor: '#1b1b1b' }}>
-        <View
-          style={{
-            backgroundColor: "#121212",
-            flexDirection: "column",
-            justifyContent: "space-between",
-          }}
-        >
-          {props.screen === "cards" && !props.loadingState ? (
-            <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              style={{ flexDirection: "row", marginVertical: 12 }}
-            >
-              <TouchableOpacity
-                style={{
-                  borderRadius: 4,
+      <TouchableOpacity
+        style={{
+          backgroundColor: "#121212",
+          width: "94%",
+          height: "20%",
+          borderRadius: 6,
+          flexDirection: "row",
+          justifyContent: "space-between",
+        }}
+        onPress={() => {
+          navigation.navigate("ReferralProgram");
+        }}
+      >
+        <View>
+          <Text
+            style={{
+              marginTop: 8,
+              marginLeft: 12,
+              flexDirection: "column",
 
-                  marginLeft: 8,
-                  marginTop: 4,
+              fontSize: 24,
+              color: "#f4f4f4",
+              fontWeight: "700",
+            }}
+          >
+            REFERRAL
+          </Text>
+          <Text
+            style={{
+              marginLeft: 14,
 
-                  height: 32,
-                  paddingHorizontal: 14,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#1b1b1b",
-                }}
-                onPress={() => {
-                  setPickerMode("sorting");
-                  setPickerModal(true);
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: "700",
-                    color: "#f4f4f4",
-                  }}
-                >
-                  {" Sort by :  "}
-                  <Text style={{ color: "#0082ff" }}>{props.sorterParams}</Text>
-                </Text>
-              </TouchableOpacity>
-            </ScrollView>
-          ) : null}
-          {props.screen === "offers" && !props.loadingState ? (
-            <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-              style={{ flexDirection: "row", marginVertical: 12 }}
-            >
-              <TouchableOpacity
-                style={{
-                  borderRadius: 3,
-                  marginLeft: 12,
+              fontSize: 14,
+              color: "#f4f4f4",
+              fontWeight: "700",
+            }}
+          >
+            PROGRAM
+          </Text>
+          <Text
+            style={{
+              marginLeft: 14,
+              marginTop: 12,
+              width: 160,
 
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderWidth: 2,
-                  borderColor: "#777777",
-                  paddingHorizontal: 14,
-                  height: 32,
-                  marginTop: 4,
-                }}
-                onPress={() => {
-                  setOffersData([]);
-                  setId([]);
-                  setProps((prevState) => ({
-                    ...prevState,
-                    screen: "cards",
-                  }));
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: "700",
-                    color: "#777777",
-                  }}
-                >
-                  {"Go back"}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{
-                  borderRadius: 4,
-
-                  marginLeft: 8,
-                  marginTop: 4,
-
-                  height: 32,
-                  paddingHorizontal: 14,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#1b1b1b',
-                }}
-                onPress={() => setPickerModal(true)}>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: '700',
-                    color: '#f4f4f4',
-                  }}>
-                  {' Sort by :  '}
-                  <Text style={{ color: '#0082ff' }}>{pickerValue}</Text>
-                </Text>
-                <Icon name="filter-plus" color={"#0082ff"} size={20} />
-              </TouchableOpacity>
-            </View>
-          ) : null}
+              fontSize: 12.4,
+              color: "#7C7C7C",
+              fontFamily: "Roboto_Medium",
+            }}
+          >
+            Earn{" "}
+            <Text style={{ color: "#05FD00", fontWeight: "700" }}> $1 </Text>{" "}
+            for every new user registered with your code.
+          </Text>
         </View>
-        {props.screen === "noCards" && !props.loadingState ? (
-          <View
-            style={{
-              flex: 1,
 
-              alignItems: "center",
-              justifyContent: "center",
+        <Image
+          source={referral_background}
+          style={{
+            aspectRatio: 288 / 220,
+            width: undefined,
+            height: "100%",
+          }}
+        />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={{
+          backgroundColor: "#121212",
+          width: "94%",
+          height: "22%",
+          borderRadius: 6,
+          flexDirection: "row",
+          justifyContent: "space-between",
+        }}
+        onPress={() => {
+          navigation.navigate("YourOffers");
+        }}
+      >
+        <View>
+          <Text
+            style={{
+              marginTop: 8,
+              marginLeft: 12,
+              flexDirection: "column",
+
+              fontSize: 24,
+              color: "#f4f4f4",
+              fontWeight: "700",
             }}
           >
-            <Image
-              source={pikachu}
-              style={{
-                aspectRatio: 651 / 522,
-                width: '64%',
-                height: undefined,
-              }}
-            />
-            <Text
-              style={{
-                color: '#434343',
-                fontSize: 20,
-                fontWeight: '600',
-                marginTop: 30,
-                fontWeight: '700',
-              }}>
-              {'Search for a card'}
-            </Text>
-          </View>
-        ) : null}
-        {props.screen === "mostRecentOffers" && !props.loadingState ? (
-          <FlatList
-            data={mostRecentOffers}
-            renderItem={({ item }) => {
-              return (
-                <OfferCard
-                  props={item}
-                  isSavedState={savedOffersId}
-                  nameOfCard={true}
-                />
-              );
+            ADD
+          </Text>
+          <Text
+            style={{
+              marginLeft: 14,
+
+              fontSize: 14,
+              color: "#f4f4f4",
+              fontWeight: "700",
             }}
-            keyExtractor={(item, index) => index.toString()}
-          />
-        ) : null}
-        {props.screen === "cards" && !props.loadingState ? (
-          <FlatList
-            style={{ paddingHorizontal: 8 }}
-            data={props.cardsData}
-            numColumns={2}
-            renderItem={({ item }) => {
-              return (
-                <DefaultCard props={item} setId={setId} setProps={setProps} />
-              );
-            }}
-            keyExtractor={(item, index) => index.toString()}
-            onEndReached={async () => {
-              await fetchMoreCards(props, setProps);
-              setProps((prevState) => ({
-                ...prevState,
-                pageNumber: props.pageNumber + 1,
-              }));
-            }}
-            onEndReachedThreshold={4}
-          />
-        ) : null}
-        {props.screen === "offers" &&
-        offersData?.length > 0 &&
-        !props.loadingState ? (
-          <FlatList
-            data={offersData}
-            renderItem={({ item }) => {
-              return (
-                <OfferCard
-                  props={item}
-                  isSavedState={savedOffersId}
-                  nameOfCard={false}
-                />
-              );
-            }}
-            keyExtractor={(item, index) => index.toString()}
-          />
-        ) : null}
-        {props.screen === "offers" &&
-        (offersData?.length === 0 || offersData === undefined) &&
-        !props.loadingState ? (
-          <View
-            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
           >
             <Text
               style={{
-                color: "#5c5c5c",
+                marginLeft: 6,
+
+                fontSize: 14,
+                color: "#f4f4f4",
                 fontWeight: "700",
-                fontSize: 20,
-                width: "80%",
-                textAlign: "center",
               }}
             >
-              There are no offers with the specified filters
-            </Text>
-          </View>
-        ) : null}
-        {props.loadingState ? (
-          <View
+              AN
+            </Text>{" "}
+            CARD
+          </Text>
+          <Text
             style={{
-              flex: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            <ActivityIndicator size='large' color='#0082ff' />
-          </View>
-        ) : null}
-      </View>
+              marginLeft: 14,
+              marginTop: 12,
+              width: 140,
+
+              fontSize: 12,
+              color: "#7C7C7C",
+              fontFamily: "Roboto_Medium",
+            }}
+          >
+            It's very simple, write a description, take photos and publish.
+            <Text style={{ color: "#05FD00", fontWeight: "700" }}>
+              {" "}
+              Welcome!
+            </Text>
+          </Text>
+        </View>
+
+        <Image
+          source={add_an_offer_background}
+          style={{
+            aspectRatio: 471 / 330,
+            width: undefined,
+            height: "100%",
+          }}
+        />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={{
+          backgroundColor: "#121212",
+          width: "94%",
+          height: "22%",
+          borderRadius: 6,
+          flexDirection: "row",
+          justifyContent: "space-between",
+        }}
+        onPress={() => {
+          navigation.navigate("Search");
+        }}
+      >
+        <View>
+          <Text
+            style={{
+              marginTop: 8,
+              marginLeft: 12,
+              flexDirection: "column",
+
+              fontSize: 24,
+              color: "#f4f4f4",
+              fontWeight: "700",
+            }}
+          >
+            SEARCH FOR
+          </Text>
+          <Text
+            style={{
+              marginLeft: 14,
+
+              fontSize: 14,
+              color: "#f4f4f4",
+              fontWeight: "700",
+            }}
+          >
+            A CARD
+          </Text>
+          <Text
+            style={{
+              marginLeft: 14,
+              marginTop: 12,
+              width: 140,
+              fontSize: 12,
+              color: "#7C7C7C",
+              fontFamily: "Roboto_Medium",
+            }}
+          >
+            Filter through{" "}
+            <Text style={{ color: "#05FD00", fontWeight: "700" }}>
+              thousands of offers
+            </Text>{" "}
+            and buy the one you want!
+          </Text>
+        </View>
+
+        <Image
+          source={search_card}
+          style={{
+            aspectRatio: 133 / 110,
+            width: undefined,
+            height: "100%",
+          }}
+        />
+      </TouchableOpacity>
     </View>
   );
 }

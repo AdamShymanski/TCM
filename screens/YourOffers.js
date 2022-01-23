@@ -9,11 +9,13 @@ import {
   ActivityIndicator,
 } from "react-native";
 
+import { LoadingIndicator } from "react-native-paper";
+
 import { MaterialIcons } from "@expo/vector-icons";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 import DeleteCardModal from "../shared/DeleteCardModal";
-import { CardYourOffers } from "../shared/cards/CardYourOffers";
+import { CardYourOffers } from "../shared/Cards/CardYourOffers";
 import { fetchUsersCards } from "../authContext";
 
 import { AlertModal } from "../shared/AlertModal";
@@ -31,10 +33,10 @@ export default function YourOffers() {
   useEffect(() => {
     const resolvePromises = async () => {
       setCardsData(await fetchUsersCards());
-      setLoadingState(false);
     };
 
     resolvePromises();
+    setLoadingState(false);
   }, []);
 
   useEffect(() => {
@@ -57,9 +59,17 @@ export default function YourOffers() {
         flexDirection: "column",
       }}
     >
-      {modalState ? <DeleteCardModal setModal={setModalState} id={id} /> : null}
-      {alertModal ? <AlertModal setModal={setAlertModal} /> : null}
-      {!loadingState ? (
+      {loadingState ? (
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ActivityIndicator size="large" color="#0082ff" />
+        </View>
+      ) : (
         <View
           style={{
             flex: 1,
@@ -156,17 +166,9 @@ export default function YourOffers() {
             </View>
           )}
         </View>
-      ) : (
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <ActivityIndicator size="large" color="#0082ff" />
-        </View>
       )}
+      {modalState ? <DeleteCardModal setModal={setModalState} id={id} /> : null}
+      {alertModal ? <AlertModal setModal={setAlertModal} /> : null}
     </View>
   );
 }

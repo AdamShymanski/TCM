@@ -9,6 +9,8 @@ import IconIO from "react-native-vector-icons/Ionicons";
 import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
 import IconM from "react-native-vector-icons/MaterialIcons";
 
+import cart_check from "./../../assets/cart_check.png";
+
 import {
   auth,
   saveOffer,
@@ -16,6 +18,8 @@ import {
   fetchPhotos,
   fetchOwnerData,
   fetchCardsName,
+  addToCart,
+  db,
 } from "../../authContext";
 
 import { Snackbar } from "react-native-paper";
@@ -25,7 +29,12 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import SellerDetailsBar from "../SellerDetailsBar";
 
-export default function OfferCard({ props, isSavedState, nameOfCard }) {
+export default function OfferCard({
+  props,
+  isSavedState,
+  cartState,
+  nameOfCard,
+}) {
   const condition = props.condition;
   const description = props.description;
   const price = props.price;
@@ -41,6 +50,7 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
     name: null,
     countryCodes: null,
     collectionSize: null,
+    cart: [],
   });
   const [isSaved, setSaveOffer] = useState(false);
   const [photosArray, setPhotosArray] = useState([
@@ -54,11 +64,31 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
   const [detailsBarState, setDetailsBar] = useState(true);
 
   const [pokemonName, setPokemonName] = useState(false);
+  const [cart, setCartState] = useState(false);
 
   const navigation = useNavigation();
 
   useEffect(() => {
     let mounted = true;
+
+    // if (mounted) {
+    //   unsubscribe = db
+    //     .collection("users")
+    //     .doc(auth.currentUser.uid)
+    //     .onSnapshot((snapshot) => {
+    //       if (mounted) {
+    //         if (snapshot.data().cart?.lenght > 0) {
+    //           let result = false;
+    //           snapshot.data().cart.forEach((item) => {
+    //             if (item === props.id) {
+    //               result = true;
+    //             }
+    //           });
+    //           setCartState(result);
+    //         }
+    //       }
+    //     });
+    // }
 
     const resolvePromises = async () => {
       if (mounted) {
@@ -66,6 +96,11 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
         setOwner(await fetchOwnerData(props.owner));
         setPhotosArray(fillPhotosArray(cardPhotos));
 
+        cartState.forEach((item) => {
+          if (item === props.id) {
+            setCartState(true);
+          }
+        });
         isSavedState.forEach((item) => {
           if (item == props.id) setSaveOffer(true);
         });
@@ -73,18 +108,23 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
         if (nameOfCard) {
           setPokemonName(await fetchCardsName(props.cardId));
         }
+
         setLoading(false);
       }
     };
 
     resolvePromises();
-    return () => (mounted = false);
+    return () => {
+      mounted = false;
+    };
   }, []);
+
   useEffect(() => {
-    setSaveOffer(false);
+    let result = false;
     isSavedState.forEach((item) => {
-      if (item == props.id) setSaveOffer(true);
+      if (item == props.id) result = true;
     });
+    setSaveOffer(result);
   }, [isSavedState]);
 
   const clickSave = async () => {
@@ -105,65 +145,25 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
       }
     }
   };
-  const renderSaveButton = () => {
+  const renderSaveIndicator = () => {
     if (isSaved) {
       return (
-        <TouchableOpacity
-          style={[
-            {
-              borderRadius: 3,
-              marginRight: 16,
-
-              height: 30,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#0082FF",
-              width: 90,
-            },
-          ]}
+        <IconMI
+          name={"bookmark-check"}
+          color={"#0082ff"}
+          size={nameOfCard ? 26 : 29}
           onPress={() => {
             clickSave();
           }}
-        >
-          <Text
-            style={[
-              {
-                fontSize: 16,
-                fontWeight: "700",
-                color: "#121212",
-              },
-            ]}
-          >
-            Saved
-          </Text>
-          <IconMI
-            name={"check-bold"}
-            size={18}
-            color="#121212"
-            style={{ marginLeft: 6, bottom: 1 }}
-          />
-        </TouchableOpacity>
+        />
       );
     }
 
     return (
-      <TouchableOpacity
-        style={[
-          {
-            borderRadius: 3,
-            marginRight: 16,
-
-            height: 30,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 76,
-            backgroundColor: "transparent",
-            borderWidth: 2.5,
-            borderColor: "#5c5c5c",
-          },
-        ]}
+      <IconMI
+        name={"bookmark-plus-outline"}
+        color={"#0082ff"}
+        size={nameOfCard ? 26 : 29}
         onPress={() => {
           if (ownerId === auth.currentUser.uid) {
             setSnackbar("You can't save your own offer");
@@ -171,21 +171,77 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
             clickSave();
           }
         }}
+      />
+    );
+  };
+
+  const renderCartButton = () => {
+    if (cart) {
+      return (
+        <TouchableOpacity
+          style={{
+            width: 100,
+            paddingVertical: 4.5,
+            marginRight: 10,
+
+            borderRadius: 4,
+            backgroundColor: "#0082ff",
+
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontWeight: "700",
+              color: "#121212",
+              marginRight: 8,
+              fontSize: 16,
+            }}
+          >
+            In Cart
+          </Text>
+          <Image source={cart_check} style={{ width: 19, height: 19 }} />
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <TouchableOpacity
+        style={{
+          width: 90,
+          paddingVertical: 3,
+          marginRight: 10,
+
+          borderWidth: 2.5,
+          borderRadius: 4,
+          borderColor: "#5c5c5c",
+
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        onPress={() => {
+          setCartState(true);
+          addToCart(props.id);
+        }}
       >
         <Text
-          style={[
-            {
-              fontSize: 16,
-              fontWeight: "700",
-              color: "#5c5c5c",
-            },
-          ]}
+          style={{
+            fontWeight: "700",
+            color: "#5c5c5c",
+            marginRight: 8,
+            fontSize: 16,
+          }}
         >
-          Save
+          Add
         </Text>
+        <IconMI name={"cart-plus"} size={20} color={"#5c5c5c"} />
       </TouchableOpacity>
     );
   };
+
   const fillPhotosArray = (array) => {
     let outArray = [];
 
@@ -371,16 +427,29 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
                 borderRadius: 5,
               }}
             >
-              <Text
+              <View
                 style={{
-                  color: "#d6d6d6",
-                  fontSize: 16,
-                  paddingBottom: 12,
-                  fontWeight: "700",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingRight: 12,
+                  paddingLeft: 3,
+                  paddingBottom: 8,
                 }}
               >
-                {pokemonName}
-              </Text>
+                <Text
+                  style={{
+                    color: "#d6d6d6",
+                    fontSize: 16,
+
+                    fontWeight: "700",
+                  }}
+                >
+                  {pokemonName}
+                </Text>
+                {renderSaveIndicator()}
+              </View>
+
               <View
                 style={{
                   flexDirection: "row",
@@ -523,38 +592,38 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
                 flexDirection: "row",
               }}
             >
-              {renderSaveButton()}
+              {renderCartButton()}
 
               <TouchableOpacity
                 style={{
-                  width: 76,
-                  height: 30,
+                  width: 86,
+                  paddingVertical: 3.5,
+
+                  borderRadius: 4,
+
+                  backgroundColor: "#0082FF",
+
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
-
-                  backgroundColor: "#0082FF",
-                  borderRadius: 3,
-                  marginRight: 5,
-                }}
-                onPress={() => {
-                  if (ownerId === auth.currentUser.uid) {
-                    setSnackbar("You can't buy your own card");
-                  } else {
-                    navigation.navigate("Buy", { ownerId });
-                  }
                 }}
               >
                 <Text
                   style={{
-                    fontSize: 16,
                     fontWeight: "700",
                     color: "#121212",
-                    marginRight: 5,
+                    fontSize: 16,
+                    marginRight: 6,
                   }}
                 >
                   Buy
                 </Text>
+                <IconMI
+                  name={"credit-card-outline"}
+                  size={20}
+                  color={"#121212"}
+                  style={{ marginTop: 2.5 }}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -577,10 +646,9 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
       <View
         style={{
           backgroundColor: "transparent",
-          marginHorizontal: 4,
           marginVertical: 6,
-          marginRight: 20,
-          marginLeft: 20,
+          marginRight: 14,
+          marginLeft: 14,
         }}
       >
         <Modal visible={imageViewerState} transparent={true}>
@@ -637,11 +705,11 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
 
               flexDirection: "row",
               alignItems: "center",
-              marginBottom: detailsBarState ? 0 : 18,
+              marginBottom: !detailsBarState ? 0 : 18,
 
               borderRadius: 3,
-              borderBottomRightRadius: detailsBarState ? 0 : 3,
-              borderBottomLeftRadius: detailsBarState ? 0 : 3,
+              borderBottomRightRadius: !detailsBarState ? 0 : 3,
+              borderBottomLeftRadius: !detailsBarState ? 0 : 3,
               backgroundColor: "#121212",
             }}
           >
@@ -651,7 +719,7 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
                 paddingVertical: 8,
                 paddingHorizontal: 12,
                 borderTopLeftRadius: 3,
-                borderBottomLeftRadius: detailsBarState ? 0 : 3,
+                borderBottomLeftRadius: !detailsBarState ? 0 : 3,
                 marginRight: 10,
               }}
             >
@@ -695,7 +763,7 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
               }}
             >
               <IconM
-                name={detailsBarState ? "expand-less" : "expand-more"}
+                name={!detailsBarState ? "expand-less" : "expand-more"}
                 size={26}
                 color="#f4f4f4"
               />
@@ -739,11 +807,11 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
             <View
               style={{
                 height: "100%",
+                borderRadius: 5,
+
                 flex: 1,
                 flexDirection: "column",
-
                 paddingLeft: 12,
-                borderRadius: 5,
               }}
             >
               <View
@@ -773,6 +841,16 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
                     }}
                   >
                     {condition}
+                    <Text
+                      style={{
+                        color: "#7c7c7c",
+                        fontFamily: "Roboto_Medium",
+                        fontSize: 9,
+                        marginLeft: 4,
+                      }}
+                    >
+                      /10
+                    </Text>
                   </Text>
                 </View>
 
@@ -878,38 +956,42 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
                 flexDirection: "row",
               }}
             >
-              {renderSaveButton()}
+              <View style={{ marginRight: 12, marginTop: 4 }}>
+                {renderSaveIndicator()}
+              </View>
+
+              {renderCartButton()}
 
               <TouchableOpacity
                 style={{
-                  width: 76,
-                  height: 30,
+                  width: 86,
+                  paddingVertical: 3.5,
+
+                  borderRadius: 4,
+
+                  backgroundColor: "#0082FF",
+
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
-
-                  backgroundColor: "#0082FF",
-                  borderRadius: 3,
-                  marginRight: 5,
-                }}
-                onPress={() => {
-                  if (ownerId === auth.currentUser.uid) {
-                    setSnackbar("You can't buy your own card");
-                  } else {
-                    navigation.navigate("Buy", { ownerId });
-                  }
                 }}
               >
                 <Text
                   style={{
-                    fontSize: 16,
                     fontWeight: "700",
                     color: "#121212",
-                    marginRight: 5,
+                    fontSize: 16,
+                    marginRight: 6,
                   }}
                 >
                   Buy
                 </Text>
+                <IconMI
+                  name={"credit-card-outline"}
+                  size={20}
+                  color={"#121212"}
+                  style={{ marginTop: 2.5 }}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -923,7 +1005,7 @@ export default function OfferCard({ props, isSavedState, nameOfCard }) {
             onPress: () => {},
           }}
         >
-          You can't buy this card
+          {snackbarState}
         </Snackbar>
       </View>
     );

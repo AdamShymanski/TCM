@@ -131,6 +131,16 @@ export default function CustomDrawer({ navigation }) {
             />
             <DrawerItem
               icon={({ color, size }) => (
+                <Icon name="swap-vertical" color={"#f4f4f4"} size={size} />
+              )}
+              labelStyle={{ color: "#f4f4f4" }}
+              label="Transactions"
+              onPress={() => {
+                navigation.navigate("Transactions");
+              }}
+            />
+            <DrawerItem
+              icon={({ color, size }) => (
                 <Icon name="bookmark-outline" color={"#f4f4f4"} size={size} />
               )}
               labelStyle={{ color: "#f4f4f4" }}
