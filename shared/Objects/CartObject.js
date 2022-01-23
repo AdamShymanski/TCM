@@ -3,10 +3,11 @@ import { View, Text, TouchableOpacity, Image } from "react-native";
 
 import Icon from "react-native-vector-icons/Octicons";
 
-export default function CartObecjt({ props }) {
-  useEffect(() => {
-    console.log(props);
-  }, []);
+import { removeFromCart } from "../authContext";
+
+export default function CartObject({ props, setOffersState, setCartState }) {
+  const [visible, setVisible] = useState(true);
+  if (!visible) return null;
   return (
     <View
       style={{
@@ -138,6 +139,35 @@ export default function CartObecjt({ props }) {
               paddingHorizontal: 12,
               paddingVertical: 5,
               borderRadius: 3,
+            }}
+            onPress={async () => {
+              // setVisible(false);
+              //delete item from offersArray
+              //then delete id of offet from cart in db of user
+
+              setCartState((prevState) => {
+                prevState.forEach((item, index) => {
+                  if (item === props.id) {
+                    prevState.splice(index, 1);
+                  }
+                });
+                return prevState;
+              });
+              setOffersState((prevState) => {
+                prevState.forEach((item, masterIndex) => {
+                  item.offers.forEach((offer, index) => {
+                    if (offer.id === props.id) {
+                      prevState[masterIndex].offers.splice(index, 1);
+                      if (prevState[masterIndex].offers.length === 0) {
+                        prevState.splice(masterIndex, 1);
+                      }
+                    }
+                  });
+                });
+
+                return [...prevState];
+              });
+              await removeFromCart(props.id);
             }}
           >
             <Text

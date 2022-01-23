@@ -5,7 +5,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 import { fetchSavedCards } from "../authContext";
 import { useIsFocused } from "@react-navigation/native";
-import { CardSavedOffers } from "../shared/cards/CardSavedOffers";
+import { CardSavedOffers } from "../shared/Cards/CardSavedOffers";
 
 export default function SavedOffers({ navigation }) {
   const [cardsData, setCardsData] = useState([]);

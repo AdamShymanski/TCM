@@ -22,10 +22,15 @@ exports.paymentSheet = functions.https.onRequest(async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: 1099,
       currency: "eur",
+
       customer: customer.id,
       automatic_payment_methods: {
         enabled: true,
       },
+
+      googlePay: true,
+      merchantCountryCode: "US",
+      testEnv: true,
     });
 
     res.json({
@@ -36,6 +41,18 @@ exports.paymentSheet = functions.https.onRequest(async (req, res) => {
         publishableKey:
           "pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX",
       },
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+exports.placeOrder = functions.https.onRequest(async (req, res) => {
+  try {
+    const { address1, address2, city, state, zip, country } = req.body;
+
+    res.json({
+      data: { address1, address2, city, state, zip, country },
     });
   } catch (error) {
     console.log(error);

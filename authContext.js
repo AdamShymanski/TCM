@@ -48,6 +48,7 @@ export async function addCard(values, gradingSwitch, photoState, cardId) {
       isGraded: gradingSwitch,
       owner: auth.currentUser.uid,
       cardId: cardId,
+      status: "verificationPending",
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     })
     .then(async (docRef) => {
@@ -200,7 +201,10 @@ export async function updateCard(props, outValues, initValues, valuesOrder) {
       updateObj.lowestPrice = await searchForNewLowestPrice();
       updateObj.highestPrice = await searchForNewHighestPrice();
 
-      await db.collection("cardsData").doc(props.cardId).update(updateObj);
+      await db
+        .collection("cardsData")
+        .doc(props.cardId)
+        .update({ updateObj, status: "verificationPending" });
     }
   } catch (error) {
     console.log(error);
@@ -637,7 +641,8 @@ export async function fetchOwnerData(ownerId) {
       collectionSize,
       sold,
       visits,
-      bought;
+      bought,
+      cart;
 
     await db
       .collection("users")
@@ -648,6 +653,7 @@ export async function fetchOwnerData(ownerId) {
         country = doc.data()?.country;
         savedOffers = doc.data()?.savedOffers;
 
+        cart = doc.data()?.cart;
         sold = doc.data()?.sold;
         rating = doc.data()?.rating;
         visits = doc.data()?.visits;
@@ -670,6 +676,7 @@ export async function fetchOwnerData(ownerId) {
       visits,
       bought,
       collectionSize,
+      cart,
     };
   } catch (error) {
     console.log(error);
@@ -696,7 +703,7 @@ export async function fetchMostRecentOffers() {
     await db
       .collection("cards")
       .orderBy("timestamp", "desc")
-      .limit(10)
+      .limit(6)
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach((doc) => {
@@ -1180,10 +1187,17 @@ export async function fetchSavedOffersId(setSavedOffersId, setProps) {
       .doc(auth.currentUser.uid)
       .onSnapshot(async (doc) => {
         setSavedOffersId(doc.data().savedOffers);
-        setProps((prevState) => ({
-          ...prevState,
-          loadingState: false,
-        }));
+      });
+  } catch (error) {
+    console.log(error);
+  }
+}
+export async function fetchCart(setCart) {
+  try {
+    db.collection("users")
+      .doc(auth.currentUser.uid)
+      .onSnapshot(async (doc) => {
+        setCart(doc.data().cart);
       });
   } catch (error) {
     console.log(error);
@@ -1249,6 +1263,38 @@ export async function setChatListeners(setListenerData) {
       doc.forEach((doc) => {
         array.push({ data: doc.data(), uid: secondUserUid(doc), id: doc.id });
       });
+      setListenerData(array);
+    });
+}
+export async function setTransactionsListeners(setListenerData) {
+  const secondUserUid = (doc) => {
+    if (doc.data().members[0] == auth.currentUser.uid) {
+      return doc.data().members[1];
+    } else return doc.data().members[0];
+  };
+
+  db.collection("transactions")
+    .where("seller", "==", auth.currentUser.uid)
+    .onSnapshot((doc) => {
+      //
+      // {
+      //   type: sell
+      //   offers:["x", "y"]
+      // }
+      //
+      //
+      setListenerData(array);
+    });
+  db.collection("transactions")
+    .where("buyer", "==", auth.currentUser.uid)
+    .onSnapshot((doc) => {
+      //
+      // {
+      //   type: buy
+      //   offers:["x", "y"]
+      // }
+      //
+      //
       setListenerData(array);
     });
 }
@@ -1362,6 +1408,18 @@ export async function addToCart(offerID) {
       .doc(auth.currentUser.uid)
       .update({
         cart: firebase.firestore.FieldValue.arrayUnion(offerID),
+      });
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+export async function removeFromCart(offerID) {
+  try {
+    db.collection("users")
+      .doc(auth.currentUser.uid)
+      .update({
+        cart: firebase.firestore.FieldValue.arrayRemove(offerID),
       });
   } catch (error) {
     console.log(error);

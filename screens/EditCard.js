@@ -21,7 +21,7 @@ import { useNavigation } from "@react-navigation/native";
 import { fetchBigCards, fetchMoreBigCards, updateCard } from "../authContext";
 
 import pikachu from "../assets/pikachu.png";
-import PickerModal from "../shared/PickerModal";
+import PickerModal from "../shared/Modals/PickerModal";
 
 export default function EditCard({ route }) {
   const navigation = useNavigation();
