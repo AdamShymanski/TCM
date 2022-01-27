@@ -7,18 +7,17 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  r,
 } from "react-native";
-
-import { LoadingIndicator } from "react-native-paper";
 
 import { MaterialIcons } from "@expo/vector-icons";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-import DeleteCardModal from "../shared/DeleteCardModal";
+import DeleteCardModal from "../shared/Modals/DeleteCardModal";
+import { AlertModal } from "../shared/Modals/AlertModal";
 import { CardYourOffers } from "../shared/Cards/CardYourOffers";
-import { fetchUsersCards } from "../authContext";
 
-import { AlertModal } from "../shared/AlertModal";
+import { fetchUsersCards } from "../authContext";
 
 export default function YourOffers() {
   const navigation = useNavigation();

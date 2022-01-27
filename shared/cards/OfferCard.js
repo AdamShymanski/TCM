@@ -25,14 +25,13 @@ import {
 import { Snackbar } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 
-import { LinearGradient } from "expo-linear-gradient";
-
 import SellerDetailsBar from "../SellerDetailsBar";
+// import { LinearGradient } from "expo-linear-gradient";
 
 export default function OfferCard({
   props,
   isSavedState,
-  cartState,
+  cartArray,
   nameOfCard,
 }) {
   const condition = props.condition;
@@ -50,7 +49,6 @@ export default function OfferCard({
     name: null,
     countryCodes: null,
     collectionSize: null,
-    cart: [],
   });
   const [isSaved, setSaveOffer] = useState(false);
   const [photosArray, setPhotosArray] = useState([
@@ -64,31 +62,12 @@ export default function OfferCard({
   const [detailsBarState, setDetailsBar] = useState(true);
 
   const [pokemonName, setPokemonName] = useState(false);
-  const [cart, setCartState] = useState(false);
+  const [cartState, setCartState] = useState(false);
 
   const navigation = useNavigation();
 
   useEffect(() => {
     let mounted = true;
-
-    // if (mounted) {
-    //   unsubscribe = db
-    //     .collection("users")
-    //     .doc(auth.currentUser.uid)
-    //     .onSnapshot((snapshot) => {
-    //       if (mounted) {
-    //         if (snapshot.data().cart?.lenght > 0) {
-    //           let result = false;
-    //           snapshot.data().cart.forEach((item) => {
-    //             if (item === props.id) {
-    //               result = true;
-    //             }
-    //           });
-    //           setCartState(result);
-    //         }
-    //       }
-    //     });
-    // }
 
     const resolvePromises = async () => {
       if (mounted) {
@@ -96,11 +75,10 @@ export default function OfferCard({
         setOwner(await fetchOwnerData(props.owner));
         setPhotosArray(fillPhotosArray(cardPhotos));
 
-        cartState.forEach((item) => {
-          if (item === props.id) {
-            setCartState(true);
-          }
+        cartArray.forEach((item) => {
+          if (item === props.id) setCartState(true);
         });
+
         isSavedState.forEach((item) => {
           if (item == props.id) setSaveOffer(true);
         });
@@ -176,7 +154,7 @@ export default function OfferCard({
   };
 
   const renderCartButton = () => {
-    if (cart) {
+    if (cartState) {
       return (
         <TouchableOpacity
           style={{

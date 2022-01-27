@@ -27,10 +27,10 @@ import {
 
 import * as Google from "expo-google-app-auth";
 
-import ReauthenticationModal from "../shared/ReauthenticationModal";
-import ChangePasswordModal from "../shared/ChangePasswordModal";
-import { CountryPickerModal } from "../shared/CountryPickerModal";
-import { AreYouSureModal } from "../shared/AreYouSureModal";
+import ReauthenticationModal from "../shared/Modals/ReauthenticationModal";
+import ChangePasswordModal from "../shared/Modals/ChangePasswordModal";
+import { CountryPickerModal } from "../shared/Modals/CountryPickerModal";
+import { AreYouSureModal } from "../shared/Modals/AreYouSureModal";
 
 import { useNavigation } from "@react-navigation/native";
 

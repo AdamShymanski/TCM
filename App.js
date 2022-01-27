@@ -46,6 +46,8 @@ import { AdMobBanner } from "expo-ads-admob";
 import CustomHeader from "./shared/CustomHeader";
 import CustomDrawer from "./shared/CustomDrawer";
 
+import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
+
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
@@ -160,110 +162,108 @@ function SettingsStack() {
   );
 }
 function CartStack() {
-  const [progessState, setProgressState] = useState("shippingAddress");
-  //"shippingAddress"
-  //"payment"
-  //"finish"
+  const [checkoutPageState, setCheckoutPageState] = useState(
+    "shippingAddressPage"
+  );
+  //"shippingAddressPage"
+  //"summaryPage"
+  //"endPage"
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="Cart"
-        component={Cart}
-        options={{
-          headerTitle: () => <CustomHeader version={"cart"} />,
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        }}
-      />
-      <Stack.Screen
         name="Checkout"
-        component={Checkout}
+        children={() => (
+          <Checkout
+            pageState={checkoutPageState}
+            setPage={setCheckoutPageState}
+          />
+        )}
         options={({ navigation, route }) => ({
-          headerLeft: () => (
-            <TouchableOpacity
-              style={{
-                borderRadius: 3,
-                marginLeft: 12,
+          headerLeft: () => {
+            if (checkoutPageState !== "endPage") {
+              return (
+                <TouchableOpacity
+                  style={{
+                    borderRadius: 3,
+                    marginLeft: 12,
 
-                height: 30,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 2,
-                borderColor: "#777777",
-                paddingHorizontal: 12,
-              }}
-              onPress={() => navigation.goBack()}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#777777",
-                }}
-              >
-                {"Cancel"}
-              </Text>
-            </TouchableOpacity>
-          ),
+                    height: 30,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderWidth: 2,
+                    borderColor: "#777777",
+                    paddingHorizontal: 12,
+                  }}
+                  onPress={() => navigation.goBack()}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "700",
+                      color: "#777777",
+                    }}
+                  >
+                    {"Cancel"}
+                  </Text>
+                </TouchableOpacity>
+              );
+            } else return null;
+          },
+
           headerRight: () => {
             return (
               <View
                 style={{
                   flexDirection: "row",
-                  alignItems: "flex-start",
+                  alignItems: "center",
                   justifyContent: "center",
+                  marginRight: 12,
                 }}
               >
-                <View style={{ alignItems: "center" }}>
-                  <View
-                    style={{
-                      borderRadius: 8,
-                      width: 8,
-                      height: 8,
-                      backgroundColor: "#0082ff",
-                    }}
-                  />
-                  <Text
-                    style={{
-                      fontFamily: "Roboto_Medium",
-                      color: "#f4f4f4",
-                      fontSize: 12,
-                      marginTop: 6,
-                    }}
-                  >
-                    Finish
-                  </Text>
-                </View>
-                <View
-                  style={{ width: 38, height: 2, backgroundColor: "#0082ff" }}
+                <IconMCI
+                  name={"truck-delivery-outline"}
+                  color={"#0082ff"}
+                  size={26}
                 />
-                <View>
-                  <View
-                    style={{
-                      borderRadius: 6,
-                      width: 6,
-                      height: 6,
-                      backgroundColor: "#0082ff",
-                    }}
-                  />
-                  <Text>Finish</Text>
-                </View>
                 <View
-                  style={{ width: 18, height: 2, backgroundColor: "#0082ff" }}
+                  style={{
+                    width: 38,
+                    height: 2,
+                    backgroundColor:
+                      checkoutPageState !== "shippingAddressPage"
+                        ? "#0560b7"
+                        : "#3d3d3d",
+                    marginHorizontal: 10,
+                    borderRadius: 3,
+                  }}
                 />
-                <View>
-                  <View
-                    style={{
-                      borderRadius: 6,
-                      width: 6,
-                      height: 6,
-                      backgroundColor: "#0082ff",
-                    }}
-                  />
-                  <Text>Finish</Text>
-                </View>
+                <IconMCI
+                  name={"cash-register"}
+                  color={
+                    checkoutPageState !== "shippingAddressPage"
+                      ? "#0082ff"
+                      : "#5c5c5c"
+                  }
+                  size={26}
+                />
+                <View
+                  style={{
+                    width: 38,
+                    height: 2,
+                    backgroundColor:
+                      checkoutPageState === "endPage" ? "#0560b7" : "#3d3d3d",
+                    marginHorizontal: 10,
+                    borderRadius: 3,
+                  }}
+                />
+                <IconMCI
+                  name={"flag-checkered"}
+                  color={
+                    checkoutPageState === "endPage" ? "#0082ff" : "#5c5c5c"
+                  }
+                  size={26}
+                />
               </View>
             );
           },
@@ -273,6 +273,16 @@ function CartStack() {
             backgroundColor: "#121212",
           },
         })}
+      />
+      <Stack.Screen
+        name="Cart"
+        component={Cart}
+        options={{
+          headerTitle: () => <CustomHeader version={"cart"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
       />
     </Stack.Navigator>
   );
@@ -729,7 +739,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [finishRegisterProcess, setFinishRegisterProcess] = useState(null);
-  const [adBanenrState, setAdBannerState] = useState(true);
+  const [adBanerState, setAdBannerState] = useState(true);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -840,8 +850,8 @@ export default function App() {
                 <CustomDrawer navigation={navigation} />
               )}
             >
-              <Drawer.Screen name="Home" component={HomeStack} />
               <Drawer.Screen name="Cart" component={CartStack} />
+              <Drawer.Screen name="Home" component={HomeStack} />
               <Drawer.Screen
                 name="Transactions"
                 component={TransactionsStack}
@@ -858,19 +868,18 @@ export default function App() {
                 component={DeletingAccount}
               />
             </Drawer.Navigator>
-            {adBanenrState ? (
+            {adBanerState ? (
               <AdMobBanner
                 bannerSize="smartBannerPortrait"
                 adUnitID="ca-app-pub-2637485113454186/2096785031"
                 servePersonalizedAds // true or false
-                onDidFailToReceiveAdWithError={(error) => {
-                  console.log(error);
-                  setAdBannerState(false);
-                }}
-                //detect when add is loaded
                 onAdViewDidReceiveAd={() => {
                   setAdBannerState(true);
                 }}
+                onDidFailToReceiveAdWithError={(error) => {
+                  setAdBannerState(false);
+                }}
+                //detect when add is loaded
               />
             ) : null}
           </NavigationContainer>

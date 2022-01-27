@@ -419,9 +419,6 @@ export default function CustomHeader({ version, props, setProps }) {
           style={styles.icon}
         />
         <View style={styles.headerTitle}>
-          <Text style={{ color: "#f4f4f4", size: 34, fontWeight: "700" }}>
-            Hello Again!
-          </Text>
           {/* <TextInput
             mode="outlined"
             placeholderTextColor={"#5c5c5c"}

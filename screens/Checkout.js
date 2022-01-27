@@ -1,32 +1,65 @@
 import React, { useState } from "react";
 
-import { Text, View, Image, TouchableOpacity } from "react-native";
+import {
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  SectionList,
+  SafeAreaView,
+} from "react-native";
 
 import { TextInput } from "react-native-paper";
 import { Formik, ErrorMessage } from "formik";
 import * as yup from "yup";
 
-import { placeOrder } from "../authContext";
+import { placeOrder, httpsCallable } from "../authContext";
+import SummaryObject from "./../shared/Objects/SummaryObject";
 
-const reviewSchema = yup.object({
-  postlCode: yup.string("Wrong format!").required("Name is required!"),
-  country: yup.string("Wrong format!").required("Email is required!"),
-  firstName: yup.string("Wrong format!").required("Password is required!"),
-  lastName: yup.string("Wrong format!").required("Password is required!"),
-  streetAddress: yup.string("Wrong format!").required("Password is required!"),
-  streetAddress2: yup.string("Wrong format!").required("Password is required!"),
-  state: yup.string("Wrong format!").required("Password is required!"),
-  ZIPCode: yup.string("Wrong format!").required("Password is required!"),
-  email: yup.string("Wrong format!").required("Password is required!"),
-  country: yup.string("Wrong format!").required("Password is required!"),
-});
+import DHL_logo from "../assets/DHL_logo.png";
+import FedExExpress_logo from "../assets/FedEx_Express_logo.png";
+import FedEx_logo from "../assets/FedEx_logo.png";
+import UPS_logo from "../assets/UPS_logo.png";
+import USPS_logo from "../assets/USPS_logo.png";
 
-export default function Checkout() {
+import Stripe_logo from "../assets/Stripe_logo.png";
+
+export default function Checkout({ pageState, setPage }) {
+  if (pageState === "shippingAddressPage") {
+    return <ShippingAddressPage setPage={setPage} />;
+  } else if (pageState === "summaryPage") {
+    return <SummaryPage setPage={setPage} />;
+  } else if (pageState === "endPage") {
+    return <EndPage />;
+  } else {
+    return <LoadingPage setPage={setPage} />;
+  }
+}
+
+const ShippingAddressPage = ({ setPage }) => {
+  const [loadingIndicator, setLoadingIndicator] = useState(false);
   const [countryPickerState, setCountryPickerState] = useState("");
   const [countryInputTouched, setCountryInputTouched] = useState(false);
 
-  const [loadingIndicator, setLoadingIndicator] = useState(false);
   const [error, setError] = useState("");
+
+  const reviewSchema = yup.object({
+    postlCode: yup.string("Wrong format!").required("Name is required!"),
+    country: yup.string("Wrong format!").required("Email is required!"),
+    firstName: yup.string("Wrong format!").required("Password is required!"),
+    lastName: yup.string("Wrong format!").required("Password is required!"),
+    streetAddress: yup
+      .string("Wrong format!")
+      .required("Password is required!"),
+    streetAddress2: yup
+      .string("Wrong format!")
+      .required("Password is required!"),
+    state: yup.string("Wrong format!").required("Password is required!"),
+    zipCode: yup.string("Wrong format!").required("Password is required!"),
+    email: yup.string("Wrong format!").required("Password is required!"),
+    country: yup.string("Wrong format!").required("Password is required!"),
+  });
 
   return (
     <ScrollView style={{ backgroundColor: "#1b1b1b", flex: 1 }}>
@@ -35,13 +68,13 @@ export default function Checkout() {
           style={{
             fontWeight: "700",
             color: "#f4f4f4",
-            fontSize: 46,
+            fontSize: 40,
             marginTop: 40,
 
             marginBottom: 18,
           }}
         >
-          Register
+          Shipping Address
         </Text>
         <Text
           style={{
@@ -53,28 +86,25 @@ export default function Checkout() {
             marginBottom: 40,
           }}
         >
-          {"Let's create your account! Fill all the field and submit the form."}
+          {
+            "You have to provide an address where the seller will ship the parcel."
+          }
         </Text>
       </View>
 
       <Formik
         initialValues={{
-          nick: "",
+          zipCode: "",
           country: "",
-          email: "",
-          password: "",
-          confirmPassword: "",
+          state: "",
+          streetAddress1: "",
+          streetAddress2: "",
+          city: "",
         }}
         validationSchema={reviewSchema}
         onSubmit={async (values, actions) => {
           setLoadingIndicator(true);
-          await register(
-            values.email,
-            values.password,
-            values.nick,
-            values.country,
-            setError
-          );
+
           setLoadingIndicator(false);
         }}
         style={{
@@ -104,16 +134,212 @@ export default function Checkout() {
                 setVisible={setCountryPickerState}
               />
             ) : null}
+            <View
+              style={{
+                width: "90%",
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <TextInput
+                mode={"outlined"}
+                value={props.values.firstName}
+                onChangeText={props.handleChange("firstName")}
+                label="First Name"
+                outlineColor={"#5c5c5c"}
+                error={
+                  props.touched.firstName && props.errors.firstName
+                    ? true
+                    : false
+                }
+                style={{
+                  width: "40%",
+                  backgroundColor: "#1b1b1b",
+                  color: "#f4f4f4",
+                  marginTop: 20,
+                }}
+                theme={{
+                  colors: {
+                    primary: "#0082ff",
+                    placeholder: "#5c5c5c",
+                    background: "transparent",
+                    text: "#f4f4f4",
+                  },
+                }}
+              />
+              <ErrorMessage component="div" name="firstName">
+                {(msg) => (
+                  <Text
+                    style={{
+                      width: "45%",
+                      marginTop: 8,
+                      marginBottom: 18,
+                      height: 20,
+                      flexDirection: "row",
+                      justifyContent: "flex-end",
+                      color: "#b40424",
+                      fontWeight: "700",
+                    }}
+                  >
+                    {msg}
+                  </Text>
+                )}
+              </ErrorMessage>
+              <TextInput
+                mode={"outlined"}
+                value={props.values.lastName}
+                onChangeText={props.handleChange("lastName")}
+                label="Last Name"
+                outlineColor={"#5c5c5c"}
+                error={
+                  props.touched.lastName && props.errors.lastName ? true : false
+                }
+                style={{
+                  width: "55%",
+                  backgroundColor: "#1b1b1b",
+                  color: "#f4f4f4",
+                  marginTop: 20,
+                }}
+                theme={{
+                  colors: {
+                    primary: "#0082ff",
+                    placeholder: "#5c5c5c",
+                    background: "transparent",
+                    text: "#f4f4f4",
+                  },
+                }}
+              />
+              <ErrorMessage component="div" name="lastName">
+                {(msg) => (
+                  <Text
+                    style={{
+                      width: "45%",
+                      marginTop: 8,
+                      marginBottom: 18,
+                      height: 20,
+                      flexDirection: "row",
+                      justifyContent: "flex-end",
+                      color: "#b40424",
+                      fontWeight: "700",
+                    }}
+                  >
+                    {msg}
+                  </Text>
+                )}
+              </ErrorMessage>
+            </View>
+            <View
+              style={{
+                width: "90%",
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <TextInput
+                mode={"outlined"}
+                value={props.values.zipCode}
+                onChangeText={props.handleChange("zipCode")}
+                label="ZIP/Postal Code"
+                outlineColor={"#5c5c5c"}
+                error={props.touched.nick && props.errors.nick ? true : false}
+                style={{
+                  width: "45%",
+                  backgroundColor: "#1b1b1b",
+                  color: "#f4f4f4",
+                  marginTop: 20,
+                }}
+                theme={{
+                  colors: {
+                    primary: "#0082ff",
+                    placeholder: "#5c5c5c",
+                    background: "transparent",
+                    text: "#f4f4f4",
+                  },
+                }}
+              />
+              <ErrorMessage component="div" name="zipCode">
+                {(msg) => (
+                  <Text
+                    style={{
+                      width: "45%",
+                      marginTop: 8,
+                      marginBottom: 18,
+                      height: 20,
+                      flexDirection: "row",
+                      justifyContent: "flex-end",
+                      color: "#b40424",
+                      fontWeight: "700",
+                    }}
+                  >
+                    {msg}
+                  </Text>
+                )}
+              </ErrorMessage>
+              <TouchableOpacity
+                style={{ width: "50%" }}
+                onPress={() => {
+                  setCountryPickerState(true);
+                  setCountryInputTouched(true);
+                }}
+              >
+                <TextInput
+                  mode={"outlined"}
+                  value={props.values.country}
+                  onChangeText={props.handleChange("country")}
+                  label="Country"
+                  outlineColor={
+                    props.errors.country && countryInputTouched
+                      ? "#b40424"
+                      : "#5c5c5c"
+                  }
+                  style={{
+                    width: "100%",
+                    backgroundColor: "#1b1b1b",
+                    marginTop:
+                      props.errors.country && countryInputTouched ? 0 : 20,
+                  }}
+                  disabled={true}
+                  theme={{
+                    colors: {
+                      text: "#fff",
+                      disabled:
+                        props.errors.country && countryInputTouched
+                          ? "#b40424"
+                          : "#5c5c5c",
+                      background: "transparent",
+                    },
+                  }}
+                />
+              </TouchableOpacity>
+              <ErrorMessage component="div" name="country">
+                {(msg) => (
+                  <Text
+                    style={{
+                      width: "50%",
+                      marginTop: 8,
+                      marginBottom: 18,
+                      height: 20,
+                      flexDirection: "row",
+                      justifyContent: "flex-end",
+                      color: "#b40424",
+                      fontWeight: "700",
+                    }}
+                  >
+                    {msg}
+                  </Text>
+                )}
+              </ErrorMessage>
+            </View>
+
             <TextInput
               mode={"outlined"}
-              value={props.values.nick}
-              onChangeText={props.handleChange("nick")}
-              label="Nick"
+              value={props.values.state}
+              onChangeText={props.handleChange("state")}
+              label="State/Province/Region"
               outlineColor={"#5c5c5c"}
               error={props.touched.nick && props.errors.nick ? true : false}
               style={{
-                width: "70%",
-
+                width: "90%",
                 backgroundColor: "#1b1b1b",
                 color: "#f4f4f4",
                 marginTop: 20,
@@ -127,11 +353,11 @@ export default function Checkout() {
                 },
               }}
             />
-            <ErrorMessage component="div" name="nick">
+            <ErrorMessage component="div" name="state">
               {(msg) => (
                 <Text
                   style={{
-                    width: "70%",
+                    width: "45%",
                     marginTop: 8,
                     marginBottom: 18,
                     height: 20,
@@ -145,107 +371,23 @@ export default function Checkout() {
                 </Text>
               )}
             </ErrorMessage>
+
             <TextInput
               mode={"outlined"}
-              value={props.values.email}
-              onChangeText={props.handleChange("email")}
-              label="Email"
-              outlineColor={"#5c5c5c"}
-              error={props.touched.email && props.errors.email ? true : false}
-              style={{
-                width: "70%",
-                backgroundColor: "#1b1b1b",
-                color: "#f4f4f4",
-                marginTop: props.touched.nick && props.errors.nick ? 0 : 20,
-              }}
-              theme={{
-                colors: {
-                  primary: "#0082ff",
-                  placeholder: "#5c5c5c",
-                  background: "transparent",
-                  text: "#f4f4f4",
-                },
-              }}
-            />
-            <ErrorMessage component="div" name="email">
-              {(msg) => (
-                <Text
-                  style={{
-                    width: "70%",
-                    marginTop: 8,
-                    marginBottom: 18,
-                    height: 20,
-                    flexDirection: "row",
-                    justifyContent: "flex-end",
-                    color: "#b40424",
-                    fontWeight: "700",
-                  }}
-                >
-                  {msg}
-                </Text>
-              )}
-            </ErrorMessage>
-            <TextInput
-              mode={"outlined"}
-              value={props.values.password}
-              secureTextEntry={true}
-              onChangeText={props.handleChange("password")}
-              label="Password"
+              value={props.values.streetAddress1}
+              onChangeText={props.handleChange("streetAddress1")}
+              label="Street Address nr.1"
               outlineColor={"#5c5c5c"}
               error={
-                props.touched.password && props.errors.password ? true : false
-              }
-              style={{
-                width: "70%",
-                backgroundColor: "#1b1b1b",
-                color: "#f4f4f4",
-                marginTop: props.touched.email && props.errors.email ? 0 : 20,
-              }}
-              theme={{
-                colors: {
-                  primary: "#0082ff",
-                  placeholder: "#5c5c5c",
-                  background: "transparent",
-                  text: "#f4f4f4",
-                },
-              }}
-            />
-            <ErrorMessage component="div" name="password">
-              {(msg) => (
-                <Text
-                  style={{
-                    width: "70%",
-                    marginTop: 8,
-                    marginBottom: 18,
-                    height: 20,
-                    flexDirection: "row",
-                    justifyContent: "flex-end",
-                    color: "#b40424",
-                    fontWeight: "700",
-                  }}
-                >
-                  {msg}
-                </Text>
-              )}
-            </ErrorMessage>
-            <TextInput
-              mode={"outlined"}
-              value={props.values.confirmPassword}
-              secureTextEntry={true}
-              onChangeText={props.handleChange("confirmPassword")}
-              label="Confirm Password"
-              outlineColor={"#5c5c5c"}
-              error={
-                props.touched.confirmPassword && props.errors.confirmPassword
+                props.touched.streetAddress1 && props.errors.streetAddress1
                   ? true
                   : false
               }
               style={{
-                width: "70%",
+                width: "90%",
                 backgroundColor: "#1b1b1b",
                 color: "#f4f4f4",
-                marginTop:
-                  props.touched.password && props.errors.password ? 0 : 20,
+                marginTop: 20,
               }}
               theme={{
                 colors: {
@@ -256,11 +398,11 @@ export default function Checkout() {
                 },
               }}
             />
-            <ErrorMessage component="div" name="confirmPassword">
+            <ErrorMessage component="div" name="streetAddress1">
               {(msg) => (
                 <Text
                   style={{
-                    width: "70%",
+                    width: "45%",
                     marginTop: 8,
                     marginBottom: 18,
                     height: 20,
@@ -274,63 +416,175 @@ export default function Checkout() {
                 </Text>
               )}
             </ErrorMessage>
-            <TouchableOpacity
-              style={{ width: "70%" }}
-              onPress={() => {
-                setCountryPickerState(true);
-                setCountryInputTouched(true);
+            <TextInput
+              mode={"outlined"}
+              value={props.values.streetAddress2}
+              onChangeText={props.handleChange("streetAddress2")}
+              label="Street Address nr.2 (optional)"
+              outlineColor={"#5c5c5c"}
+              error={
+                props.touched.streetAddress2 && props.errors.streetAddress2
+                  ? true
+                  : false
+              }
+              style={{
+                width: "90%",
+                backgroundColor: "#1b1b1b",
+                color: "#f4f4f4",
+                marginTop: 20,
+              }}
+              theme={{
+                colors: {
+                  primary: "#0082ff",
+                  placeholder: "#5c5c5c",
+                  background: "transparent",
+                  text: "#f4f4f4",
+                },
+              }}
+            />
+            <ErrorMessage component="div" name="streetAddress2">
+              {(msg) => (
+                <Text
+                  style={{
+                    width: "45%",
+                    marginTop: 8,
+                    marginBottom: 18,
+                    height: 20,
+                    flexDirection: "row",
+                    justifyContent: "flex-end",
+                    color: "#b40424",
+                    fontWeight: "700",
+                  }}
+                >
+                  {msg}
+                </Text>
+              )}
+            </ErrorMessage>
+
+            <View
+              style={{
+                width: "90%",
+                flexDirection: "row",
+                justifyContent: "space-between",
               }}
             >
+              <View
+                style={{
+                  width: "42%",
+                }}
+              >
+                <TextInput
+                  mode={"outlined"}
+                  value={props.values.countryCode}
+                  onChangeText={props.handleChange("countryCode")}
+                  label="Country Code"
+                  outlineColor={"#5c5c5c"}
+                  error={
+                    props.touched.countryCode && props.errors.countryCode
+                      ? true
+                      : false
+                  }
+                  style={{
+                    width: "100%",
+                    backgroundColor: "#1b1b1b",
+                    color: "#f4f4f4",
+                    marginTop: 20,
+                  }}
+                  theme={{
+                    colors: {
+                      primary: "#0082ff",
+                      placeholder: "#5c5c5c",
+                      background: "transparent",
+                      text: "#f4f4f4",
+                    },
+                  }}
+                />
+                {props.errors.countryCode ? (
+                  <ErrorMessage component="div" name="countryCode">
+                    {(msg) => (
+                      <Text
+                        style={{
+                          width: "45%",
+                          marginTop: 8,
+                          marginBottom: 18,
+                          height: 20,
+                          flexDirection: "row",
+                          justifyContent: "flex-end",
+                          color: "#b40424",
+                          fontWeight: "700",
+                        }}
+                      >
+                        {msg}
+                      </Text>
+                    )}
+                  </ErrorMessage>
+                ) : (
+                  <Text
+                    style={{
+                      width: "100%",
+                      marginTop: 8,
+                      marginBottom: 18,
+                      height: 20,
+                      flexDirection: "row",
+                      justifyContent: "flex-end",
+                      size: 10,
+                      color: "#5c5c5c",
+                    }}
+                  >
+                    Example: +48
+                  </Text>
+                )}
+              </View>
+
               <TextInput
                 mode={"outlined"}
-                value={props.values.country}
-                onChangeText={props.handleChange("country")}
-                label="Country"
-                outlineColor={
-                  props.errors.country && countryInputTouched
-                    ? "#b40424"
-                    : "#5c5c5c"
+                value={props.values.phoneNumber}
+                onChangeText={props.handleChange("phoneNumber")}
+                label="Phone Number"
+                outlineColor={"#5c5c5c"}
+                error={
+                  props.touched.phoneNumber && props.errors.phoneNumber
+                    ? true
+                    : false
                 }
                 style={{
-                  width: "100%",
+                  width: "50%",
                   backgroundColor: "#1b1b1b",
-                  marginTop:
-                    props.errors.country && countryInputTouched ? 0 : 20,
+                  color: "#f4f4f4",
+                  marginTop: 20,
                 }}
-                disabled={true}
                 theme={{
                   colors: {
-                    text: "#fff",
-                    disabled:
-                      props.errors.country && countryInputTouched
-                        ? "#b40424"
-                        : "#5c5c5c",
+                    primary: "#0082ff",
+                    placeholder: "#5c5c5c",
                     background: "transparent",
+                    text: "#f4f4f4",
                   },
                 }}
               />
-            </TouchableOpacity>
-            <ErrorMessage component="div" name="country">
-              {(msg) => (
-                <Text
-                  style={{
-                    width: "70%",
-                    marginTop: 8,
-                    marginBottom: 18,
-                    height: 20,
-                    flexDirection: "row",
-                    justifyContent: "flex-end",
-                    color: "#b40424",
-                    fontWeight: "700",
-                  }}
-                >
-                  {msg}
-                </Text>
-              )}
-            </ErrorMessage>
+              <ErrorMessage component="div" name="phoneNumber">
+                {(msg) => (
+                  <Text
+                    style={{
+                      width: "45%",
+                      marginTop: 8,
+                      marginBottom: 18,
+                      height: 20,
+                      flexDirection: "row",
+                      justifyContent: "flex-end",
+                      color: "#b40424",
+                      fontWeight: "700",
+                    }}
+                  >
+                    {msg}
+                  </Text>
+                )}
+              </ErrorMessage>
+            </View>
+
             <View
               style={{
-                width: "70%",
+                width: "90%",
                 flexDirection: "row-reverse",
                 alignItems: "center",
                 marginBottom: 40,
@@ -348,7 +602,11 @@ export default function Checkout() {
                   borderRadius: 3,
                   paddingHorizontal: 20,
                 }}
-                onPress={props.submitForm}
+                onPress={() => {
+                  // props.submitForm
+                  // setPage("summaryPage");
+                  httpsCallable();
+                }}
               >
                 <Text
                   style={{
@@ -389,4 +647,464 @@ export default function Checkout() {
       </Formik>
     </ScrollView>
   );
-}
+};
+const SummaryPage = ({ setPage }) => {
+  const [sectionListState, setSectionListState] = useState([
+    { title: "Rig", data: [{}] },
+  ]);
+  const [shippingServiceProvider, setShippingServiceProvider] = useState("DHL");
+  return (
+    <View style={{ backgroundColor: "#1b1b1b", flex: 1 }}>
+      <SectionList
+        style={{ width: "100%" }}
+        sections={sectionListState}
+        keyExtractor={(item, index) => item + index}
+        renderItem={({ item }) => <SummaryObject props={item} />}
+        renderSectionHeader={({ section: { title } }) => (
+          <View>
+            <Text
+              style={{
+                color: "#f4f4f4",
+                fontSize: 12,
+                marginTop: 10,
+                marginLeft: 18,
+              }}
+            >
+              from{"  "}
+              <Text
+                style={{
+                  color: "#f4f4f4",
+                  fontSize: 17,
+                  fontFamily: "Roboto_Medium",
+                }}
+              >
+                {title}
+              </Text>
+            </Text>
+          </View>
+        )}
+        ListHeaderComponent={getHeader}
+        ListFooterComponent={getFooter(setPage, shippingServiceProvider)}
+      />
+    </View>
+  );
+};
+const EndPage = () => {
+  return (
+    <View
+      style={{
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#1b1b1b",
+      }}
+    >
+      <Text>Congrats!</Text>
+    </View>
+  );
+};
+const LoadingPage = ({ setPage }) => {
+  return (
+    <View>
+      <Text>Summary</Text>
+    </View>
+  );
+};
+const getHeader = () => {
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={{ alignItems: "center", width: "100%" }}>
+        <Text
+          style={{
+            fontWeight: "700",
+            color: "#f4f4f4",
+            fontSize: 40,
+            marginTop: 20,
+
+            marginBottom: 10,
+          }}
+        >
+          Summary
+        </Text>
+        <Text
+          style={{
+            fontWeight: "600",
+            color: "#939393",
+            fontSize: 12,
+            textAlign: "center",
+            width: "80%",
+            marginBottom: 20,
+          }}
+        >
+          {"Take one last look at what you will pay for."}
+        </Text>
+      </View>
+      <Text
+        style={{
+          color: "#565656",
+          fontFamily: "Roboto_Medium",
+          fontSize: 12,
+          marginLeft: 12,
+          marginBottom: 2,
+          marginTop: 12,
+        }}
+      >
+        REVIEW CARDS
+      </Text>
+    </View>
+  );
+};
+const getFooter = (setPage, shippingServiceProvider) => {
+  return (
+    <View style={{ flex: 1 }}>
+      <View
+        style={{
+          width: "100%",
+          flexDirection: "row",
+          justifyContent: "flex-end",
+          paddingRight: 18,
+        }}
+      >
+        <Text
+          style={{
+            color: "#f4f4f4",
+            fontFamily: "Roboto_Medium",
+            fontSize: 12,
+          }}
+        >
+          Total Cards Cost{"  "}
+          <Text
+            style={{
+              fontSize: 14,
+              color: "#0082ff",
+              fontWeight: "700",
+              fontFamily: "Roboto_Regular",
+            }}
+          >
+            115 USD
+          </Text>
+        </Text>
+      </View>
+
+      <View
+        style={{
+          flexDirection: "row",
+          marginHorizontal: 12,
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          marginTop: 34,
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "column",
+            flex: 1,
+            height: "100%",
+          }}
+        >
+          <Text
+            style={{
+              color: "#565656",
+              fontFamily: "Roboto_Medium",
+              fontSize: 12,
+
+              marginBottom: 8,
+            }}
+          >
+            SHIPPING ADDRESS
+          </Text>
+          <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
+            Adam Szymański
+          </Text>
+          <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
+            Kryształowa 10A
+          </Text>
+          <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>Łódź, 92-446</Text>
+          <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>Poland</Text>
+          <Text style={{ color: "#f4f4f4", marginLeft: 6, marginTop: 8 }}>
+            +48 606417902
+          </Text>
+        </View>
+        <View
+          style={{
+            flex: 1.3,
+            flexDirection: "column",
+            height: "100%",
+          }}
+        >
+          <Text
+            style={{
+              color: "#565656",
+              fontFamily: "Roboto_Medium",
+              fontSize: 12,
+              marginLeft: 12,
+              marginBottom: 8,
+            }}
+          >
+            SHIPPING COST
+          </Text>
+
+          {shippingServiceProvider == "DHL" ? (
+            <Image
+              source={DHL_logo}
+              style={{
+                aspectRatio: 675 / 260,
+                height: 50,
+                width: undefined,
+                marginLeft: 12,
+              }}
+            />
+          ) : null}
+          {shippingServiceProvider == "FedExExpress" ? (
+            <Image
+              source={FedExExpress_logo}
+              style={{
+                aspectRatio: 5000 / 2281,
+                height: 50,
+                width: undefined,
+                marginLeft: 18,
+              }}
+            />
+          ) : null}
+          {shippingServiceProvider == "FedEx" ? (
+            <Image
+              source={FedEx_logo}
+              style={{
+                aspectRatio: 5000 / 1400,
+                height: 40,
+                width: undefined,
+                marginLeft: 18,
+              }}
+            />
+          ) : null}
+          {shippingServiceProvider == "USPS" ? (
+            <Image
+              source={USPS_logo}
+              style={{
+                aspectRatio: 736 / 168,
+                height: 34,
+                width: undefined,
+                marginLeft: 18,
+              }}
+            />
+          ) : null}
+          {shippingServiceProvider == "UPS" ? (
+            <Image
+              source={UPS_logo}
+              style={{
+                aspectRatio: 478 / 570,
+                height: 50,
+                width: undefined,
+                marginLeft: 18,
+              }}
+            />
+          ) : null}
+          <Text
+            style={{
+              fontSize: 12,
+              color: "#B6B6B6",
+              marginLeft: 18,
+              marginTop: 8,
+            }}
+          >
+            Est. delivery: Feb 2 -- Feb 21
+          </Text>
+          <Text
+            style={{
+              color: "#f4f4f4",
+              fontFamily: "Roboto_Medium",
+              fontSize: 12,
+              marginLeft: 18,
+              marginTop: 10,
+            }}
+          >
+            Total Shipping Cost{"  "}
+            <Text
+              style={{
+                fontSize: 14,
+                color: "#0082ff",
+                fontWeight: "700",
+                fontFamily: "Roboto_Regular",
+              }}
+            >
+              18.24 USD
+            </Text>
+          </Text>
+        </View>
+      </View>
+      <Text
+        style={{
+          marginLeft: 12,
+          marginTop: 50,
+
+          fontSize: 18,
+          color: "#f4f4f4",
+          fontFamily: "Roboto_Medium",
+        }}
+      >
+        Final Cost
+      </Text>
+
+      <View
+        style={{ flexDirection: "row", alignItems: "center", marginTop: 8 }}
+      >
+        <Text
+          style={{
+            color: "#565656",
+            fontFamily: "Roboto_Medium",
+            fontSize: 12,
+            marginLeft: 18,
+          }}
+        >
+          CARDS
+        </Text>
+        <Text
+          style={{
+            fontFamily: "Roboto_Medium",
+            color: "#0dff25",
+            fontSize: 12,
+            marginLeft: 8,
+          }}
+        >
+          + 115 USD
+        </Text>
+      </View>
+
+      <View
+        style={{ flexDirection: "row", alignItems: "center", marginTop: 3 }}
+      >
+        <Text
+          style={{
+            color: "#565656",
+            fontFamily: "Roboto_Medium",
+            fontSize: 12,
+            marginLeft: 18,
+          }}
+        >
+          SHIPPING
+        </Text>
+        <Text
+          style={{
+            fontFamily: "Roboto_Medium",
+            color: "#0dff25",
+            fontSize: 12,
+            marginLeft: 8,
+          }}
+        >
+          + 18.24 USD
+        </Text>
+      </View>
+      <View
+        style={{ flexDirection: "row", alignItems: "center", marginTop: 3 }}
+      >
+        <Text
+          style={{
+            color: "#565656",
+            fontFamily: "Roboto_Medium",
+            fontSize: 12,
+            marginLeft: 18,
+          }}
+        >
+          PAYMENT PROCESSING FEES
+        </Text>
+        <Text
+          style={{
+            fontFamily: "Roboto_Medium",
+            color: "#0dff25",
+            fontSize: 12,
+            marginLeft: 8,
+          }}
+        >
+          + 1.48 USD
+        </Text>
+      </View>
+      <View
+        style={{ flexDirection: "row", alignItems: "center", marginTop: 3 }}
+      >
+        <Text
+          style={{
+            color: "#565656",
+            fontFamily: "Roboto_Medium",
+            fontSize: 12,
+            marginLeft: 18,
+          }}
+        >
+          MARKETPLACE FEES
+        </Text>
+        <Text
+          style={{
+            fontFamily: "Roboto_Medium",
+            color: "#0dff25",
+            fontSize: 12,
+            marginLeft: 8,
+          }}
+        >
+          + 6.67 USD
+        </Text>
+      </View>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginTop: 18,
+        }}
+      >
+        <View
+          style={{
+            width: 20,
+            height: 2,
+            backgroundColor: "#f4f4f4",
+            marginLeft: 12,
+            borderRadius: 3,
+          }}
+        />
+        <Text
+          style={{
+            fontWeight: "700",
+            color: "#0082ff",
+            fontSize: 18,
+            marginLeft: 8,
+          }}
+        >
+          141.39 USD
+        </Text>
+      </View>
+      <View
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          marginBottom: 20,
+        }}
+      >
+        <TouchableOpacity
+          style={{
+            backgroundColor: "#0082ff",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 6,
+            paddingVertical: 7,
+            marginTop: 50,
+
+            width: "90%",
+          }}
+          onPress={() => {
+            setPage("endPage");
+          }}
+        >
+          <Text style={{ fontWeight: "700", color: "#121212", fontSize: 18 }}>
+            Purchase
+          </Text>
+        </TouchableOpacity>
+        <View style={{ flexDirection: "row", marginTop: 12 }}>
+          <Text style={{ fontWeight: "Roboto_Medium", color: "#555555" }}>
+            Powered by{"  "}
+          </Text>
+          <Image
+            source={Stripe_logo}
+            style={{ aspectRatio: 282 / 117, width: undefined, height: 20 }}
+          />
+        </View>
+      </View>
+    </View>
+  );
+};
