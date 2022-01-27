@@ -1,93 +1,98 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal } from 'react-native';
+import React, { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, Modal } from "react-native";
 
-import { TextInput } from 'react-native-paper';
-import { reauthenticate } from '../authContext';
+import { TextInput } from "react-native-paper";
+import { reauthenticate } from "../../authContext";
 
 const ReauthenticationModal = ({ setReauthenticationResult, setModal }) => {
-  const [passwordState, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [passwordState, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   return (
     <Modal
       style={{
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: "center",
+        alignItems: "center",
       }}
-      transparent={true}>
+      transparent={true}
+    >
       <View
         style={{
           flex: 1,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
+          backgroundColor: "rgba(0,0,0,0.5)",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <View
           style={{
-            width: '84%',
-            backgroundColor: '#121212',
+            width: "84%",
+            backgroundColor: "#121212",
             borderRadius: 8,
             paddingVertical: 18,
             paddingLeft: 16,
-          }}>
-          <Text style={{ color: '#f4f4f4', fontSize: 26, fontWeight: '700' }}>
+          }}
+        >
+          <Text style={{ color: "#f4f4f4", fontSize: 26, fontWeight: "700" }}>
             Reauthentication
           </Text>
           <TextInput
-            mode={'outlined'}
+            mode={"outlined"}
             value={passwordState}
             secureTextEntry={true}
             onChangeText={(value) => {
               setPassword(value);
             }}
-            label='Password'
-            outlineColor={'#5c5c5c'}
+            label="Password"
+            outlineColor={"#5c5c5c"}
             error={false}
             style={{
-              width: '90%',
-              backgroundColor: '#121212',
-              color: '#f4f4f4',
+              width: "90%",
+              backgroundColor: "#121212",
+              color: "#f4f4f4",
               marginTop: 20,
             }}
             theme={{
               colors: {
-                primary: '#0082ff',
-                placeholder: '#5c5c5c',
-                background: 'transparent',
-                text: '#f4f4f4',
+                primary: "#0082ff",
+                placeholder: "#5c5c5c",
+                background: "transparent",
+                text: "#f4f4f4",
               },
             }}
           />
           {error ? (
             <Text
               style={{
-                color: '#b40424',
-                fontWeight: '700',
+                color: "#b40424",
+                fontWeight: "700",
                 marginTop: 8,
                 marginRight: 16,
-              }}>
+              }}
+            >
               {error}
             </Text>
           ) : null}
 
           <View
             style={{
-              width: '90%',
-              flexDirection: 'row-reverse',
+              width: "90%",
+              flexDirection: "row-reverse",
               marginBottom: 8,
               paddingTop: error ? 16 : 20,
-              alignItems: 'center',
-            }}>
+              alignItems: "center",
+            }}
+          >
             <TouchableOpacity
               style={{
                 height: 30,
 
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
 
-                backgroundColor: '#0082FF',
+                backgroundColor: "#0082FF",
                 borderRadius: 3,
                 paddingHorizontal: 20,
               }}
@@ -96,18 +101,20 @@ const ReauthenticationModal = ({ setReauthenticationResult, setModal }) => {
                   if (await reauthenticate(passwordState)) {
                     setReauthenticationResult(true);
                   } else {
-                    setError('Wrong password!');
+                    setError("Wrong password!");
                   }
                 } catch (error) {
                   console.log(error);
                 }
-              }}>
+              }}
+            >
               <Text
                 style={{
                   fontSize: 16,
-                  fontWeight: '700',
-                  color: '#121212',
-                }}>
+                  fontWeight: "700",
+                  color: "#121212",
+                }}
+              >
                 Submit
               </Text>
             </TouchableOpacity>
@@ -116,11 +123,11 @@ const ReauthenticationModal = ({ setReauthenticationResult, setModal }) => {
                 height: 30,
 
                 marginRight: 14,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
 
-                borderColor: '#5c5c5c',
+                borderColor: "#5c5c5c",
                 borderWidth: 2,
 
                 borderRadius: 3,
@@ -128,13 +135,15 @@ const ReauthenticationModal = ({ setReauthenticationResult, setModal }) => {
               }}
               onPress={() => {
                 setModal(false);
-              }}>
+              }}
+            >
               <Text
                 style={{
                   fontSize: 16,
-                  fontWeight: '700',
-                  color: '#5c5c5c',
-                }}>
+                  fontWeight: "700",
+                  color: "#5c5c5c",
+                }}
+              >
                 Cancel
               </Text>
             </TouchableOpacity>

@@ -27,7 +27,7 @@ import pikachu from "../assets/pikachu.png";
 import SelectingCard from "../shared/Cards/SelectingCard";
 
 import PickerModal from "../shared/Modals/PickerModal";
-import { LanguagePickerModal } from "../shared/LanguagePickerModal";
+import { LanguagePickerModal } from "../shared/Modals/LanguagePickerModal";
 
 export default function AddCard() {
   const navigation = useNavigation();
@@ -63,12 +63,6 @@ export default function AddCard() {
     inputValue: "",
     inputFocusState: false,
     sorterParams: "Rarity Declining",
-    filterParams: {
-      language: [],
-      price: { from: null, to: null },
-      graded: false,
-      condition: null,
-    },
   });
 
   const submitForm = async (values) => {

@@ -28,6 +28,13 @@ export const functions = firebase.functions();
 //   functions.useEmulator("localhost", 5001);
 // }
 
+export async function httpsCallable() {
+  var addMessage = firebase.functions().httpsCallable("addMessage");
+  addMessage({ text: "jebać" }).then((result) => {
+    // Read result of the Cloud Function.
+    console.log(result.data);
+  });
+}
 export async function fetchUserData() {
   const response = await db.collection("users").doc(auth.currentUser.uid).get();
   return response.data();
@@ -99,8 +106,8 @@ export async function addCard(values, gradingSwitch, photoState, cardId) {
         .catch((error) => {
           console.log("Error getting document:", error);
         });
-      const storageRef = firebase.storage().ref(`cards/${docRef.id}`);
 
+      const storageRef = firebase.storage().ref(`cards/${docRef.id}`);
       photoState.map(async (photo, i) => {
         const response = await fetch(photo.uri);
         const blob = await response.blob();
@@ -793,6 +800,56 @@ export async function fetchSavedCards(setSavedCards, setLoading) {
     console.log(error);
   }
 }
+export async function fetchCart(setOffers, setLoading) {
+  try {
+    const doc = await db.collection("users").doc(auth.currentUser.uid).get();
+
+    const outputArray = [];
+    const arrLength = doc.data().cart.length;
+
+    if (arrLength === 0 || arrLength === undefined || null) {
+      setOffers([]);
+      setLoading(false);
+    } else {
+      const checkSeller = (name) => {
+        let result = false;
+        outputArray.forEach((item) => {
+          if (item.title == name) result = true;
+        });
+        return result;
+      };
+      const pushOfferToArray = (name, offer) => {
+        outputArray.forEach((item, i) => {
+          if (item.title == name) outputArray[i].data.push(offer);
+        });
+      };
+
+      const promise = new Promise((resolve, reject) => {
+        doc.data().cart.forEach(async (item, index) => {
+          const card = await db.collection("cards").doc(item).get();
+          const owner = await fetchOwnerData(card.data().owner);
+          if (checkSeller(owner.name)) {
+            pushOfferToArray(owner.name, { ...card.data(), id: card.id });
+          } else {
+            let obj = {
+              data: [{ ...card.data(), id: card.id }],
+              title: owner.name,
+            };
+            outputArray.push(obj);
+          }
+
+          if (index === arrLength - 1) resolve();
+        });
+      });
+      await promise;
+
+      setOffers(outputArray);
+      setLoading(false);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
 export async function saveOffer(ownerId, offerId) {
   try {
     await db
@@ -1183,17 +1240,6 @@ export async function fetchSavedOffersId(setSavedOffersId, setProps) {
       .doc(auth.currentUser.uid)
       .onSnapshot(async (doc) => {
         setSavedOffersId(doc.data().savedOffers);
-      });
-  } catch (error) {
-    console.log(error);
-  }
-}
-export async function fetchCart(setCart) {
-  try {
-    db.collection("users")
-      .doc(auth.currentUser.uid)
-      .onSnapshot(async (doc) => {
-        setCart(doc.data().cart);
       });
   } catch (error) {
     console.log(error);

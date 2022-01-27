@@ -10,11 +10,12 @@ import {
 } from "react-native";
 
 import {
-  fetchCart,
   fetchOffers,
   fetchMoreCards,
   fetchSavedOffersId,
   fetchMostRecentOffers,
+  db,
+  auth,
 } from "../authContext";
 
 import { useIsFocused } from "@react-navigation/native";
@@ -44,7 +45,8 @@ export default function Search({ props, setProps }) {
     const resolvePromise = async () => {
       setProps((prev) => ({ ...prev, loadingState: true }));
       await fetchSavedOffersId(setSavedOffersId, setProps);
-      await fetchCart(setCartState);
+      const doc = await db.collection("users").doc(auth.currentUser.uid).get();
+      setCartState(doc.data().cart);
       setMostRecentOffers(await fetchMostRecentOffers());
       setProps((prev) => ({ ...prev, loadingState: false }));
     };
@@ -272,7 +274,7 @@ export default function Search({ props, setProps }) {
                   <OfferCard
                     props={item}
                     isSavedState={savedOffersId}
-                    cartState={cartState}
+                    cartArray={cartState}
                     nameOfCard={true}
                   />
                 );

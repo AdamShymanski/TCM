@@ -12,7 +12,7 @@ import { Formik, ErrorMessage } from "formik";
 import * as yup from "yup";
 
 import { register } from "../authContext";
-import { CountryPickerModal } from "../shared/CountryPickerModal";
+import { CountryPickerModal } from "../shared/Modals/CountryPickerModal";
 
 const strongPasswordRegEx =
   /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{7,}$/;

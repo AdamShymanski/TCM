@@ -3,36 +3,29 @@ import {
   View,
   Text,
   TouchableOpacity,
-  FlatList,
+  SectionList,
   Dimensions,
   ActivityIndicator,
 } from "react-native";
 
+import CartObject from "../shared/Objects/CartObject";
 const { width } = Dimensions.get("window");
 
-import pokemon from "pokemontcgsdk";
-import { auth, db, fetchPhotos, functions } from "../authContext";
+import { fetchCart } from "../authContext";
 
 import ZigzagLines from "react-native-zigzag-lines";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-import CartObject from "../shared/CartObject";
-
-import { useStripe } from "@stripe/stripe-react-native";
 import { useIsFocused } from "@react-navigation/native";
 
 export default function Cart({ route }) {
-  const [cartState, setCartState] = useState([]);
   const [offersState, setOffersState] = useState([]);
   const [totalState, setTotalState] = useState({
     price: 0,
     sellers: 0,
     cards: 0,
   });
-  const [emptyCartState, setEmptyCartState] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  const isFocused = useIsFocused();
 
   const calculateTotal = () => {
     let result = {
@@ -44,8 +37,8 @@ export default function Cart({ route }) {
     try {
       offersState?.forEach((item) => {
         result.sellers += 1;
-        if (item?.offers.length > 0) {
-          item.offers.forEach((offer) => {
+        if (item?.data.length > 0) {
+          item.data.forEach((offer) => {
             result.cards += 1;
             result.price += offer.price;
           });
@@ -58,202 +51,68 @@ export default function Cart({ route }) {
     }
   };
 
-  // const { initPaymentSheet, presentPaymentSheet } = useStripe();
-  // const initializePaymentSheet = async (data) => {
-  //   const { paymentIntent, ephemeralKey, customer, publishableKey } = data;
-
-  //   const { error } = await initPaymentSheet({
-  //     customerId: customer,
-  //     customerEphemeralKeySecret: ephemeralKey,
-  //     paymentIntentClientSecret: paymentIntent,
-  //     allowsDelayedPaymentMethods: true,
-  //   });
-  //   if (!error) {
-  //     setLoading(true);
-  //   }
-  // };
-  // const openPaymentSheet = async () => {
-  //   const { error } = await presentPaymentSheet();
-
-  //   if (error) {
-  //     console.log(`Error code: ${error.code}`, error.message);
-  //   } else {
-  //     console.log("Success", "Your order is confirmed!");
-  //   }
-  // };
-
-  useEffect(() => {
-    pokemon.configure({ apiKey: "3c362cd9-2286-48d4-989a-0d2a65b9d5a8" });
-
-    const resolvePromises = async () => {
-      // const query = functions.httpsCallable("paymentSheet");
-      // let paymentIntent = await query();
-      // initializePaymentSheet(paymentIntent.data);
-
-      db.collection("users")
-        .doc(auth.currentUser.uid)
-        .onSnapshot((snapshot) => {
-          if (snapshot.data().cart.length > 0) {
-            console.log("log");
-            setCartState(snapshot.data().cart);
-          } else if (
-            snapshot.data().cart === undefined ||
-            snapshot.data().cart.length === 0
-          ) {
-            setEmptyCartState(true);
-          }
-        });
-    };
-
-    resolvePromises();
-  }, []);
-
-  const callFunction = async () => {
-    const response = functions.httpsCallable("placeOrder", {
-      address1: "Wacława Wojewódzkiego 1",
-      address2: "mieszkanie 2",
-      city: "Łódź",
-      state: "Łódzkie",
-      zip: "99-644",
-      country: "Poland",
-    });
-    const result = await response();
-    console.log(result);
-  };
+  const isFocused = useIsFocused();
 
   useEffect(async () => {
-    if (cartState.length > 0) {
-      cartState.forEach(async (item) => {
-        const cardObj = await db.collection("cards").doc(item).get();
-
-        //fetch oweners name
-        const owner = await db
-          .collection("users")
-          .doc(cardObj.data().owner)
-          .get();
-
-        //fetch name of the card
-        const cardName = await pokemon.card.where({
-          q: `id:${cardObj.data().cardId}`,
-        });
-
-        const offerObject = {
-          id: cardObj.id,
-          name: cardName.data[0].name,
-          price: cardObj.data().price,
-          graded: cardObj.data().isGraded,
-          condition: cardObj.data().condition,
-          images: await fetchPhotos(cardObj.id),
-        };
-
-        let isNewSeller = true;
-
-        if (offersState.length > 0) {
-          //check if seller is already in the offersState
-          offersState.forEach((item, index) => {
-            if (item.sellerId === owner.id) {
-              isNewSeller = false;
-            }
-          });
-
-          if (isNewSeller) {
-            setOffersState((prevState) => [
-              ...prevState,
-              {
-                sellerId: owner.id,
-                nick: owner.data().nick,
-                offers: [offerObject],
-              },
-            ]);
-          } else {
-            offersState.forEach((item, index) => {
-              if (item.sellerId === owner.id) {
-                // offersState[index].offers.push(offerObject);
-                setOffersState((prevState) => [
-                  ...prevState,
-                  prevState[index].offers.push(offerObject),
-                ]);
-              }
-            });
-          }
-        } else {
-          setOffersState((prevState) => [
-            ...prevState,
-            {
-              sellerId: owner.id,
-              nick: owner.data().nick,
-              offers: [offerObject],
-            },
-          ]);
-        }
-      });
+    if (!isFocused) {
+      setOffersState([]);
+      setLoading(true);
     }
-  }, [cartState]);
+    if (isFocused) {
+      await fetchCart(setOffersState, setLoading);
+    }
+  }, [isFocused]);
 
   useEffect(() => {
-    if (offersState.length > 0) {
-      calculateTotal();
-    }
+    calculateTotal();
   }, [offersState]);
 
-  if (offersState.length > 0) {
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#1B1B1B",
+        }}
+      >
+        <ActivityIndicator color={"#0082ff"} size={"large"} />
+      </View>
+    );
+  } else if (offersState.length > 0) {
     return (
       <View style={{ flex: 1, backgroundColor: "#1B1B1B" }}>
-        <FlatList
-          data={offersState}
-          renderItem={({ item, index }) => {
-            return (
-              <View>
-                <Text
-                  style={{
-                    color: "#7c7c7c",
-                    fontSize: 12,
-                    marginTop: 10,
-                    marginLeft: 12,
-                  }}
-                >
-                  from{"  "}
-                  <Text
-                    style={{
-                      color: "#bbbbbb",
-                      fontSize: 17,
-                      fontFamily: "Roboto_Medium",
-                    }}
-                  >
-                    {item.nick}
-                  </Text>
-                </Text>
-                <FlatList
-                  data={offersState[index].offers}
-                  renderItem={({ item }) => {
-                    return (
-                      <CartObject
-                        props={item}
-                        setOffersState={setOffersState}
-                        setCartState={setCartState}
-                      />
-                    );
-                  }}
-                  keyExtractor={(item, index) => index.toString()}
-                />
-              </View>
-            );
-          }}
-          ListEmptyComponent={() => {
-            return (
-              <View
+        <SectionList
+          style={{ width: "100%" }}
+          sections={offersState}
+          keyExtractor={(item, index) => item + index}
+          renderItem={({ item }) => (
+            <CartObject props={item} setOffers={setOffersState} />
+          )}
+          renderSectionHeader={({ section: { title } }) => (
+            <View>
+              <Text
                 style={{
-                  width: "100%",
-                  height: 500,
-                  justifyContent: "center",
-                  alignItems: "center",
+                  color: "#7c7c7c",
+                  fontSize: 12,
+                  marginTop: 10,
+                  marginLeft: 12,
                 }}
               >
-                <ActivityIndicator size={"large"} color={"#0082ff"} />
-              </View>
-            );
-          }}
-          keyExtractor={(item, index) => index.toString()}
+                from{"  "}
+                <Text
+                  style={{
+                    color: "#bbbbbb",
+                    fontSize: 17,
+                    fontFamily: "Roboto_Medium",
+                  }}
+                >
+                  {title}
+                </Text>
+              </Text>
+            </View>
+          )}
         />
         <ZigzagLines
           width={width}
@@ -311,7 +170,9 @@ export default function Cart({ route }) {
               justifyContent: "center",
               flexDirection: "row",
             }}
-            onPress={callFunction}
+            onPress={() => {
+              null;
+            }}
           >
             <Text
               style={{
@@ -326,8 +187,7 @@ export default function Cart({ route }) {
         </View>
       </View>
     );
-  }
-  if (emptyCartState) {
+  } else {
     return (
       <View
         style={{
@@ -343,7 +203,6 @@ export default function Cart({ route }) {
           size={58}
           style={{ marginBottom: 12 }}
         />
-
         <Text
           style={{
             color: "#f4f4f4",
@@ -354,35 +213,21 @@ export default function Cart({ route }) {
             textAlign: "center",
           }}
         >
-          Quite empty here!
+          Quite Empty Here!
         </Text>
-
         <Text
           style={{
-            color: "#4f4f4f",
             fontSize: 15,
-            width: "88%",
+            width: "80%",
+            color: "#4f4f4f",
             marginBottom: 60,
             textAlign: "center",
           }}
         >
-          Ohhh, it looks like you haven't added any offers to your cart yet.
-          Let's change that!
+          Search for a card and add it to your cart. Then You will be able to
+          place an order and finally buy them.
         </Text>
       </View>
     );
   }
-
-  return (
-    <View
-      style={{
-        justifyContent: "center",
-        alignItems: "center",
-        flex: 1,
-        backgroundColor: "#1b1b1b",
-      }}
-    >
-      <ActivityIndicator size={"large"} color={"#0082ff"} />
-    </View>
-  );
 }

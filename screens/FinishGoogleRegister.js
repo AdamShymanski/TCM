@@ -10,9 +10,8 @@ import { TextInput } from 'react-native-paper';
 import { Formik, ErrorMessage } from 'formik';
 import * as yup from 'yup';
 
-import { db, auth } from '../authContext';
-
-import { CountryPickerModal } from '../shared/CountryPickerModal';
+import { CountryPickerModal } from "../shared/Modals/CountryPickerModal";
+import { db, auth } from "../authContext";
 
 const firstCapitalLetter = /^[A-Z].*/;
 const reviewSchema = yup.object({

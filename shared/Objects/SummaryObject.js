@@ -10,8 +10,27 @@ import {
   removeFromCart,
 } from "../../authContext";
 
-export default function CartObject({ props, setOffers }) {
+export default function SummaryObject({ props }) {
+  //fetch ID of cards from CF
+
+  props = {
+    cardId: "swsh3-20",
+    condition: "10",
+    description: "PSA 10.",
+    id: "R9O5HfR3PFf3V23atW9D",
+    isGraded: true,
+    languageVersion: "Japanese",
+    owner: "1wHQ7P6haMb0lGXqYGH8kjhIfcv1",
+    price: 115,
+    status: "published",
+    timestamp: {
+      nanoseconds: 0,
+      seconds: 1642434762,
+    },
+  };
+
   const [loading, setLoading] = useState(true);
+
   const [photosArray, setPhotosArray] = useState([
     {
       url: "https://firebasestorage.googleapis.com/v0/b/ptcg-marketplace.appspot.com/o/global%2Fplacegolder.png?alt=media&token=ed9d1f9b-9a3b-4c82-b86f-132da3e75957",
@@ -26,8 +45,6 @@ export default function CartObject({ props, setOffers }) {
       cardPhotos = await fetchPhotos(props.id);
       setPhotosArray(fillPhotosArray(cardPhotos));
       setPokemonName(await fetchCardsName(props.cardId));
-
-      console.log(props);
     };
 
     resolvePromises();
@@ -49,7 +66,7 @@ export default function CartObject({ props, setOffers }) {
     <View
       style={{
         marginVertical: 8,
-        marginHorizontal: 8,
+        marginHorizontal: 16,
         paddingVertical: 12,
         paddingHorizontal: 12,
 
@@ -64,7 +81,7 @@ export default function CartObject({ props, setOffers }) {
         source={{
           uri: photosArray[0]?.url,
         }}
-        style={{ aspectRatio: 105 / 140, width: undefined, height: 70 }}
+        style={{ aspectRatio: 105 / 140, width: undefined, height: 90 }}
       />
       <View
         style={{
@@ -168,49 +185,15 @@ export default function CartObject({ props, setOffers }) {
           </View>
         </View>
         <View style={{ justifyContent: "flex-end" }}>
-          <TouchableOpacity
+          <Text
             style={{
-              backgroundColor: "#CD0000",
-              justifyContent: "center",
-              alignItems: "center",
-              paddingHorizontal: 12,
-              paddingVertical: 5,
-              borderRadius: 3,
-            }}
-            onPress={async () => {
-              // setVisible(false);
-              //delete item from offersArray
-              //then delete id of offet from cart in db of user
-
-              setOffers((prevState) => {
-                prevState.forEach((item, masterIndex) => {
-                  //check if item.data inclueds obj with id equel to props.id
-                  item.data.forEach((offer, index) => {
-                    if (offer.id === props.id) {
-                      prevState[masterIndex].data.splice(index, 1);
-                    }
-                  });
-                  if (item.data.length === 0) {
-                    prevState.splice(masterIndex, 1);
-                  }
-                });
-
-                return [...prevState];
-              });
-
-              await removeFromCart(props.id);
+              color: "#838383",
+              fontSize: 14,
+              fontWeight: "700",
             }}
           >
-            <Text
-              style={{
-                color: "#f4f4f4",
-                fontWeight: "700",
-                fontSize: 11.8,
-              }}
-            >
-              Remove
-            </Text>
-          </TouchableOpacity>
+            x1
+          </Text>
         </View>
       </View>
     </View>
