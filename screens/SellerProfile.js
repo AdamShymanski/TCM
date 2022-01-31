@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Image, View, ActivityIndicator, Text, FlatList } from "react-native";
-import { db, fetchOwnerData, fetchSavedOffersId } from "../authContext";
+import { db, fetchOwnerData, fetchSavedOffersId, auth } from "../authContext";
 
 import { CardSellerProfile } from "../shared/Cards/CardSellerProfile";
 import { useIsFocused } from "@react-navigation/native";
@@ -10,6 +10,8 @@ export default function SellerProfile({ route }) {
   const [cardsArray, setCardsArray] = useState([]);
   const [sellerData, setSellerData] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const [cartState, setCartState] = useState(false);
 
   const isFocused = useIsFocused();
   const [savedOffersId, setSavedOffersId] = useState(null);
@@ -28,6 +30,9 @@ export default function SellerProfile({ route }) {
         cardObj.id = doc.id;
         arr.push(cardObj);
       });
+
+      const doc = await db.collection("users").doc(auth.currentUser.uid).get();
+      setCartState(doc.data().cart);
 
       setSellerData(await fetchOwnerData(route.params.sellerId));
       setCardsArray(arr);
@@ -103,7 +108,11 @@ export default function SellerProfile({ route }) {
             data={cardsArray}
             renderItem={({ item, index }) => {
               return (
-                <CardSellerProfile props={item} isSavedState={savedOffersId} />
+                <CardSellerProfile
+                  props={item}
+                  isSavedState={savedOffersId}
+                  cartArray={cartState}
+                />
               );
             }}
             keyExtractor={(item, index) => index.toString()}

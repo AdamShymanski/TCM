@@ -82,6 +82,10 @@ export default function Search({ props, setProps }) {
     }
     if (isFocused) {
       await fetchSavedOffersId(setSavedOffersId, setProps);
+      setProps((prevState) => ({
+        ...prevState,
+        loadingState: false,
+      }));
     }
   }, [isFocused]);
 

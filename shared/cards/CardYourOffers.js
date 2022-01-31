@@ -13,7 +13,9 @@ import {
 import language_icon from "./../../assets/language.png";
 import condition_icon from "./../../assets/condition.png";
 
-import { fetchPhotos } from "../../authContext";
+import IconIO from "react-native-vector-icons/Ionicons";
+
+import { fetchPhotos, fetchCardsName } from "../../authContext";
 
 import { useNavigation } from "@react-navigation/native";
 
@@ -40,6 +42,8 @@ export function CardYourOffers({ props, setModal, setId }) {
     },
   ]);
 
+  const [pokemonName, setPokemonName] = useState(false);
+
   const navigation = useNavigation();
 
   let cardPhotos = [];
@@ -48,6 +52,7 @@ export function CardYourOffers({ props, setModal, setId }) {
     const resolvePromises = async () => {
       cardPhotos = await fetchPhotos(props.id);
       setPhotosArray(fillPhotosArray(cardPhotos));
+      setPokemonName(await fetchCardsName(props.cardId));
 
       setLoading(false);
     };
@@ -77,6 +82,7 @@ export function CardYourOffers({ props, setModal, setId }) {
             width: 172,
             borderTopLeftRadius: 6,
             borderTopRightRadius: 6,
+            marginTop: 18,
           }}
         >
           <View
@@ -111,6 +117,7 @@ export function CardYourOffers({ props, setModal, setId }) {
             width: 106,
             borderTopLeftRadius: 6,
             borderTopRightRadius: 6,
+            marginTop: 18,
           }}
         >
           <View
@@ -146,6 +153,7 @@ export function CardYourOffers({ props, setModal, setId }) {
             width: 100,
             borderTopLeftRadius: 6,
             borderTopRightRadius: 6,
+            marginTop: 18,
           }}
         >
           <View
@@ -172,7 +180,13 @@ export function CardYourOffers({ props, setModal, setId }) {
 
   if (!loadingState) {
     return (
-      <View style={styles.card}>
+      <View
+        style={{
+          backgroundColor: "transparent",
+          width: "90%",
+          marginLeft: "5%",
+        }}
+      >
         <Modal visible={imageViewerState} transparent={true}>
           <ImageViewer
             imageUrls={photosArray}
@@ -220,9 +234,22 @@ export function CardYourOffers({ props, setModal, setId }) {
             )}
           />
         </Modal>
-        <View style={styles.cardContent}>
-          {returnStatus(status)}
-          <View style={stylesCard.body}>
+        {returnStatus(status)}
+        <View>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "flex-start",
+              backgroundColor: "#121212",
+
+              paddingVertical: 12,
+
+              borderRadius: 6,
+              borderTopLeftRadius: 0,
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
+            }}
+          >
             <TouchableOpacity
               onPress={() => {
                 setImageViewer(true);
@@ -235,10 +262,43 @@ export function CardYourOffers({ props, setModal, setId }) {
                   marginLeft: 12,
                   borderRadius: 3,
                 }}
-                source={{ uri: photosArray[0].url }}
+                source={{ uri: photosArray[0]?.url }}
               />
             </TouchableOpacity>
-            <View style={stylesCard.description}>
+
+            <View
+              style={{
+                height: "100%",
+                flex: 1,
+                flexDirection: "column",
+
+                paddingLeft: 12,
+
+                borderRadius: 5,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingRight: 12,
+                  paddingLeft: 3,
+                  paddingBottom: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#d6d6d6",
+                    fontSize: 16,
+
+                    fontWeight: "700",
+                  }}
+                >
+                  {pokemonName}
+                </Text>
+              </View>
+
               <View
                 style={{
                   flexDirection: "row",
@@ -252,16 +312,11 @@ export function CardYourOffers({ props, setModal, setId }) {
                     marginRight: 6,
                     borderRadius: 3,
                     paddingHorizontal: 16,
-                    backgroundColor: "#1b1b1b",
                   }}
                 >
                   <Image
                     source={condition_icon}
-                    style={{
-                      width: 20,
-                      height: 20,
-                      marginRight: 10,
-                    }}
+                    style={{ width: 20, height: 20, marginRight: 10 }}
                   />
                   <Text
                     style={{
@@ -273,6 +328,7 @@ export function CardYourOffers({ props, setModal, setId }) {
                     {condition}
                   </Text>
                 </View>
+
                 <View
                   style={{
                     flexDirection: "row",
@@ -282,37 +338,39 @@ export function CardYourOffers({ props, setModal, setId }) {
                     borderRadius: 3,
                     paddingHorizontal: 16,
                     paddingVertical: 8,
-                    backgroundColor: "#1b1b1b",
                   }}
                 >
-                  <Image
-                    source={language_icon}
-                    style={{ width: 20, height: 20, marginRight: 10 }}
+                  <IconIO
+                    name={"language"}
+                    size={22}
+                    color="#0082FF"
+                    style={{ marginRight: 10 }}
                   />
                   <Text
                     style={{
                       color: "#f4f4f4",
                       fontWeight: "700",
-                      fontSize: 16,
+                      fontSize: 12.5,
                     }}
                   >
                     {languageVersion}
                   </Text>
                 </View>
               </View>
+
               <View
                 style={{ flexDirection: "column", alignItems: "flex-start" }}
               >
                 <View
                   style={{
-                    padding: 6,
-                    paddingHorizontal: 16,
                     flex: 1,
 
-                    borderRadius: 3,
-                    backgroundColor: "#1b1b1b",
+                    borderTopWidth: 1.5,
+                    borderTopColor: "#777777",
+
                     width: 210,
-                    height: 90,
+                    height: 52,
+                    padding: 6,
                   }}
                 >
                   <Text
@@ -384,7 +442,7 @@ export function CardYourOffers({ props, setModal, setId }) {
 
                   borderColor: "#5c5c5c",
                   borderRadius: 3,
-                  borderWidth: 2,
+                  borderWidth: 2.5,
                 }}
                 onPress={() => {
                   setModal(true);
@@ -441,77 +499,3 @@ export function CardYourOffers({ props, setModal, setId }) {
     return null;
   }
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: "transparent",
-    width: "90%",
-    marginLeft: "5%",
-  },
-  cardContent: {
-    paddingVertical: 20,
-  },
-});
-
-const stylesCard = StyleSheet.create({
-  top: {
-    position: "relative",
-
-    marginBottom: 18,
-    flexDirection: "row",
-    alignItems: "center",
-
-    borderRadius: 3,
-    backgroundColor: "#121212",
-  },
-  body: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: "#121212",
-    paddingVertical: 12,
-
-    borderRadius: 6,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    borderTopLeftRadius: 0,
-  },
-  description: {
-    height: "100%",
-    flex: 1,
-
-    paddingLeft: 12,
-    // paddingTop: 10,
-    borderRadius: 5,
-  },
-  rightText: {
-    color: "#0082ff",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  leftText: {
-    color: "#f4f4f4",
-    fontWeight: "400",
-    fontSize: 16,
-  },
-  cardName: {
-    color: "#f4f4f4",
-    fontWeight: "700",
-    fontSize: 15,
-    marginBottom: 8,
-  },
-  bottom: {
-    flexDirection: "row",
-    backgroundColor: "#121212",
-    height: 60,
-    width: "100%",
-    paddingVertical: 12,
-    justifyContent: "space-evenly",
-    paddingHorizontal: 8,
-  },
-  profileParams: {
-    flexDirection: "row",
-    alignItems: "center",
-    position: "absolute",
-    right: 20,
-  },
-});

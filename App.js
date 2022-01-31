@@ -7,6 +7,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 
 import { createStackNavigator } from "@react-navigation/stack";
 import { StripeProvider } from "@stripe/stripe-react-native";
+import { LogBox } from "react-native";
 
 import Buy from "./screens/Buy";
 import Chat from "./screens/Chat";
@@ -35,7 +36,6 @@ import Checkout from "./screens/Checkout";
 import Transactions from "./screens/Transactions";
 
 import StripeCheckout from "./screens/StripeCheckout";
-import Test from "./screens/Test";
 
 import * as Font from "expo-font";
 
@@ -755,8 +755,16 @@ export default function App() {
   const [finishRegisterProcess, setFinishRegisterProcess] = useState(null);
   const [adBanerState, setAdBannerState] = useState(true);
 
+  LogBox.ignoreLogs([
+    "Setting a timer for a long period of time, i.e. multiple minutes, is a performance and correctness issue",
+  ]);
+  LogBox.ignoreLogs([
+    "[Unhandled promise rejection: Invariant Violation: expo-google-sign-in is not supported in the Expo Client because a custom URL scheme is required at build time. Please refer to the docs for usage outside of Expo www.npmjs.com/package/expo-google-sign-in]",
+  ]);
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      console.log("user", user.displayName);
       if (user) {
         // await setTestDeviceIDAsync('EMULATOR');
         const usersDoc = await db
@@ -865,18 +873,18 @@ export default function App() {
               )}
             >
               <Drawer.Screen name="Cart" component={CartStack} />
+              <Drawer.Screen name="StripeCheckout" component={StripeCheckout} />
+              <Drawer.Screen name="Search" component={SearchStack} />
               <Drawer.Screen name="Home" component={HomeStack} />
               <Drawer.Screen
                 name="Transactions"
                 component={TransactionsStack}
               />
-              <Drawer.Screen name="Search" component={SearchStack} />
               <Drawer.Screen name="Settings" component={SettingsStack} />
               <Drawer.Screen name="Chat" component={ChatStack} />
               <Drawer.Screen name="Sellers" component={SellersStack} />
               <Drawer.Screen name="SavedOffers" component={SavedOffersStack} />
               <Drawer.Screen name="YourOffers" component={YourOffersStack} />
-              <Drawer.Screen name="StripeCheckout" component={StripeCheckout} />
               <Drawer.Screen
                 name="DeletingAccount"
                 component={DeletingAccount}
@@ -946,7 +954,6 @@ export default function App() {
                 backgroundColor: "#121212",
               },
             })}
-            // initialParams={{ auth: firebase.auth() }}
             name="Register"
             component={Register}
           />
