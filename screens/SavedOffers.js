@@ -3,23 +3,26 @@ import { View, FlatList, Text } from "react-native";
 
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-import { fetchSavedCards } from "../authContext";
+import { fetchSavedCards, db, auth } from "../authContext";
 import { useIsFocused } from "@react-navigation/native";
 import { CardSavedOffers } from "../shared/Cards/CardSavedOffers";
 
 export default function SavedOffers({ navigation }) {
   const [cardsData, setCardsData] = useState([]);
   const [loadingState, setLoading] = useState(true);
+  const [cartState, setCartState] = useState([]);
 
   const isFocused = useIsFocused();
 
-  useEffect(() => {
+  useEffect(async () => {
     if (!isFocused) {
       setCardsData([]);
       setLoading(true);
     }
     if (isFocused) {
       fetchSavedCards(setCardsData, setLoading);
+      const doc = await db.collection("users").doc(auth.currentUser.uid).get();
+      setCartState(doc.data().cart);
     }
   }, [isFocused]);
 
@@ -75,14 +78,10 @@ export default function SavedOffers({ navigation }) {
         <FlatList
           data={cardsData}
           renderItem={({ item, index }) => {
-            return (
-              <CardSavedOffers
-                props={item}
-                setCardsData={setCardsData}
-                cardsData={cardsData}
-                index={index}
-              />
-            );
+            if (item.status === "published") {
+              return <CardSavedOffers props={item} cartArray={cartState} />;
+            }
+            return null;
           }}
           keyExtractor={(item, index) => index.toString()}
         />

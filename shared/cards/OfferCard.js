@@ -60,9 +60,9 @@ export default function OfferCard({
 
   const [snackbarState, setSnackbar] = useState(false);
   const [detailsBarState, setDetailsBar] = useState(true);
+  const [cartState, setCartState] = useState(false);
 
   const [pokemonName, setPokemonName] = useState(false);
-  const [cartState, setCartState] = useState(false);
 
   const navigation = useNavigation();
 
@@ -123,6 +123,7 @@ export default function OfferCard({
       }
     }
   };
+  
   const renderSaveIndicator = () => {
     if (isSaved) {
       return (

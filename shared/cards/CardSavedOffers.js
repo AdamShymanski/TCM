@@ -13,11 +13,12 @@ import {
 
 import IconIO from "react-native-vector-icons/Ionicons";
 import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
+import IconM from "react-native-vector-icons/MaterialIcons";
 
-import collection_icon from "./../../assets/collection_icon.png";
-import language_icon from "./../../assets/language.png";
 import condition_icon from "./../../assets/condition.png";
-import reputation_icon from "./../../assets/reputation_icon.png";
+import cart_check from "./../../assets/cart_check.png";
+
+import SellerDetailsBar from "../SellerDetailsBar";
 
 import {
   fetchPhotos,
@@ -27,7 +28,7 @@ import {
   auth,
 } from "../../authContext";
 
-export function CardSavedOffers({ props }) {
+export function CardSavedOffers({ props, cartArray }) {
   const condition = props.condition;
   const description = props.description;
   const price = props.price;
@@ -55,16 +56,29 @@ export function CardSavedOffers({ props }) {
   ]);
   const [pokemonName, setPokemonName] = useState(false);
 
+  const [detailsBarState, setDetailsBar] = useState(true);
+  const [cartState, setCartState] = useState(false);
+
   useEffect(() => {
+    let mounted = true;
     const resolvePromises = async () => {
-      cardPhotos = await fetchPhotos(props.id);
-      setOwner(await fetchOwnerData(props.owner));
-      setPhotosArray(fillPhotosArray(cardPhotos));
-      setPokemonName(await fetchCardsName(props.cardId));
+      if (mounted) {
+        cardPhotos = await fetchPhotos(props.id);
+        setOwner(await fetchOwnerData(props.owner));
+        setPhotosArray(fillPhotosArray(cardPhotos));
+        cartArray.forEach((item) => {
+          if (item === props.id) setCartState(true);
+        });
+        setPokemonName(await fetchCardsName(props.cardId));
+        setLoading(false);
+      }
     };
 
     resolvePromises();
-    setLoading(false);
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const clickSave = async () => {
@@ -72,42 +86,83 @@ export function CardSavedOffers({ props }) {
     setLoading(true);
   };
 
-  const renderSaveButton = () => {
-    return (
-      <TouchableOpacity
-        style={[
-          {
-            borderRadius: 3,
-            marginRight: 16,
+  const renderCartButton = () => {
+    if (cartState) {
+      return (
+        <TouchableOpacity
+          style={{
+            width: 100,
+            paddingVertical: 4.5,
+            marginRight: 10,
 
-            height: 30,
+            borderRadius: 4,
+            backgroundColor: "#0082ff",
+
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "#0082FF",
-            width: 90,
-          },
-        ]}
-        onPress={() => clickSave()}
-      >
-        <Text
-          style={[
-            {
-              fontSize: 16,
+          }}
+        >
+          <Text
+            style={{
               fontWeight: "700",
               color: "#121212",
-            },
-          ]}
+              marginRight: 8,
+              fontSize: 16,
+            }}
+          >
+            In Cart
+          </Text>
+          <Image source={cart_check} style={{ width: 19, height: 19 }} />
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <TouchableOpacity
+        style={{
+          width: 90,
+          paddingVertical: 3,
+          marginRight: 10,
+
+          borderWidth: 2.5,
+          borderRadius: 4,
+          borderColor: "#5c5c5c",
+
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        onPress={() => {
+          setCartState(true);
+          addToCart(props.id);
+        }}
+      >
+        <Text
+          style={{
+            fontWeight: "700",
+            color: "#5c5c5c",
+            marginRight: 8,
+            fontSize: 16,
+          }}
         >
-          Saved
+          Add
         </Text>
-        <IconMI
-          name={"check-bold"}
-          size={18}
-          color="#121212"
-          style={{ marginLeft: 6, bottom: 1 }}
-        />
+        <IconMI name={"cart-plus"} size={20} color={"#5c5c5c"} />
       </TouchableOpacity>
+    );
+  };
+
+  const renderSaveIndicator = () => {
+    return (
+      <IconMI
+        name={"bookmark-check"}
+        color={"#0082ff"}
+        size={26}
+        onPress={() => {
+          clickSave();
+        }}
+      />
     );
   };
 
@@ -172,16 +227,28 @@ export function CardSavedOffers({ props }) {
           />
         </Modal>
 
-        <View style={styles.cardContent}>
-          <View style={stylesCard.top}>
+        <View style={{ marginVertical: 20 }}>
+          <View
+            style={{
+              position: "relative",
+
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: !detailsBarState ? 0 : 18,
+
+              borderRadius: 3,
+              borderBottomRightRadius: !detailsBarState ? 0 : 3,
+              borderBottomLeftRadius: !detailsBarState ? 0 : 3,
+              backgroundColor: "#121212",
+            }}
+          >
             <View
               style={{
                 backgroundColor: "#404040",
-                height: "100%",
                 paddingVertical: 8,
                 paddingHorizontal: 12,
                 borderTopLeftRadius: 3,
-                borderBottomLeftRadius: 3,
+                borderBottomLeftRadius: !detailsBarState ? 0 : 3,
                 marginRight: 10,
               }}
             >
@@ -192,40 +259,51 @@ export function CardSavedOffers({ props }) {
                 }}
               />
             </View>
-            <Text
-              style={{
-                color: "white",
-                fontSize: 18,
-                fontWeight: "bold",
-                color: "#f4f4f4",
+            <TouchableOpacity
+              onPress={() => {
+                if (props.owner !== auth.currentUser.uid) {
+                  navigation.navigate("Sellers", {
+                    screen: "SellerProfile",
+                    params: { sellerId: props.owner },
+                  });
+                }
               }}
             >
-              {owner.name}
-            </Text>
-            <View
+              <Text
+                style={{
+                  fontSize: 18,
+                  color: "#333",
+                  color: "white",
+                  fontWeight: "700",
+                }}
+              >
+                {owner.name}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               style={{
                 flexDirection: "row",
                 alignItems: "center",
                 position: "absolute",
                 right: 20,
               }}
+              onPress={() => {
+                setDetailsBar((prevState) => !prevState);
+              }}
             >
-              <Image
-                source={reputation_icon}
-                style={{ height: 26, width: 22.9, marginRight: 6 }}
+              <IconM
+                name={!detailsBarState ? "expand-less" : "expand-more"}
+                size={26}
+                color="#f4f4f4"
               />
-              <Text
-                style={{
-                  color: "#f4f4f4",
-                  fontSize: 18,
-                  fontWeight: "700",
-                  marginRight: 12,
-                }}
-              >
-                -
-              </Text>
-            </View>
+            </TouchableOpacity>
           </View>
+          <SellerDetailsBar
+            props={{
+              collectionSize: owner.collectionSize,
+              hide: detailsBarState,
+            }}
+          />
 
           <View
             style={{
@@ -266,16 +344,29 @@ export function CardSavedOffers({ props }) {
                 borderRadius: 5,
               }}
             >
-              <Text
+              <View
                 style={{
-                  color: "#d6d6d6",
-                  fontSize: 16,
-                  paddingBottom: 12,
-                  fontWeight: "700",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingRight: 12,
+                  paddingLeft: 3,
+                  paddingBottom: 8,
                 }}
               >
-                {pokemonName}
-              </Text>
+                <Text
+                  style={{
+                    color: "#d6d6d6",
+                    fontSize: 16,
+
+                    fontWeight: "700",
+                  }}
+                >
+                  {pokemonName}
+                </Text>
+                {renderSaveIndicator()}
+              </View>
+
               <View
                 style={{
                   flexDirection: "row",
@@ -408,30 +499,38 @@ export function CardSavedOffers({ props }) {
                 flexDirection: "row",
               }}
             >
-              {renderSaveButton()}
+              {renderCartButton()}
 
               <TouchableOpacity
                 style={{
-                  width: 76,
-                  height: 30,
+                  width: 86,
+                  paddingVertical: 3.5,
+
+                  borderRadius: 4,
+
+                  backgroundColor: "#0082FF",
+
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
-
-                  backgroundColor: "#0082FF",
-                  borderRadius: 3,
                 }}
-                onPress={() => navigation.navigate("Buy", owner)}
               >
                 <Text
                   style={{
-                    fontSize: 16,
                     fontWeight: "700",
                     color: "#121212",
+                    fontSize: 16,
+                    marginRight: 6,
                   }}
                 >
                   Buy
                 </Text>
+                <IconMI
+                  name={"credit-card-outline"}
+                  size={20}
+                  color={"#121212"}
+                  style={{ marginTop: 2.5 }}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -451,69 +550,5 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     marginVertical: 20,
-  },
-});
-
-const stylesCard = StyleSheet.create({
-  top: {
-    position: "relative",
-
-    marginBottom: 18,
-    flexDirection: "row",
-    alignItems: "center",
-
-    borderRadius: 3,
-    backgroundColor: "#121212",
-  },
-  body: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: "#121212",
-
-    paddingBottom: 12,
-    paddingTop: 12,
-
-    borderRadius: 6,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  description: {
-    height: "100%",
-    flex: 1,
-
-    paddingLeft: 12,
-    // paddingTop: 10,
-    borderRadius: 5,
-  },
-  rightText: {
-    color: "#0082ff",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  leftText: {
-    color: "#f4f4f4",
-    fontWeight: "400",
-    fontSize: 16,
-  },
-  cardName: {
-    color: "#f4f4f4",
-    fontWeight: "700",
-    fontSize: 15,
-    marginBottom: 8,
-  },
-  bottom: {
-    flexDirection: "row",
-    backgroundColor: "#121212",
-    height: 60,
-    width: "100%",
-    paddingVertical: 12,
-    justifyContent: "space-evenly",
-    paddingHorizontal: 8,
-  },
-  profileParams: {
-    flexDirection: "row",
-    alignItems: "center",
-    position: "absolute",
-    right: 20,
   },
 });

@@ -1,15 +1,17 @@
-import firebase from "firebase/app";
-import "firebase/firestore";
-import "firebase/functions";
-import "firebase/storage";
-import "firebase/auth";
+import firebase from "firebase/compat/app";
+import "firebase/compat/firestore";
+import "firebase/compat/functions";
+import "firebase/compat/storage";
+// import "firebase/compat/auth";
+
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 import pokemon from "pokemontcgsdk";
-// import * as Google from "expo-google-app-auth";
 
 import * as GoogleSignIn from "expo-google-sign-in";
 
 if (firebase.apps.length === 0) {
+  console.log("Initializing Firebase");
   firebase.initializeApp({
     apiKey: "AIzaSyA0rTGml4Zi9yozBmgQ5k74jUMmWCxEE2I",
     authDomain: "ptcg-marketpla.firebaseapp.com",
@@ -20,24 +22,17 @@ if (firebase.apps.length === 0) {
     measurementId: "G-1HB5T78SQS",
   });
 }
-
 export const firebaseObj = firebase;
 export const db = firebase.firestore();
-export const auth = firebase.auth();
+// export const auth = firebase.auth();
+export const auth = getAuth(firebase);
 export const storage = firebase.storage();
 export const functions = firebase.functions();
 
-// if (location.hostname === "localhost") {
-//   functions.useEmulator("localhost", 5001);
-// }
+// export const functions = __DEV__
+//   ? firebase.functions().useEmulator("http://0.0.0.0:5001")
+//   : firebase.functions();
 
-export async function httpsCallable() {
-  var addMessage = firebase.functions().httpsCallable("addMessage");
-  addMessage({ text: "jebać" }).then((result) => {
-    // Read result of the Cloud Function.
-    console.log(result.data);
-  });
-}
 export async function fetchUserData() {
   const response = await db.collection("users").doc(auth.currentUser.uid).get();
   return response.data();

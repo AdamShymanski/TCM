@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import {
   Text,
@@ -7,15 +7,17 @@ import {
   TouchableOpacity,
   ScrollView,
   SectionList,
-  SafeAreaView,
 } from "react-native";
+
+// import { useStripe } from "@stripe/stripe-react-native";
+import { functions, firebaseObj } from "../authContext";
 
 import { TextInput } from "react-native-paper";
 import { Formik, ErrorMessage } from "formik";
 import * as yup from "yup";
 
-import { placeOrder, httpsCallable } from "../authContext";
 import SummaryObject from "./../shared/Objects/SummaryObject";
+import { CountryPickerModal } from "../shared/Modals/CountryPickerModal";
 
 import DHL_logo from "../assets/DHL_logo.png";
 import FedExExpress_logo from "../assets/FedEx_Express_logo.png";
@@ -26,8 +28,14 @@ import USPS_logo from "../assets/USPS_logo.png";
 import Stripe_logo from "../assets/Stripe_logo.png";
 
 export default function Checkout({ pageState, setPage }) {
+  const [shippingAddress, setShippingAddress] = useState({});
   if (pageState === "shippingAddressPage") {
-    return <ShippingAddressPage setPage={setPage} />;
+    return (
+      <ShippingAddressPage
+        setPage={setPage}
+        setShippingAddress={setShippingAddress}
+      />
+    );
   } else if (pageState === "summaryPage") {
     return <SummaryPage setPage={setPage} />;
   } else if (pageState === "endPage") {
@@ -37,29 +45,52 @@ export default function Checkout({ pageState, setPage }) {
   }
 }
 
-const ShippingAddressPage = ({ setPage }) => {
+const ShippingAddressPage = ({ setPage, setShippingAddress }) => {
   const [loadingIndicator, setLoadingIndicator] = useState(false);
   const [countryPickerState, setCountryPickerState] = useState("");
   const [countryInputTouched, setCountryInputTouched] = useState(false);
 
   const [error, setError] = useState("");
 
+  const phoneNumberRegEx =
+    /^(?:(?:\+?1\s*(?:[.-]\s*)?)?(?:\(\s*([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s*\)|([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s*(?:[.-]\s*)?)?([2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s*(?:[.-]\s*)?([0-9]{4})(?:\s*(?:#|x\.?|ext\.?|extension)\s*(\d+))?$/;
+
   const reviewSchema = yup.object({
-    postlCode: yup.string("Wrong format!").required("Name is required!"),
-    country: yup.string("Wrong format!").required("Email is required!"),
-    firstName: yup.string("Wrong format!").required("Password is required!"),
-    lastName: yup.string("Wrong format!").required("Password is required!"),
-    streetAddress: yup
+    firstName: yup.string("Wrong format!").required("Required!").max(30),
+    lastName: yup.string("Wrong format!").required("Required!").max(30),
+    zipCode: yup.string("Wrong format!").required("Required!").max(30),
+    country: yup.string("Wrong format!").required("Required!").max(30),
+    state: yup.string("Wrong format!").required("Required!").max(30),
+    city: yup.string("Wrong format!").required("Required!").max(30),
+    streetAddress1: yup.string("Wrong format!").required("Required!").max(30),
+    streetAddress2: yup.string("Required!").max(30),
+    phoneNumber: yup
       .string("Wrong format!")
-      .required("Password is required!"),
-    streetAddress2: yup
-      .string("Wrong format!")
-      .required("Password is required!"),
-    state: yup.string("Wrong format!").required("Password is required!"),
-    zipCode: yup.string("Wrong format!").required("Password is required!"),
-    email: yup.string("Wrong format!").required("Password is required!"),
-    country: yup.string("Wrong format!").required("Password is required!"),
+      .required("Required!")
+      .matches(
+        phoneNumberRegEx,
+        "At least one number, capital & lower letter!"
+      ),
   });
+
+  useEffect(() => {
+    const resolvePromise = async () => {
+      // functions.useEmulator("http://127.0.0.1:5001");r
+      // functions.useFunctionsEmulator("http://0.0.0.0:5001");
+      // const result = firebaseObj
+      //   .app()
+      //   .functions("us-central1")
+      //   .httpsCallable("helloWorld");
+      const result = functions.httpsCallable("helloWorld");
+      result()
+        .then((result) => console.log(result))
+        .catch((err) => console.log(err));
+      // let result = await query();
+      // initializePaymentSheet(result.data);
+    };
+
+    resolvePromise();
+  }, []);
 
   return (
     <ScrollView style={{ backgroundColor: "#1b1b1b", flex: 1 }}>
@@ -94,18 +125,30 @@ const ShippingAddressPage = ({ setPage }) => {
 
       <Formik
         initialValues={{
+          firstName: "",
+          lastName: "",
           zipCode: "",
           country: "",
           state: "",
+          city: "",
           streetAddress1: "",
           streetAddress2: "",
-          city: "",
+          phoneNumber: "",
         }}
-        validationSchema={reviewSchema}
+        // validationSchema={reviewSchema}
         onSubmit={async (values, actions) => {
-          setLoadingIndicator(true);
-
-          setLoadingIndicator(false);
+          setShippingAddress({
+            firstName: "Adam",
+            lastName: "Szymański",
+            zipCode: "92-446",
+            country: "Poland",
+            state: "Łódzkie",
+            city: "Łódź",
+            streetAddress1: "Wacława Wojewódzkiego 1 m2",
+            streetAddress2: "",
+            phoneNumber: "+48 606417902",
+          });
+          setPage("summaryPage");
         }}
         style={{
           flex: 1,
@@ -141,92 +184,106 @@ const ShippingAddressPage = ({ setPage }) => {
                 justifyContent: "space-between",
               }}
             >
-              <TextInput
-                mode={"outlined"}
-                value={props.values.firstName}
-                onChangeText={props.handleChange("firstName")}
-                label="First Name"
-                outlineColor={"#5c5c5c"}
-                error={
-                  props.touched.firstName && props.errors.firstName
-                    ? true
-                    : false
-                }
-                style={{
-                  width: "40%",
-                  backgroundColor: "#1b1b1b",
-                  color: "#f4f4f4",
-                  marginTop: 20,
-                }}
-                theme={{
-                  colors: {
-                    primary: "#0082ff",
-                    placeholder: "#5c5c5c",
-                    background: "transparent",
-                    text: "#f4f4f4",
-                  },
-                }}
-              />
-              <ErrorMessage component="div" name="firstName">
-                {(msg) => (
-                  <Text
-                    style={{
-                      width: "45%",
-                      marginTop: 8,
-                      marginBottom: 18,
-                      height: 20,
-                      flexDirection: "row",
-                      justifyContent: "flex-end",
-                      color: "#b40424",
-                      fontWeight: "700",
-                    }}
-                  >
-                    {msg}
-                  </Text>
-                )}
-              </ErrorMessage>
-              <TextInput
-                mode={"outlined"}
-                value={props.values.lastName}
-                onChangeText={props.handleChange("lastName")}
-                label="Last Name"
-                outlineColor={"#5c5c5c"}
-                error={
-                  props.touched.lastName && props.errors.lastName ? true : false
-                }
-                style={{
-                  width: "55%",
-                  backgroundColor: "#1b1b1b",
-                  color: "#f4f4f4",
-                  marginTop: 20,
-                }}
-                theme={{
-                  colors: {
-                    primary: "#0082ff",
-                    placeholder: "#5c5c5c",
-                    background: "transparent",
-                    text: "#f4f4f4",
-                  },
-                }}
-              />
-              <ErrorMessage component="div" name="lastName">
-                {(msg) => (
-                  <Text
-                    style={{
-                      width: "45%",
-                      marginTop: 8,
-                      marginBottom: 18,
-                      height: 20,
-                      flexDirection: "row",
-                      justifyContent: "flex-end",
-                      color: "#b40424",
-                      fontWeight: "700",
-                    }}
-                  >
-                    {msg}
-                  </Text>
-                )}
-              </ErrorMessage>
+              <View style={{ width: "40%" }}>
+                <TextInput
+                  mode={"outlined"}
+                  value={props.values.firstName}
+                  onChangeText={props.handleChange("firstName")}
+                  label="First Name"
+                  outlineColor={"#5c5c5c"}
+                  error={
+                    props.touched.firstName && props.errors.firstName
+                      ? true
+                      : false
+                  }
+                  style={{
+                    width: "100%",
+                    backgroundColor: "#1b1b1b",
+                    color: "#f4f4f4",
+                    marginTop: 20,
+                  }}
+                  theme={{
+                    colors: {
+                      primary: "#0082ff",
+                      placeholder: "#5c5c5c",
+                      background: "transparent",
+                      text: "#f4f4f4",
+                    },
+                  }}
+                />
+                <ErrorMessage component="div" name="firstName">
+                  {(msg) => {
+                    if (msg != "Required!") {
+                      return (
+                        <Text
+                          style={{
+                            width: "100%",
+                            marginTop: 8,
+                            marginBottom: 18,
+                            height: 20,
+                            flexDirection: "row",
+                            justifyContent: "flex-end",
+                            color: "#b40424",
+                            fontWeight: "700",
+                          }}
+                        >
+                          {msg}
+                        </Text>
+                      );
+                    } else return null;
+                  }}
+                </ErrorMessage>
+              </View>
+              <View style={{ width: "55%" }}>
+                <TextInput
+                  mode={"outlined"}
+                  value={props.values.lastName}
+                  onChangeText={props.handleChange("lastName")}
+                  label="Last Name"
+                  outlineColor={"#5c5c5c"}
+                  error={
+                    props.touched.lastName && props.errors.lastName
+                      ? true
+                      : false
+                  }
+                  style={{
+                    width: "100%",
+                    backgroundColor: "#1b1b1b",
+                    color: "#f4f4f4",
+                    marginTop: 20,
+                  }}
+                  theme={{
+                    colors: {
+                      primary: "#0082ff",
+                      placeholder: "#5c5c5c",
+                      background: "transparent",
+                      text: "#f4f4f4",
+                    },
+                  }}
+                />
+                <ErrorMessage component="div" name="lastName">
+                  {(msg) => {
+                    if (msg != "Required!") {
+                      return (
+                        <Text
+                          style={{
+                            width: "100%",
+                            marginTop: 8,
+                            marginBottom: 18,
+                            height: 20,
+                            flexDirection: "row",
+                            justifyContent: "flex-end",
+                            color: "#b40424",
+                            fontWeight: "700",
+                          }}
+                        >
+                          {msg}
+                        </Text>
+                      );
+                    } else return null;
+                  }}
+                </ErrorMessage>
+              </View>
             </View>
             <View
               style={{
@@ -235,142 +292,210 @@ const ShippingAddressPage = ({ setPage }) => {
                 justifyContent: "space-between",
               }}
             >
-              <TextInput
-                mode={"outlined"}
-                value={props.values.zipCode}
-                onChangeText={props.handleChange("zipCode")}
-                label="ZIP/Postal Code"
-                outlineColor={"#5c5c5c"}
-                error={props.touched.nick && props.errors.nick ? true : false}
-                style={{
-                  width: "45%",
-                  backgroundColor: "#1b1b1b",
-                  color: "#f4f4f4",
-                  marginTop: 20,
-                }}
-                theme={{
-                  colors: {
-                    primary: "#0082ff",
-                    placeholder: "#5c5c5c",
-                    background: "transparent",
-                    text: "#f4f4f4",
-                  },
-                }}
-              />
-              <ErrorMessage component="div" name="zipCode">
-                {(msg) => (
-                  <Text
-                    style={{
-                      width: "45%",
-                      marginTop: 8,
-                      marginBottom: 18,
-                      height: 20,
-                      flexDirection: "row",
-                      justifyContent: "flex-end",
-                      color: "#b40424",
-                      fontWeight: "700",
-                    }}
-                  >
-                    {msg}
-                  </Text>
-                )}
-              </ErrorMessage>
-              <TouchableOpacity
-                style={{ width: "50%" }}
-                onPress={() => {
-                  setCountryPickerState(true);
-                  setCountryInputTouched(true);
-                }}
-              >
+              <View style={{ width: "45%" }}>
                 <TextInput
                   mode={"outlined"}
-                  value={props.values.country}
-                  onChangeText={props.handleChange("country")}
-                  label="Country"
-                  outlineColor={
-                    props.errors.country && countryInputTouched
-                      ? "#b40424"
-                      : "#5c5c5c"
+                  value={props.values.zipCode}
+                  onChangeText={props.handleChange("zipCode")}
+                  label="ZIP/Postal Code"
+                  outlineColor={"#5c5c5c"}
+                  error={
+                    props.touched.zipCode && props.errors.zipCode ? true : false
                   }
                   style={{
                     width: "100%",
                     backgroundColor: "#1b1b1b",
-                    marginTop:
-                      props.errors.country && countryInputTouched ? 0 : 20,
+                    color: "#f4f4f4",
+                    marginTop: 20,
                   }}
-                  disabled={true}
                   theme={{
                     colors: {
-                      text: "#fff",
-                      disabled:
-                        props.errors.country && countryInputTouched
-                          ? "#b40424"
-                          : "#5c5c5c",
+                      primary: "#0082ff",
+                      placeholder: "#5c5c5c",
                       background: "transparent",
+                      text: "#f4f4f4",
                     },
                   }}
                 />
-              </TouchableOpacity>
-              <ErrorMessage component="div" name="country">
-                {(msg) => (
-                  <Text
-                    style={{
-                      width: "50%",
-                      marginTop: 8,
-                      marginBottom: 18,
-                      height: 20,
-                      flexDirection: "row",
-                      justifyContent: "flex-end",
-                      color: "#b40424",
-                      fontWeight: "700",
-                    }}
-                  >
-                    {msg}
-                  </Text>
-                )}
-              </ErrorMessage>
-            </View>
-
-            <TextInput
-              mode={"outlined"}
-              value={props.values.state}
-              onChangeText={props.handleChange("state")}
-              label="State/Province/Region"
-              outlineColor={"#5c5c5c"}
-              error={props.touched.nick && props.errors.nick ? true : false}
-              style={{
-                width: "90%",
-                backgroundColor: "#1b1b1b",
-                color: "#f4f4f4",
-                marginTop: 20,
-              }}
-              theme={{
-                colors: {
-                  primary: "#0082ff",
-                  placeholder: "#5c5c5c",
-                  background: "transparent",
-                  text: "#f4f4f4",
-                },
-              }}
-            />
-            <ErrorMessage component="div" name="state">
-              {(msg) => (
-                <Text
-                  style={{
-                    width: "45%",
-                    marginTop: 8,
-                    marginBottom: 18,
-                    height: 20,
-                    flexDirection: "row",
-                    justifyContent: "flex-end",
-                    color: "#b40424",
-                    fontWeight: "700",
+                <ErrorMessage component="div" name="zipCode">
+                  {(msg) => {
+                    if (msg != "Required!") {
+                      return (
+                        <Text
+                          style={{
+                            width: "100%",
+                            marginTop: 8,
+                            marginBottom: 18,
+                            height: 20,
+                            flexDirection: "row",
+                            justifyContent: "flex-end",
+                            color: "#b40424",
+                            fontWeight: "700",
+                          }}
+                        >
+                          {msg}
+                        </Text>
+                      );
+                    } else return null;
+                  }}
+                </ErrorMessage>
+              </View>
+              <View style={{ width: "50%" }}>
+                <TouchableOpacity
+                  style={{ width: "100%" }}
+                  onPress={() => {
+                    setCountryPickerState(true);
+                    setCountryInputTouched(true);
                   }}
                 >
-                  {msg}
-                </Text>
-              )}
-            </ErrorMessage>
+                  <TextInput
+                    mode={"outlined"}
+                    value={props.values.country}
+                    onChangeText={props.handleChange("country")}
+                    label="Country"
+                    outlineColor={props.errors.country ? "#b40424" : "#5c5c5c"}
+                    style={{
+                      width: "100%",
+                      backgroundColor: "#1b1b1b",
+                      marginTop:
+                        props.errors.country && countryInputTouched ? 0 : 20,
+                    }}
+                    disabled={true}
+                    theme={{
+                      colors: {
+                        text: "#fff",
+                        disabled: props.errors.country ? "#b40424" : "#5c5c5c",
+                        background: "transparent",
+                      },
+                    }}
+                  />
+                </TouchableOpacity>
+                <ErrorMessage component="div" name="country">
+                  {(msg) => {
+                    if (msg != "Required!") {
+                      return (
+                        <Text
+                          style={{
+                            width: "100%",
+                            marginTop: 8,
+                            marginBottom: 18,
+                            height: 20,
+                            flexDirection: "row",
+                            justifyContent: "flex-end",
+                            color: "#b40424",
+                            fontWeight: "700",
+                          }}
+                        >
+                          {msg}
+                        </Text>
+                      );
+                    } else return null;
+                  }}
+                </ErrorMessage>
+              </View>
+            </View>
+            <View
+              style={{
+                width: "90%",
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <View style={{ width: "40%" }}>
+                <TextInput
+                  mode={"outlined"}
+                  value={props.values.city}
+                  onChangeText={props.handleChange("city")}
+                  label="City"
+                  outlineColor={"#5c5c5c"}
+                  error={props.touched.city && props.errors.city ? true : false}
+                  style={{
+                    width: "100%",
+                    backgroundColor: "#1b1b1b",
+                    color: "#f4f4f4",
+                    marginTop: 20,
+                  }}
+                  theme={{
+                    colors: {
+                      primary: "#0082ff",
+                      placeholder: "#5c5c5c",
+                      background: "transparent",
+                      text: "#f4f4f4",
+                    },
+                  }}
+                />
+                <ErrorMessage component="div" name="city">
+                  {(msg) => {
+                    if (msg != "Required!") {
+                      return (
+                        <Text
+                          style={{
+                            width: "100%",
+                            marginTop: 8,
+                            marginBottom: 18,
+                            height: 20,
+                            flexDirection: "row",
+                            justifyContent: "flex-end",
+                            color: "#b40424",
+                            fontWeight: "700",
+                          }}
+                        >
+                          {msg}
+                        </Text>
+                      );
+                    } else return null;
+                  }}
+                </ErrorMessage>
+              </View>
+              <View style={{ width: "55%" }}>
+                <TextInput
+                  mode={"outlined"}
+                  value={props.values.state}
+                  onChangeText={props.handleChange("state")}
+                  label="State/Region"
+                  outlineColor={"#5c5c5c"}
+                  error={
+                    props.touched.state && props.errors.state ? true : false
+                  }
+                  style={{
+                    width: "100%",
+                    backgroundColor: "#1b1b1b",
+                    color: "#f4f4f4",
+                    marginTop: 20,
+                  }}
+                  theme={{
+                    colors: {
+                      primary: "#0082ff",
+                      placeholder: "#5c5c5c",
+                      background: "transparent",
+                      text: "#f4f4f4",
+                    },
+                  }}
+                />
+                <ErrorMessage component="div" name="state">
+                  {(msg) => {
+                    if (msg != "Required!") {
+                      return (
+                        <Text
+                          style={{
+                            width: "100%",
+                            marginTop: 8,
+                            marginBottom: 18,
+                            height: 20,
+                            flexDirection: "row",
+                            justifyContent: "flex-end",
+                            color: "#b40424",
+                            fontWeight: "700",
+                          }}
+                        >
+                          {msg}
+                        </Text>
+                      );
+                    } else return null;
+                  }}
+                </ErrorMessage>
+              </View>
+            </View>
 
             <TextInput
               mode={"outlined"}
@@ -399,22 +524,26 @@ const ShippingAddressPage = ({ setPage }) => {
               }}
             />
             <ErrorMessage component="div" name="streetAddress1">
-              {(msg) => (
-                <Text
-                  style={{
-                    width: "45%",
-                    marginTop: 8,
-                    marginBottom: 18,
-                    height: 20,
-                    flexDirection: "row",
-                    justifyContent: "flex-end",
-                    color: "#b40424",
-                    fontWeight: "700",
-                  }}
-                >
-                  {msg}
-                </Text>
-              )}
+              {(msg) => {
+                if (msg != "Required!") {
+                  return (
+                    <Text
+                      style={{
+                        width: "100%",
+                        marginTop: 8,
+                        marginBottom: 18,
+                        height: 20,
+                        flexDirection: "row",
+                        justifyContent: "flex-end",
+                        color: "#b40424",
+                        fontWeight: "700",
+                      }}
+                    >
+                      {msg}
+                    </Text>
+                  );
+                } else return null;
+              }}
             </ErrorMessage>
             <TextInput
               mode={"outlined"}
@@ -443,144 +572,76 @@ const ShippingAddressPage = ({ setPage }) => {
               }}
             />
             <ErrorMessage component="div" name="streetAddress2">
-              {(msg) => (
-                <Text
-                  style={{
-                    width: "45%",
-                    marginTop: 8,
-                    marginBottom: 18,
-                    height: 20,
-                    flexDirection: "row",
-                    justifyContent: "flex-end",
-                    color: "#b40424",
-                    fontWeight: "700",
-                  }}
-                >
-                  {msg}
-                </Text>
-              )}
+              {(msg) => {
+                if (msg != "Required!") {
+                  return (
+                    <Text
+                      style={{
+                        width: "100%",
+                        marginTop: 8,
+                        marginBottom: 18,
+                        height: 20,
+                        flexDirection: "row",
+                        justifyContent: "flex-end",
+                        color: "#b40424",
+                        fontWeight: "700",
+                      }}
+                    >
+                      {msg}
+                    </Text>
+                  );
+                } else return null;
+              }}
             </ErrorMessage>
 
-            <View
+            <TextInput
+              mode={"outlined"}
+              value={props.values.phoneNumber}
+              onChangeText={props.handleChange("phoneNumber")}
+              label="Phone Number"
+              outlineColor={"#5c5c5c"}
+              error={
+                props.touched.phoneNumber && props.errors.phoneNumber
+                  ? true
+                  : false
+              }
               style={{
                 width: "90%",
-                flexDirection: "row",
-                justifyContent: "space-between",
+                backgroundColor: "#1b1b1b",
+                color: "#f4f4f4",
+                marginTop: 20,
               }}
-            >
-              <View
-                style={{
-                  width: "42%",
-                }}
-              >
-                <TextInput
-                  mode={"outlined"}
-                  value={props.values.countryCode}
-                  onChangeText={props.handleChange("countryCode")}
-                  label="Country Code"
-                  outlineColor={"#5c5c5c"}
-                  error={
-                    props.touched.countryCode && props.errors.countryCode
-                      ? true
-                      : false
-                  }
-                  style={{
-                    width: "100%",
-                    backgroundColor: "#1b1b1b",
-                    color: "#f4f4f4",
-                    marginTop: 20,
-                  }}
-                  theme={{
-                    colors: {
-                      primary: "#0082ff",
-                      placeholder: "#5c5c5c",
-                      background: "transparent",
-                      text: "#f4f4f4",
-                    },
-                  }}
-                />
-                {props.errors.countryCode ? (
-                  <ErrorMessage component="div" name="countryCode">
-                    {(msg) => (
-                      <Text
-                        style={{
-                          width: "45%",
-                          marginTop: 8,
-                          marginBottom: 18,
-                          height: 20,
-                          flexDirection: "row",
-                          justifyContent: "flex-end",
-                          color: "#b40424",
-                          fontWeight: "700",
-                        }}
-                      >
-                        {msg}
-                      </Text>
-                    )}
-                  </ErrorMessage>
-                ) : (
-                  <Text
-                    style={{
-                      width: "100%",
-                      marginTop: 8,
-                      marginBottom: 18,
-                      height: 20,
-                      flexDirection: "row",
-                      justifyContent: "flex-end",
-                      size: 10,
-                      color: "#5c5c5c",
-                    }}
-                  >
-                    Example: +48
-                  </Text>
-                )}
-              </View>
-
-              <TextInput
-                mode={"outlined"}
-                value={props.values.phoneNumber}
-                onChangeText={props.handleChange("phoneNumber")}
-                label="Phone Number"
-                outlineColor={"#5c5c5c"}
-                error={
-                  props.touched.phoneNumber && props.errors.phoneNumber
-                    ? true
-                    : false
-                }
-                style={{
-                  width: "50%",
-                  backgroundColor: "#1b1b1b",
-                  color: "#f4f4f4",
-                  marginTop: 20,
-                }}
-                theme={{
-                  colors: {
-                    primary: "#0082ff",
-                    placeholder: "#5c5c5c",
-                    background: "transparent",
-                    text: "#f4f4f4",
-                  },
-                }}
-              />
-              <ErrorMessage component="div" name="phoneNumber">
-                {(msg) => (
-                  <Text
-                    style={{
-                      width: "45%",
-                      marginTop: 8,
-                      marginBottom: 18,
-                      height: 20,
-                      flexDirection: "row",
-                      justifyContent: "flex-end",
-                      color: "#b40424",
-                      fontWeight: "700",
-                    }}
-                  >
-                    {msg}
-                  </Text>
-                )}
-              </ErrorMessage>
-            </View>
+              theme={{
+                colors: {
+                  primary: "#0082ff",
+                  placeholder: "#5c5c5c",
+                  background: "transparent",
+                  text: "#f4f4f4",
+                },
+              }}
+            />
+            <ErrorMessage component="div" name="phoneNumber">
+              {(msg) => {
+                if (msg != "Required!") {
+                  return (
+                    <Text
+                      style={{
+                        width: "90%",
+                        marginTop: 8,
+                        marginBottom: 18,
+                        height: 20,
+                        flexDirection: "row",
+                        justifyContent: "flex-end",
+                        color: "#b40424",
+                        fontWeight: "700",
+                      }}
+                    >
+                      {msg}
+                    </Text>
+                  );
+                } else return null;
+              }}
+            </ErrorMessage>
 
             <View
               style={{
@@ -602,10 +663,8 @@ const ShippingAddressPage = ({ setPage }) => {
                   borderRadius: 3,
                   paddingHorizontal: 20,
                 }}
-                onPress={() => {
-                  // props.submitForm
-                  // setPage("summaryPage");
-                  httpsCallable();
+                onPress={async () => {
+                  setPage("summaryPage");
                 }}
               >
                 <Text
@@ -648,11 +707,13 @@ const ShippingAddressPage = ({ setPage }) => {
     </ScrollView>
   );
 };
+
 const SummaryPage = ({ setPage }) => {
   const [sectionListState, setSectionListState] = useState([
     { title: "Rig", data: [{}] },
   ]);
   const [shippingServiceProvider, setShippingServiceProvider] = useState("DHL");
+
   return (
     <View style={{ backgroundColor: "#1b1b1b", flex: 1 }}>
       <SectionList
@@ -689,6 +750,13 @@ const SummaryPage = ({ setPage }) => {
     </View>
   );
 };
+const LoadingPage = ({ setPage }) => {
+  return (
+    <View>
+      <Text>Summary</Text>
+    </View>
+  );
+};
 const EndPage = () => {
   return (
     <View
@@ -703,13 +771,7 @@ const EndPage = () => {
     </View>
   );
 };
-const LoadingPage = ({ setPage }) => {
-  return (
-    <View>
-      <Text>Summary</Text>
-    </View>
-  );
-};
+
 const getHeader = () => {
   return (
     <View style={{ flex: 1 }}>
@@ -755,6 +817,31 @@ const getHeader = () => {
   );
 };
 const getFooter = (setPage, shippingServiceProvider) => {
+  // const { initPaymentSheet, presentPaymentSheet } = useStripe();
+
+  // const initializePaymentSheet = async (data) => {
+  //   const { paymentIntent, ephemeralKey, customer, publishableKey } = data;
+
+  //   const { error } = await initPaymentSheet({
+  //     customerId: customer,
+  //     customerEphemeralKeySecret: ephemeralKey,
+  //     paymentIntentClientSecret: paymentIntent,
+  //     // Set `allowsDelayedPaymentMethods` to true if your business can handle payment
+  //     //methods that complete payment after a delay, like SEPA Debit and Sofort.
+  //     allowsDelayedPaymentMethods: true,
+  //   });
+  // };
+
+  // const openPaymentSheet = async () => {
+  //   const { error } = await presentPaymentSheet();
+
+  //   if (error) {
+  //     console.log(`Error code: ${error.code}`, error.message);
+  //   } else {
+  //     console.log("Success", "Your order is confirmed!");
+  //   }
+  // };
+
   return (
     <View style={{ flex: 1 }}>
       <View
@@ -1087,16 +1174,14 @@ const getFooter = (setPage, shippingServiceProvider) => {
 
             width: "90%",
           }}
-          onPress={() => {
-            setPage("endPage");
-          }}
+          // onPress={openPaymentSheet}
         >
           <Text style={{ fontWeight: "700", color: "#121212", fontSize: 18 }}>
             Purchase
           </Text>
         </TouchableOpacity>
         <View style={{ flexDirection: "row", marginTop: 12 }}>
-          <Text style={{ fontWeight: "Roboto_Medium", color: "#555555" }}>
+          <Text style={{ fontFamily: "Roboto_Medium", color: "#555555" }}>
             Powered by{"  "}
           </Text>
           <Image

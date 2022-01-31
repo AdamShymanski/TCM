@@ -13,8 +13,8 @@ import {
 import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
 import IconIO from "react-native-vector-icons/Ionicons";
 
-import language_icon from "./../../assets/language.png";
 import condition_icon from "./../../assets/condition.png";
+import cart_check from "./../../assets/cart_check.png";
 
 import {
   auth,
@@ -25,7 +25,7 @@ import {
   fetchCardsName,
 } from "../../authContext";
 
-export function CardSellerProfile({ props, isSavedState }) {
+export function CardSellerProfile({ props, isSavedState, cartArray }) {
   const condition = props.condition;
   const description = props.description;
   const price = props.price;
@@ -37,6 +37,7 @@ export function CardSellerProfile({ props, isSavedState }) {
   const [loadingState, setLoading] = useState(true);
   const [pokemonName, setPokemonName] = useState("");
   const [imageViewerState, setImageViewer] = useState(false);
+  const [cartState, setCartState] = useState(false);
 
   const [photosArray, setPhotosArray] = useState([
     {
@@ -46,19 +47,29 @@ export function CardSellerProfile({ props, isSavedState }) {
   ]);
 
   useEffect(() => {
+    let mounted = true;
     const resolvePromises = async () => {
-      cardPhotos = await fetchPhotos(props.id);
-      setPhotosArray(fillPhotosArray(cardPhotos));
+      if (mounted) {
+        cardPhotos = await fetchPhotos(props.id);
+        setPhotosArray(fillPhotosArray(cardPhotos));
 
-      isSavedState.forEach((item) => {
-        if (item == props.id) setSaveOffer(true);
-      });
-      setPokemonName(await fetchCardsName(props.cardId));
-      console.log(props);
-      setLoading(false);
+        cartArray.forEach((item) => {
+          if (item === props.id) setCartState(true);
+        });
+
+        isSavedState.forEach((item) => {
+          if (item == props.id) setSaveOffer(true);
+        });
+
+        setPokemonName(await fetchCardsName(props.cardId));
+        setLoading(false);
+      }
     };
 
     resolvePromises();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -87,76 +98,99 @@ export function CardSellerProfile({ props, isSavedState }) {
     }
   };
 
-  const renderSaveButton = () => {
+  const renderSaveIndicator = () => {
     if (isSaved) {
       return (
-        <TouchableOpacity
-          style={[
-            {
-              borderRadius: 3,
-              marginRight: 16,
+        <IconMI
+          name={"bookmark-check"}
+          color={"#0082ff"}
+          size={26}
+          onPress={() => {
+            clickSave();
+          }}
+        />
+      );
+    }
 
-              height: 30,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#0082FF",
-              width: 90,
-            },
-          ]}
-          onPress={() => clickSave()}
+    return (
+      <IconMI
+        name={"bookmark-plus-outline"}
+        color={"#0082ff"}
+        size={26}
+        onPress={() => {
+          if (ownerId === auth.currentUser.uid) {
+            setSnackbar("You can't save your own offer");
+          } else {
+            clickSave();
+          }
+        }}
+      />
+    );
+  };
+
+  const renderCartButton = () => {
+    if (cartState) {
+      return (
+        <TouchableOpacity
+          style={{
+            width: 100,
+            paddingVertical: 4.5,
+            marginRight: 10,
+
+            borderRadius: 4,
+            backgroundColor: "#0082ff",
+
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
           <Text
-            style={[
-              {
-                fontSize: 16,
-                fontWeight: "700",
-                color: "#121212",
-              },
-            ]}
+            style={{
+              fontWeight: "700",
+              color: "#121212",
+              marginRight: 8,
+              fontSize: 16,
+            }}
           >
-            Saved
+            In Cart
           </Text>
-          <IconMI
-            name={"check-bold"}
-            size={18}
-            color="#121212"
-            style={{ marginLeft: 6, bottom: 1 }}
-          />
+          <Image source={cart_check} style={{ width: 19, height: 19 }} />
         </TouchableOpacity>
       );
     }
 
     return (
       <TouchableOpacity
-        style={[
-          {
-            borderRadius: 3,
-            marginRight: 16,
+        style={{
+          width: 90,
+          paddingVertical: 3,
+          marginRight: 10,
 
-            height: 30,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 76,
-            backgroundColor: "transparent",
-            borderWidth: 2.5,
-            borderColor: "#5c5c5c",
-          },
-        ]}
-        onPress={() => clickSave()}
+          borderWidth: 2.5,
+          borderRadius: 4,
+          borderColor: "#5c5c5c",
+
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        onPress={() => {
+          setCartState(true);
+          addToCart(props.id);
+        }}
       >
         <Text
-          style={[
-            {
-              fontSize: 16,
-              fontWeight: "700",
-              color: "#5c5c5c",
-            },
-          ]}
+          style={{
+            fontWeight: "700",
+            color: "#5c5c5c",
+            marginRight: 8,
+            fontSize: 16,
+          }}
         >
-          Save
+          Add
         </Text>
+        <IconMI name={"cart-plus"} size={20} color={"#5c5c5c"} />
       </TouchableOpacity>
     );
   };
@@ -230,80 +264,6 @@ export function CardSellerProfile({ props, isSavedState }) {
         </Modal>
 
         <View style={{ marginVertical: 20 }}>
-          {/* <View
-            style={{
-              position: "relative",
-
-              marginBottom: 18,
-              flexDirection: "row",
-              alignItems: "center",
-
-              borderRadius: 3,
-              backgroundColor: "#121212",
-            }}
-          >
-            <View
-              style={{
-                backgroundColor: "#404040",
-                height: "100%",
-                paddingVertical: 8,
-                paddingHorizontal: 12,
-                borderTopLeftRadius: 3,
-                borderBottomLeftRadius: 3,
-                marginRight: 10,
-              }}
-            >
-              <Image
-                style={{ width: 28, height: 21 }}
-                source={{
-                  uri: `https://flagcdn.com/160x120/${owner?.countryCode}.png`,
-                }}
-              />
-            </View>
-            <TouchableOpacity
-              onPress={() => {
-                navigation.navigate("Sellers", {
-                  screen: "SellerProfile",
-                  params: { sellerId: ownerId },
-                });
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 18,
-                  color: "#333",
-                  color: "white",
-                  fontWeight: "700",
-                }}
-              >
-                {owner.name}
-              </Text>
-            </TouchableOpacity>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                position: "absolute",
-                right: 20,
-              }}
-            >
-              <Image
-                source={reputation_icon}
-                style={{ height: 26, width: 22.9, marginRight: 6 }}
-              />
-              <Text
-                style={{
-                  color: "#f4f4f4",
-                  fontSize: 18,
-                  fontWeight: "700",
-                  marginRight: 12,
-                }}
-              >
-                -
-              </Text>
-            </View>
-          </View> */}
-
           <View
             style={{
               flexDirection: "row",
@@ -343,16 +303,29 @@ export function CardSellerProfile({ props, isSavedState }) {
                 borderRadius: 5,
               }}
             >
-              <Text
+              <View
                 style={{
-                  color: "#d6d6d6",
-                  fontSize: 16,
-                  paddingBottom: 12,
-                  fontWeight: "700",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingRight: 12,
+                  paddingLeft: 3,
+                  paddingBottom: 8,
                 }}
               >
-                {pokemonName}
-              </Text>
+                <Text
+                  style={{
+                    color: "#d6d6d6",
+                    fontSize: 16,
+
+                    fontWeight: "700",
+                  }}
+                >
+                  {pokemonName}
+                </Text>
+                {renderSaveIndicator()}
+              </View>
+
               <View
                 style={{
                   flexDirection: "row",
@@ -380,6 +353,16 @@ export function CardSellerProfile({ props, isSavedState }) {
                     }}
                   >
                     {condition}
+                    <Text
+                      style={{
+                        color: "#7c7c7c",
+                        fontFamily: "Roboto_Medium",
+                        fontSize: 9,
+                        marginLeft: 4,
+                      }}
+                    >
+                      /10
+                    </Text>
                   </Text>
                 </View>
 
@@ -485,34 +468,38 @@ export function CardSellerProfile({ props, isSavedState }) {
                 flexDirection: "row",
               }}
             >
-              {renderSaveButton()}
+              {renderCartButton()}
 
               <TouchableOpacity
                 style={{
-                  width: 76,
-                  height: 30,
+                  width: 86,
+                  paddingVertical: 3.5,
+
+                  borderRadius: 4,
+
+                  backgroundColor: "#0082FF",
+
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
-
-                  backgroundColor: "#0082FF",
-                  borderRadius: 3,
-                  marginRight: 5,
-                }}
-                onPress={() => {
-                  navigation.navigate("Buy", { ownerId });
                 }}
               >
                 <Text
                   style={{
-                    fontSize: 16,
                     fontWeight: "700",
                     color: "#121212",
-                    marginRight: 5,
+                    fontSize: 16,
+                    marginRight: 6,
                   }}
                 >
                   Buy
                 </Text>
+                <IconMI
+                  name={"credit-card-outline"}
+                  size={20}
+                  color={"#121212"}
+                  style={{ marginTop: 2.5 }}
+                />
               </TouchableOpacity>
             </View>
           </View>
