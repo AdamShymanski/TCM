@@ -1,13 +1,13 @@
+// The Cloud Functions for Firebase SDK to create Cloud Functions and set up triggers.
 const functions = require("firebase-functions");
 
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
+// The Firebase Admin SDK to access Firestore.
+const admin = require("firebase-admin");
+admin.initializeApp();
 
-// exports.helloWorld = functions.https.onCall((data, context) => {
-//   console.log("Hello World");
-//   return "Hello World";
-// });
+// Take the text parameter passed to this HTTP endpoint and insert it into
+// Firestore under the path /messages/:documentId/original
+
 exports.helloWorld = functions.https.onRequest((req, res) => {
-  return res.status(200).json({ result: "Hello World" });
+  res.status(200).send({ data: "Gello" });
 });
