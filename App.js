@@ -36,6 +36,7 @@ import Checkout from "./screens/Checkout";
 import Transactions from "./screens/Transactions";
 
 import StripeCheckout from "./screens/StripeCheckout";
+import Test from "./screens/Test";
 
 import * as Font from "expo-font";
 
@@ -741,6 +742,8 @@ export default function App() {
   const [finishRegisterProcess, setFinishRegisterProcess] = useState(null);
   const [adBanerState, setAdBannerState] = useState(true);
 
+  return <Test />;
+
   LogBox.ignoreLogs([
     "Setting a timer for a long period of time, i.e. multiple minutes, is a performance and correctness issue",
   ]);
@@ -750,8 +753,9 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      console.log("user", user.displayName);
+      console.log("user");
       if (user) {
+        console.log(user.displayName);
         // await setTestDeviceIDAsync('EMULATOR');
         const usersDoc = await db
           .collection("users")
@@ -859,9 +863,9 @@ export default function App() {
               )}
             >
               <Drawer.Screen name="Cart" component={CartStack} />
+              <Drawer.Screen name="Home" component={HomeStack} />
               <Drawer.Screen name="StripeCheckout" component={StripeCheckout} />
               <Drawer.Screen name="Search" component={SearchStack} />
-              <Drawer.Screen name="Home" component={HomeStack} />
               <Drawer.Screen
                 name="Transactions"
                 component={TransactionsStack}

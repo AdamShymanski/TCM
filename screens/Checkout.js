@@ -10,7 +10,8 @@ import {
 } from "react-native";
 
 // import { useStripe } from "@stripe/stripe-react-native";
-import { functions, firebaseObj } from "../authContext";
+
+import { functions } from "../authContext";
 
 import { TextInput } from "react-native-paper";
 import { Formik, ErrorMessage } from "formik";
@@ -75,16 +76,10 @@ const ShippingAddressPage = ({ setPage, setShippingAddress }) => {
 
   useEffect(() => {
     const resolvePromise = async () => {
-      // functions.useEmulator("http://127.0.0.1:5001");r
-      // functions.useFunctionsEmulator("http://0.0.0.0:5001");
-      // const result = firebaseObj
-      //   .app()
-      //   .functions("us-central1")
-      //   .httpsCallable("helloWorld");
-      const result = functions.httpsCallable("helloWorld");
-      result()
-        .then((result) => console.log(result))
-        .catch((err) => console.log(err));
+      // const result = functions.httpsCallable("helloWorld");
+      // result()
+      //   .then((result) => console.log(result))
+      //   .catch((err) => console.log(err));
       // let result = await query();
       // initializePaymentSheet(result.data);
     };
