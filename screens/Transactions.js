@@ -8,7 +8,7 @@ import TransactionObject from "./../shared/Objects/TransactionObject";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 export default function Transactions() {
-  const [noTranscation, setNoTranscation] = useState(true);
+  const [noTranscation, setNoTranscation] = useState(false);
   useEffect(() => {
     //fetch transactions
     const resolvePromises = async () => {
@@ -77,7 +77,8 @@ export default function Transactions() {
       }}
     >
       <FlatList
-        data={["a"]}
+        data={["a", "b", "c"]}
+        style={{ flex: 1, width: "100%" }}
         renderItem={({ item, index }) => {
           return <TransactionObject />;
         }}

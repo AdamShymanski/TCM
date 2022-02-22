@@ -1,9 +1,10 @@
 // @refresh reset
 import React, { useState, useEffect } from "react";
 import * as Updates from "expo-updates";
-import { NavigationContainer } from "@react-navigation/native";
+
+import { Link, NavigationContainer } from "@react-navigation/native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Image } from "react-native";
 
 import { createStackNavigator } from "@react-navigation/stack";
 import { StripeProvider } from "@stripe/stripe-react-native";
@@ -27,34 +28,43 @@ import ImageBrowser from "./screens/ImageBrowser";
 import SavedOffers from "./screens/SavedOffers.js";
 import SellerProfile from "./screens/SellerProfile";
 import DeletingAccount from "./screens/DeletingAccount";
-import SearchForSeller from "./screens/SearchForSeller";
 import ChatConversations from "./screens/ChatConverstations";
 import FinishGoogleRegister from "./screens/FinishGoogleRegister";
 import Search from "./screens/Search";
-import SellerRating from "./screens/SellerRating";
+import Rating from "./screens/subscreens/Seller/Rating";
 import Checkout from "./screens/Checkout";
 import Transactions from "./screens/Transactions";
-
+import AddNewShippingMethod from "./screens/subscreens/Seller/AddNewShippingMethod";
+import History from "./screens/subscreens/Seller/History";
+import ReferralProgram from "./screens/ReferralProgram";
 import StripeCheckout from "./screens/StripeCheckout";
-import Test from "./screens/Test";
-
-import * as Font from "expo-font";
-
-import { db, auth, setChatListeners, createChat } from "./authContext.js";
-
-import { AdMobBanner } from "expo-ads-admob";
 
 import CustomHeader from "./shared/CustomHeader";
 import CustomDrawer from "./shared/CustomDrawer";
 
+//!import SearchForSeller from "./screens/SearchForSeller";
+
+import { db, auth, setChatListeners, functions } from "./authContext.js";
+
+import { AdMobBanner } from "expo-ads-admob";
+
+import IconMI from "react-native-vector-icons/MaterialIcons";
 import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
+
+import * as Font from "expo-font";
+import * as Sentry from "sentry-expo";
+import * as Linking from "expo-linking";
+
+import clipboard_text_clock from "./assets/clipboard_text_clock.png";
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
+const prefix = Linking.makeUrl("/");
 
 function SearchStack() {
   const [headerProps, setHeaderProps] = useState({
     pageNumber: 2,
+    mroPageNumber: 2,
     cardsData: [],
     loadingState: false,
     inputValue: "",
@@ -196,7 +206,13 @@ function CartStack() {
                     borderColor: "#777777",
                     paddingHorizontal: 12,
                   }}
-                  onPress={() => navigation.goBack()}
+                  onPress={() => {
+                    if (checkoutPageState === "summaryPage") {
+                      setCheckoutPageState("shippingAddressPage");
+                    } else {
+                      navigation.goBack();
+                    }
+                  }}
                 >
                   <Text
                     style={{
@@ -205,7 +221,10 @@ function CartStack() {
                       color: "#777777",
                     }}
                   >
-                    {"Cancel"}
+                    {checkoutPageState === "shippingAddressPage"
+                      ? "Cancel"
+                      : "Go Back"}
+                    {}
                   </Text>
                 </TouchableOpacity>
               );
@@ -498,6 +517,44 @@ function YourOffersStack() {
           },
         })}
       />
+      {/* <Stack.Screen
+        name="SelectShippingServiceProvider"
+        component={SelectShippingServiceProvider}
+        options={({ navigation, route }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 22,
+
+                height: 30,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: "#777777",
+                paddingHorizontal: 12,
+              }}
+              onPress={() => navigation.goBack()}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerTintColor: "#121212",
+          headerTitle: "",
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        })}
+      /> */}
       <Stack.Screen
         name="AddCard"
         component={AddCard}
@@ -625,22 +682,12 @@ function YourOffersStack() {
     </Stack.Navigator>
   );
 }
-function SellersStack() {
+function SellerStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="SearchForSeller"
-        component={SearchForSeller}
-        options={{
-          headerTitle: () => <CustomHeader version={"searchForSeller"} />,
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        }}
-      />
-      <Stack.Screen
-        name="SellerProfile"
-        component={SellerProfile}
+        name="History"
+        component={History}
         options={({ navigation, route }) => ({
           headerLeft: () => (
             <TouchableOpacity
@@ -669,6 +716,34 @@ function SellersStack() {
               </Text>
             </TouchableOpacity>
           ),
+          headerRight: () => (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  color: "#f4f4f4",
+                  fontWeight: "700",
+                  fontSize: 21,
+                  marginRight: 16,
+                }}
+              >
+                {"History"}
+              </Text>
+              <Image
+                source={clipboard_text_clock}
+                style={{
+                  aspectRatio: 42 / 46,
+                  height: undefined,
+                  width: 28,
+                  marginRight: 16,
+                }}
+              />
+            </View>
+          ),
           headerTintColor: "#121212",
           headerTitle: "",
           headerStyle: {
@@ -677,8 +752,8 @@ function SellersStack() {
         })}
       />
       <Stack.Screen
-        name="SellerRating"
-        component={SellerRating}
+        name="Rating"
+        component={Rating}
         options={({ navigation, route }) => ({
           headerLeft: () => (
             <TouchableOpacity
@@ -706,6 +781,94 @@ function SellersStack() {
                 {"Go back"}
               </Text>
             </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  color: "#f4f4f4",
+                  fontWeight: "700",
+                  fontSize: 21,
+                  marginRight: 8,
+                }}
+              >
+                {"Rating"}
+              </Text>
+              <IconMI name="star" color={"#0082ff"} size={30} />
+            </View>
+          ),
+          headerTintColor: "#121212",
+          headerTitle: "",
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        })}
+      />
+      <Stack.Screen
+        name="SellerProfile"
+        component={SellerProfile}
+        options={{
+          headerTitle: () => <CustomHeader version={"sellerProfile"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
+      <Stack.Screen
+        name="AddNewShippingMethod"
+        component={AddNewShippingMethod}
+        options={({ navigation, route }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 12,
+
+                height: 30,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: "#777777",
+                paddingHorizontal: 12,
+              }}
+              onPress={() => navigation.goBack()}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  color: "#f4f4f4",
+                  fontWeight: "700",
+                  fontSize: 21,
+                  marginRight: 8,
+                }}
+              >
+                {"New Shipping Method"}
+              </Text>
+              <IconMI name="local-shipping" color={"#0082ff"} size={30} />
+            </View>
           ),
           headerTintColor: "#121212",
           headerTitle: "",
@@ -725,6 +888,22 @@ function HomeStack() {
         component={Home}
         options={{
           headerTitle: () => <CustomHeader version={"home"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+function ReferralProgramStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="ReferralProgram"
+        component={ReferralProgram}
+        options={{
+          headerTitle: () => <CustomHeader version={"referralProgram"} />,
           headerStyle: {
             backgroundColor: "#121212",
           },
@@ -755,21 +934,28 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [finishRegisterProcess, setFinishRegisterProcess] = useState(null);
   const [adBanerState, setAdBannerState] = useState(true);
+  const [deepLinkData, setDeepLinkData] = useState(true);
 
-  return <Test />;
+  LogBox.ignoreLogs(["INTERNAL"]);
 
-  LogBox.ignoreLogs([
-    "Setting a timer for a long period of time, i.e. multiple minutes, is a performance and correctness issue",
-  ]);
-  LogBox.ignoreLogs([
-    "[Unhandled promise rejection: Invariant Violation: expo-google-sign-in is not supported in the Expo Client because a custom URL scheme is required at build time. Please refer to the docs for usage outside of Expo www.npmjs.com/package/expo-google-sign-in]",
-  ]);
+  const handleDeepLink = async (event) => {
+    let data = Linking.parse(event.url);
+    setDeepLinkData(data);
+  };
+
+  const linking = {
+    // prefixes: ["https://www.expo.io"],
+    prefixes: [prefix],
+    config: {
+      screens: {
+        YourOffers: "yourOffers",
+      },
+    },
+  };
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      console.log("user");
       if (user) {
-        console.log(user.displayName);
         // await setTestDeviceIDAsync('EMULATOR');
         const usersDoc = await db
           .collection("users")
@@ -782,12 +968,14 @@ export default function App() {
           //setListenerOnUsersDoc
         }
       }
+
       setLoading(false);
       setCurrentUser(user);
     });
 
     const resolvePromises = async () => {
       try {
+        Linking.addEventListener("url", handleDeepLink);
         await Font.loadAsync({
           Roboto_Thin: require("./assets/fonts/Roboto-Thin.ttf"),
           Roboto_Light: require("./assets/fonts/Roboto-Light.ttf"),
@@ -796,13 +984,22 @@ export default function App() {
         });
 
         if (__DEV__) {
-          // do dev stuff 🤘
         } else {
           const update = await Updates.checkForUpdateAsync();
           if (update.isAvailable) {
             await Updates.fetchUpdateAsync();
             Updates.reloadAsync();
           }
+
+          Sentry.init({
+            dsn: "https://6131440690cd436b8802bd5b1318e1a6@o1133377.ingest.sentry.io/6179878",
+            enableInExpoDevelopment: true,
+          });
+
+          Sentry.init({
+            dsn: "https://6131440690cd436b8802bd5b1318e1a6@o1133377.ingest.sentry.io/6179878",
+            enableInExpoDevelopment: true,
+          });
         }
       } catch (e) {
         console.log(e);
@@ -810,7 +1007,10 @@ export default function App() {
     };
 
     resolvePromises();
-    return unsubscribe;
+    return () => {
+      Linking.removeEventListener("url");
+      unsubscribe();
+    };
   }, []);
 
   if (loading) {
@@ -869,26 +1069,31 @@ export default function App() {
     } else {
       return (
         <StripeProvider publishableKey="pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX">
-          <NavigationContainer>
+          <NavigationContainer linking={linking}>
             <Drawer.Navigator
               style={{ backgroundColor: "#82ff00" }}
               drawerContent={({ navigation }) => (
                 <CustomDrawer navigation={navigation} />
               )}
             >
-              <Drawer.Screen name="Cart" component={CartStack} />
+              <Drawer.Screen name="Seller" component={SellerStack} />
+              <Drawer.Screen
+                name="ReferralProgram"
+                component={ReferralProgramStack}
+              />
+              <Drawer.Screen name="YourOffers" component={YourOffersStack} />
               <Drawer.Screen name="Home" component={HomeStack} />
-              <Drawer.Screen name="StripeCheckout" component={StripeCheckout} />
+
               <Drawer.Screen name="Search" component={SearchStack} />
               <Drawer.Screen
                 name="Transactions"
                 component={TransactionsStack}
               />
               <Drawer.Screen name="Settings" component={SettingsStack} />
+              <Drawer.Screen name="Cart" component={CartStack} />
+              <Drawer.Screen name="StripeCheckout" component={StripeCheckout} />
               <Drawer.Screen name="Chat" component={ChatStack} />
-              <Drawer.Screen name="Sellers" component={SellersStack} />
               <Drawer.Screen name="SavedOffers" component={SavedOffersStack} />
-              <Drawer.Screen name="YourOffers" component={YourOffersStack} />
               <Drawer.Screen
                 name="DeletingAccount"
                 component={DeletingAccount}

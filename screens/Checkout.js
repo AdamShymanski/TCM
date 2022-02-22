@@ -9,11 +9,12 @@ import {
   SectionList,
 } from "react-native";
 
-// import { useStripe } from "@stripe/stripe-react-native";
+import { useStripe } from "@stripe/stripe-react-native";
+import { useNavigation } from "@react-navigation/native";
 
-import { functions } from "../authContext";
+import { functions, auth, fetchName, fetchCart } from "../authContext";
 
-import { TextInput } from "react-native-paper";
+import { ActivityIndicator, TextInput } from "react-native-paper";
 import { Formik, ErrorMessage } from "formik";
 import * as yup from "yup";
 
@@ -25,11 +26,27 @@ import FedExExpress_logo from "../assets/FedEx_Express_logo.png";
 import FedEx_logo from "../assets/FedEx_logo.png";
 import UPS_logo from "../assets/UPS_logo.png";
 import USPS_logo from "../assets/USPS_logo.png";
-
 import Stripe_logo from "../assets/Stripe_logo.png";
 
+import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
+
 export default function Checkout({ pageState, setPage }) {
-  const [shippingAddress, setShippingAddress] = useState({});
+  const [shippingAddress, setShippingAddress] = useState({
+    firstName: "Adam",
+    lastName: "Szymański",
+    zipCode: "92-446",
+    country: "Poland",
+    state: "Łódzkie",
+    city: "Łódź",
+    streetAddress1: "Wacława Wojewódzkiego 1 m2",
+    streetAddress2: "",
+    phoneNumber: "+48 606417902",
+  });
+
+  const [offersState, setOffersState] = useState([]);
+  const [shippingServiceProvider, setShippingServiceProvider] =
+    useState("USPS");
+
   if (pageState === "shippingAddressPage") {
     return (
       <ShippingAddressPage
@@ -38,11 +55,24 @@ export default function Checkout({ pageState, setPage }) {
       />
     );
   } else if (pageState === "summaryPage") {
-    return <SummaryPage setPage={setPage} />;
+    return (
+      <SummaryPage
+        setPage={setPage}
+        shippingAddress={shippingAddress}
+        shippingServiceProvider={shippingServiceProvider}
+        offersState={offersState}
+      />
+    );
   } else if (pageState === "endPage") {
     return <EndPage />;
   } else {
-    return <LoadingPage setPage={setPage} />;
+    return (
+      <LoadingPage
+        setPage={setPage}
+        setOffersState={setOffersState}
+        setShippingServiceProvider={setShippingServiceProvider}
+      />
+    );
   }
 }
 
@@ -73,19 +103,6 @@ const ShippingAddressPage = ({ setPage, setShippingAddress }) => {
         "At least one number, capital & lower letter!"
       ),
   });
-
-  useEffect(() => {
-    const resolvePromise = async () => {
-      // const result = functions.httpsCallable("helloWorld");
-      // result()
-      //   .then((result) => console.log(result))
-      //   .catch((err) => console.log(err));
-      // let result = await query();
-      // initializePaymentSheet(result.data);
-    };
-
-    resolvePromise();
-  }, []);
 
   return (
     <ScrollView style={{ backgroundColor: "#1b1b1b", flex: 1 }}>
@@ -143,7 +160,7 @@ const ShippingAddressPage = ({ setPage, setShippingAddress }) => {
             streetAddress2: "",
             phoneNumber: "+48 606417902",
           });
-          setPage("summaryPage");
+          setPage("loadingPage");
         }}
         style={{
           flex: 1,
@@ -659,7 +676,8 @@ const ShippingAddressPage = ({ setPage, setShippingAddress }) => {
                   paddingHorizontal: 20,
                 }}
                 onPress={async () => {
-                  setPage("summaryPage");
+                  setPage("loadingPage");
+                  // props.handleSubmit();
                 }}
               >
                 <Text
@@ -703,17 +721,17 @@ const ShippingAddressPage = ({ setPage, setShippingAddress }) => {
   );
 };
 
-const SummaryPage = ({ setPage }) => {
-  const [sectionListState, setSectionListState] = useState([
-    { title: "Rig", data: [{}] },
-  ]);
-  const [shippingServiceProvider, setShippingServiceProvider] = useState("DHL");
-
+const SummaryPage = ({
+  setPage,
+  shippingAddress,
+  shippingServiceProvider,
+  offersState,
+}) => {
   return (
     <View style={{ backgroundColor: "#1b1b1b", flex: 1 }}>
       <SectionList
         style={{ width: "100%" }}
-        sections={sectionListState}
+        sections={offersState}
         keyExtractor={(item, index) => item + index}
         renderItem={({ item }) => <SummaryObject props={item} />}
         renderSectionHeader={({ section: { title } }) => (
@@ -739,20 +757,35 @@ const SummaryPage = ({ setPage }) => {
             </Text>
           </View>
         )}
+        ListEmptyComponent={
+          <View style={{ paddingVertical: 18 }}>
+            <ActivityIndicator size={"small"} color={"#0082ff"} />
+          </View>
+        }
         ListHeaderComponent={getHeader}
-        ListFooterComponent={getFooter(setPage, shippingServiceProvider)}
+        ListFooterComponent={getFooter(
+          setPage,
+          shippingServiceProvider,
+          shippingAddress,
+          offersState
+        )}
       />
     </View>
   );
 };
-const LoadingPage = ({ setPage }) => {
-  return (
-    <View>
-      <Text>Summary</Text>
-    </View>
-  );
-};
-const EndPage = () => {
+const LoadingPage = ({
+  setPage,
+  setOffersState,
+  setShippingServiceProvider,
+}) => {
+  useEffect(() => {
+    const resolvePromise = async () => {
+      await fetchCart(setOffersState, () => {});
+      //check each vendor for shipping service provider
+      setPage("summaryPage");
+    };
+    resolvePromise();
+  }, []);
   return (
     <View
       style={{
@@ -762,7 +795,76 @@ const EndPage = () => {
         backgroundColor: "#1b1b1b",
       }}
     >
-      <Text>Congrats!</Text>
+      <ActivityIndicator size={"large"} color="#0082ff" />
+    </View>
+  );
+};
+const EndPage = () => {
+  const navigation = useNavigation();
+  return (
+    <View
+      style={{
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#1b1b1b",
+        paddingBottom: 20,
+      }}
+    >
+      <IconMCI name={"flag-checkered"} color={"#0082ff"} size={220} />
+      <Text
+        style={{
+          color: "#f4f4f4",
+          fontWeight: "700",
+          fontSize: 38,
+          marginTop: 10,
+        }}
+      >
+        Congratulations!
+      </Text>
+      <Text
+        style={{
+          color: "#5c5c5c",
+          textAlign: "center",
+          fontSize: 14,
+          marginTop: 10,
+          width: "90%",
+        }}
+      >
+        The order has been successfully placed. The vendor has 48 hours to ship
+        your cards. You can track your shipment in the Transactions Tab.
+      </Text>
+      <TouchableOpacity
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "90%",
+          backgroundColor: "#0082ff",
+          paddingVertical: 8,
+          marginLeft: "2%",
+          marginTop: 80,
+          marginBottom: 6,
+          borderRadius: 4,
+        }}
+        onPress={() => {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "Transactions" }],
+          });
+        }}
+      >
+        <Text
+          style={{
+            color: "#121212",
+            fontWeight: "700",
+            fontSize: 17,
+            marginRight: 8,
+          }}
+        >
+          {"Go to Transactions"}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -811,31 +913,86 @@ const getHeader = () => {
     </View>
   );
 };
-const getFooter = (setPage, shippingServiceProvider) => {
-  // const { initPaymentSheet, presentPaymentSheet } = useStripe();
+const getFooter = (
+  setPage,
+  shippingServiceProvider,
+  shippingAddress,
+  offersState
+) => {
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const [totals, setTotals] = useState({
+    cards: 0,
+    shipping: 18.23,
+    final: 0,
+  });
 
-  // const initializePaymentSheet = async (data) => {
-  //   const { paymentIntent, ephemeralKey, customer, publishableKey } = data;
+  useEffect(() => {
+    const resolvePromise = async () => {
+      functions.useEmulator("192.168.0.104", 5001);
+      const query = functions.httpsCallable("paymentSheet");
 
-  //   const { error } = await initPaymentSheet({
-  //     customerId: customer,
-  //     customerEphemeralKeySecret: ephemeralKey,
-  //     paymentIntentClientSecret: paymentIntent,
-  //     // Set `allowsDelayedPaymentMethods` to true if your business can handle payment
-  //     //methods that complete payment after a delay, like SEPA Debit and Sofort.
-  //     allowsDelayedPaymentMethods: true,
-  //   });
-  // };
+      query()
+        .then((result) => {
+          initializePaymentSheet(result.data);
+        })
+        .catch((err) => console.log(err));
+    };
 
-  // const openPaymentSheet = async () => {
-  //   const { error } = await presentPaymentSheet();
+    resolvePromise();
+  }, []);
 
-  //   if (error) {
-  //     console.log(`Error code: ${error.code}`, error.message);
-  //   } else {
-  //     console.log("Success", "Your order is confirmed!");
-  //   }
-  // };
+  useEffect(() => {
+    if (offersState) {
+      offersState.forEach((object) => {
+        object.data.forEach((offer) => {
+          setTotals((prevState) => ({
+            ...prevState,
+            cards: prevState.cards * offer.price,
+            final: prevState.cards + prevState.shipping,
+          }));
+        });
+      });
+    }
+  }, [offersState]);
+
+  const initializePaymentSheet = async (data) => {
+    const { paymentIntent, ephemeralKey, customer } = data;
+
+    let merchantName = auth.currentUser.displayName;
+
+    if (merchantName == null) {
+      merchantName = await fetchName();
+    }
+
+    const { error } = await initPaymentSheet({
+      customerId: customer,
+      customerEphemeralKeySecret: ephemeralKey,
+      paymentIntentClientSecret: paymentIntent,
+      // Set `allowsDelayedPaymentMethods` to true if your business can handle payment
+      //methods that complete payment after a delay, like SEPA Debit and Sofort.
+      allowsDelayedPaymentMethods: true,
+      googlePay: true,
+      merchantDisplayName: merchantName,
+    });
+  };
+
+  const openPaymentSheet = async () => {
+    const { error } = await presentPaymentSheet();
+
+    if (error) {
+      console.log(`Error code: ${error.code}`, error.message);
+    } else {
+      console.log("Success", "Your order is confirmed!");
+      setPage("endPage");
+      navigation.addListener("beforeRemove", (e) => {
+        if (pageState === "endPage") {
+          e.preventDefault();
+        } else {
+          return;
+        }
+      });
+    }
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -863,7 +1020,7 @@ const getFooter = (setPage, shippingServiceProvider) => {
               fontFamily: "Roboto_Regular",
             }}
           >
-            115 USD
+            {`${totals.cards} USD`}
           </Text>
         </Text>
       </View>
@@ -896,15 +1053,24 @@ const getFooter = (setPage, shippingServiceProvider) => {
             SHIPPING ADDRESS
           </Text>
           <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
-            Adam Szymański
+            {`${shippingAddress.firstName} ${shippingAddress.lastName}`}
           </Text>
           <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
-            Kryształowa 10A
+            {shippingAddress.streetAddress1}
           </Text>
-          <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>Łódź, 92-446</Text>
-          <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>Poland</Text>
+          {shippingAddress.streetAddress2 ? (
+            <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
+              {shippingAddress.streetAddress2}
+            </Text>
+          ) : null}
+          <Text
+            style={{ color: "#f4f4f4", marginLeft: 6 }}
+          >{`${shippingAddress.city}, ${shippingAddress.zipCode}`}</Text>
+          <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
+            {shippingAddress.country}
+          </Text>
           <Text style={{ color: "#f4f4f4", marginLeft: 6, marginTop: 8 }}>
-            +48 606417902
+            {shippingAddress.phoneNumber}
           </Text>
         </View>
         <View
@@ -923,7 +1089,7 @@ const getFooter = (setPage, shippingServiceProvider) => {
               marginBottom: 8,
             }}
           >
-            SHIPPING COST
+            CARRIER
           </Text>
 
           {shippingServiceProvider == "DHL" ? (
@@ -933,7 +1099,7 @@ const getFooter = (setPage, shippingServiceProvider) => {
                 aspectRatio: 675 / 260,
                 height: 50,
                 width: undefined,
-                marginLeft: 12,
+                marginLeft: 18,
               }}
             />
           ) : null}
@@ -944,7 +1110,7 @@ const getFooter = (setPage, shippingServiceProvider) => {
                 aspectRatio: 5000 / 2281,
                 height: 50,
                 width: undefined,
-                marginLeft: 18,
+                marginLeft: 20,
               }}
             />
           ) : null}
@@ -1009,7 +1175,7 @@ const getFooter = (setPage, shippingServiceProvider) => {
                 fontFamily: "Roboto_Regular",
               }}
             >
-              18.24 USD
+              {`${totals.shipping} USD`}
             </Text>
           </Text>
         </View>
@@ -1043,12 +1209,12 @@ const getFooter = (setPage, shippingServiceProvider) => {
         <Text
           style={{
             fontFamily: "Roboto_Medium",
-            color: "#0dff25",
+            color: "#0bb31b",
             fontSize: 12,
             marginLeft: 8,
           }}
         >
-          + 115 USD
+          {`+ ${totals.cards} USD`}
         </Text>
       </View>
 
@@ -1068,12 +1234,36 @@ const getFooter = (setPage, shippingServiceProvider) => {
         <Text
           style={{
             fontFamily: "Roboto_Medium",
-            color: "#0dff25",
+            color: "#0bb31b",
             fontSize: 12,
             marginLeft: 8,
           }}
         >
-          + 18.24 USD
+          {`+ ${totals.shipping} USD`}
+        </Text>
+      </View>
+      {/* <View
+        style={{ flexDirection: "row", alignItems: "center", marginTop: 3 }}
+      >
+        <Text
+          style={{
+            color: "#565656",
+            fontFamily: "Roboto_Medium",
+            fontSize: 12,
+            marginLeft: 18,
+          }}
+        >
+          MARKETPLACE FEES
+        </Text>
+        <Text
+          style={{
+            fontFamily: "Roboto_Medium",
+            color: "#0bb31b",
+            fontSize: 12,
+            marginLeft: 8,
+          }}
+        >
+          {`+ ${totals.marketplaceFees} USD`}
         </Text>
       </View>
       <View
@@ -1092,38 +1282,15 @@ const getFooter = (setPage, shippingServiceProvider) => {
         <Text
           style={{
             fontFamily: "Roboto_Medium",
-            color: "#0dff25",
+            color: "#0bb31b",
             fontSize: 12,
             marginLeft: 8,
           }}
         >
-          + 1.48 USD
+          {`+ ${totals.paymentProcessingFees} USD`}
         </Text>
-      </View>
-      <View
-        style={{ flexDirection: "row", alignItems: "center", marginTop: 3 }}
-      >
-        <Text
-          style={{
-            color: "#565656",
-            fontFamily: "Roboto_Medium",
-            fontSize: 12,
-            marginLeft: 18,
-          }}
-        >
-          MARKETPLACE FEES
-        </Text>
-        <Text
-          style={{
-            fontFamily: "Roboto_Medium",
-            color: "#0dff25",
-            fontSize: 12,
-            marginLeft: 8,
-          }}
-        >
-          + 6.67 USD
-        </Text>
-      </View>
+      </View> */}
+
       <View
         style={{
           flexDirection: "row",
@@ -1143,12 +1310,12 @@ const getFooter = (setPage, shippingServiceProvider) => {
         <Text
           style={{
             fontWeight: "700",
-            color: "#0082ff",
+            color: "#0dff25",
             fontSize: 18,
             marginLeft: 8,
           }}
         >
-          141.39 USD
+          {`${totals.final} USD`}
         </Text>
       </View>
       <View
@@ -1169,7 +1336,9 @@ const getFooter = (setPage, shippingServiceProvider) => {
 
             width: "90%",
           }}
-          // onPress={openPaymentSheet}
+          onPress={() => {
+            setPage("endPage");
+          }}
         >
           <Text style={{ fontWeight: "700", color: "#121212", fontSize: 18 }}>
             Purchase

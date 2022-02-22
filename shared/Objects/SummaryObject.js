@@ -13,22 +13,6 @@ import {
 export default function SummaryObject({ props }) {
   //fetch ID of cards from CF
 
-  props = {
-    cardId: "swsh3-20",
-    condition: "10",
-    description: "PSA 10.",
-    id: "R9O5HfR3PFf3V23atW9D",
-    isGraded: true,
-    languageVersion: "Japanese",
-    owner: "1wHQ7P6haMb0lGXqYGH8kjhIfcv1",
-    price: 115,
-    status: "published",
-    timestamp: {
-      nanoseconds: 0,
-      seconds: 1642434762,
-    },
-  };
-
   const [loading, setLoading] = useState(true);
 
   const [photosArray, setPhotosArray] = useState([
