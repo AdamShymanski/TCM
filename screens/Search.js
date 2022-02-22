@@ -14,6 +14,7 @@ import {
   fetchMoreCards,
   fetchSavedOffersId,
   fetchMostRecentOffers,
+  fetchMoreMostRecentOffers,
   db,
   auth,
 } from "../authContext";
@@ -47,7 +48,7 @@ export default function Search({ props, setProps }) {
       await fetchSavedOffersId(setSavedOffersId, setProps);
       const doc = await db.collection("users").doc(auth.currentUser.uid).get();
       setCartState(doc.data().cart);
-      setMostRecentOffers(await fetchMostRecentOffers());
+      await fetchMostRecentOffers(setMostRecentOffers);
       setProps((prev) => ({ ...prev, loadingState: false }));
     };
     resolvePromise();
@@ -273,16 +274,24 @@ export default function Search({ props, setProps }) {
           <FlatList
             data={mostRecentOffers}
             renderItem={({ item }) => {
-              if (item.status === "published") {
-                return (
-                  <OfferCard
-                    props={item}
-                    isSavedState={savedOffersId}
-                    cartArray={cartState}
-                    nameOfCard={true}
-                  />
-                );
-              }
+              return (
+                <OfferCard
+                  props={item}
+                  isSavedState={savedOffersId}
+                  cartArray={cartState}
+                  nameOfCard={true}
+                />
+              );
+              // if (item.status === "published") {
+              //   return (
+              //     <OfferCard
+              //       props={item}
+              //       isSavedState={savedOffersId}
+              //       cartArray={cartState}
+              //       nameOfCard={true}
+              //     />
+              //   );
+              // }
             }}
             ListEmptyComponent={
               <View
@@ -296,6 +305,20 @@ export default function Search({ props, setProps }) {
                 <ActivityIndicator size="large" color="#0082ff" />
               </View>
             }
+            onEndReachedThreshold={0.8}
+            onEndReached={async ({ distanceFromEnd }) => {
+              if (distanceFromEnd >= 0) {
+                await fetchMoreMostRecentOffers(
+                  mostRecentOffers,
+                  setMostRecentOffers
+                );
+                // setProps((prevState) => ({
+                //   ...prevState,
+                //   mroTimestamp:
+                //     mostRecentOffers[mostRecentOffers.length - 1].timestamp,
+                // }));
+              }
+            }}
             keyExtractor={(item, index) => index.toString()}
           />
         ) : null}
@@ -329,7 +352,7 @@ export default function Search({ props, setProps }) {
                 pageNumber: props.pageNumber + 1,
               }));
             }}
-            onEndReachedThreshold={4}
+            onEndReachedThreshold={0.8}
           />
         ) : null}
         {props.screen === "offers" &&

@@ -2,6 +2,7 @@
   "expo": {
     "userInterfaceStyle": "dark",
     "name": "PTCG Marketplace",
+    "scheme": "ptcgm",
     "slug": "ptcg_marketplace",
     "version": "20",
     "orientation": "portrait",
@@ -29,6 +30,7 @@
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-2637485113454186~8246765572"
       }
-    }
+    },
+    "plugins": ["sentry-expo"]
   }
 }

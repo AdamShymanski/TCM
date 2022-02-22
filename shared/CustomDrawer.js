@@ -114,9 +114,9 @@ export default function CustomDrawer({ navigation }) {
                 />
               )}
               labelStyle={{ color: "#f4f4f4" }}
-              label="Sellers"
+              label="Seller Profile"
               onPress={() => {
-                navigation.navigate("Sellers", { screen: "SearchForSeller" });
+                navigation.navigate("SellerProfile");
               }}
             />
             <DrawerItem
