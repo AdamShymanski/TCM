@@ -5,9 +5,11 @@ import {
   Text,
   ActivityIndicator,
   ScrollView,
+  Modal,
 } from "react-native";
 
 import IconMI from "react-native-vector-icons/MaterialIcons";
+import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 
 import * as yup from "yup";
 import { Formik, ErrorMessage } from "formik";
@@ -29,12 +31,105 @@ const reviewSchema = yup.object({
 });
 
 export default function AddNewShippingMethod({ navigation }) {
-  const [rangeState, setRange] = useState("domestic");
   const [errorState, setError] = useState(false);
+  const [modalState, setModal] = useState(false);
+  const [trackingState, setTracking] = useState(true);
+  const [rangeState, setRange] = useState("domestic");
   const [activityIndicator, setActivityIndicator] = useState(false);
 
   return (
     <ScrollView style={{ backgroundColor: "#1b1b1b", flex: 1 }}>
+      {modalState ? (
+        <Modal
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          transparent={true}
+        >
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onPress={() => {
+              setModal(null);
+            }}
+          >
+            <View
+              style={{
+                width: "87%",
+
+                backgroundColor: "#121212",
+                borderRadius: 8,
+                paddingVertical: 18,
+                paddingHorizontal: 18,
+              }}
+            >
+              <Text
+                style={{ color: "#f4f4f4", fontSize: 26, fontWeight: "700" }}
+              >
+                Parcel tracking
+              </Text>
+              <Text
+                style={{
+                  color: "#5c5c5c",
+                  fontSize: 12,
+                  width: "90%",
+                  marginTop: 8,
+                }}
+              >
+                {
+                  "Most carriers offer a package tracking option. This provides comfort to the buyer, they know where their goods are and at what stage of delivery. Does your new delivery method provide tracking?"
+                }
+              </Text>
+              <Text
+                style={{
+                  color: "#5c5c5c",
+                  fontSize: 12,
+                  width: "90%",
+                  marginTop: 8,
+                }}
+              >
+                {
+                  "If so, you will need to provide the buyer with a tracking code or link within 3 days after purchasing the cards."
+                }
+              </Text>
+              <View style={{ flexDirection: "row-reverse", marginTop: 30 }}>
+                <TouchableOpacity
+                  style={{
+                    width: 100,
+                    height: 30,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+
+                    backgroundColor: "#0082FF",
+                    borderRadius: 3,
+                  }}
+                  onPress={() => {
+                    setModal(false);
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "700",
+                      color: "#121212",
+                    }}
+                  >
+                    Got It
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      ) : null}
+
       <Formik
         initialValues={{
           carrier: "",
@@ -86,7 +181,7 @@ export default function AddNewShippingMethod({ navigation }) {
             <View style={{ flexDirection: "row", marginTop: 20 }}>
               <TouchableOpacity
                 style={{
-                  borderWidth: 1.8,
+                  borderWidth: 1,
                   borderColor:
                     rangeState === "domestic" ? "#0082ff" : "#5c5c5c",
 
@@ -118,11 +213,12 @@ export default function AddNewShippingMethod({ navigation }) {
                   Domestic
                 </Text>
               </TouchableOpacity>
+
               <TouchableOpacity
                 style={{
                   borderColor:
                     rangeState === "international" ? "#0082ff" : "#5c5c5c",
-                  borderWidth: 1.8,
+                  borderWidth: 1,
 
                   backgroundColor:
                     rangeState === "international" ? "#0082ff" : "#1b1b1b",
@@ -151,6 +247,86 @@ export default function AddNewShippingMethod({ navigation }) {
                   }}
                 >
                   International
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginTop: 20,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: "#5C5C5C",
+                  fontFamily: "Roboto_Medium",
+                }}
+              >
+                WILL THE PARCEL BE TRACKED
+              </Text>
+              <TouchableOpacity onPress={() => setModal(true)}>
+                <IconMCI
+                  size={18}
+                  color={"#5c5c5c"}
+                  name={"information-outline"}
+                  style={{ marginLeft: 6 }}
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={{ flexDirection: "row", marginTop: 8 }}>
+              <TouchableOpacity
+                style={{
+                  borderWidth: 1,
+                  borderColor: trackingState ? "#0082ff" : "#5c5c5c",
+
+                  backgroundColor: trackingState ? "#0082ff" : "#1b1b1b",
+
+                  paddingHorizontal: 12,
+                  paddingVertical: 5,
+
+                  borderRadius: 3,
+                  borderTopRightRadius: 0,
+                  borderBottomRightRadius: 0,
+                }}
+                onPress={() => setTracking((prevState) => !prevState)}
+              >
+                <Text
+                  style={{
+                    fontWeight: "700",
+                    color: trackingState ? "#121212" : "#5c5c5c",
+                    fontSize: 16,
+                  }}
+                >
+                  Yes
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  borderColor: !trackingState ? "#0082ff" : "#5c5c5c",
+                  borderWidth: 1,
+
+                  backgroundColor: !trackingState ? "#0082ff" : "#1b1b1b",
+
+                  paddingVertical: 5,
+                  paddingHorizontal: 12,
+
+                  borderRadius: 3,
+                  borderTopLeftRadius: 0,
+                  borderBottomLeftRadius: 0,
+                }}
+                onPress={() => setTracking((prevState) => !prevState)}
+              >
+                <Text
+                  style={{
+                    fontWeight: "700",
+                    color: !trackingState ? "#121212" : "#5c5c5c",
+                    fontSize: 16,
+                  }}
+                >
+                  No
                 </Text>
               </TouchableOpacity>
             </View>

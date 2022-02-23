@@ -454,6 +454,44 @@ function ChatStack() {
 function YourOffersStack() {
   return (
     <Stack.Navigator>
+      {/* <Stack.Screen
+        name="SelectShippingServiceProvider"
+        component={SelectShippingServiceProvider}
+        options={({ navigation, route }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 22,
+
+                height: 30,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: "#777777",
+                paddingHorizontal: 12,
+              }}
+              onPress={() => navigation.goBack()}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerTintColor: "#121212",
+          headerTitle: "",
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        })}
+      /> */}
       <Stack.Screen
         name="YourOffers"
         component={YourOffers}
@@ -503,44 +541,7 @@ function YourOffersStack() {
           },
         })}
       />
-      {/* <Stack.Screen
-        name="SelectShippingServiceProvider"
-        component={SelectShippingServiceProvider}
-        options={({ navigation, route }) => ({
-          headerLeft: () => (
-            <TouchableOpacity
-              style={{
-                borderRadius: 3,
-                marginLeft: 22,
 
-                height: 30,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 2,
-                borderColor: "#777777",
-                paddingHorizontal: 12,
-              }}
-              onPress={() => navigation.goBack()}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#777777",
-                }}
-              >
-                {"Go back"}
-              </Text>
-            </TouchableOpacity>
-          ),
-          headerTintColor: "#121212",
-          headerTitle: "",
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        })}
-      /> */}
       <Stack.Screen
         name="AddCard"
         component={AddCard}
@@ -671,6 +672,69 @@ function YourOffersStack() {
 function SellerStack() {
   return (
     <Stack.Navigator>
+      <Stack.Screen
+        name="AddNewShippingMethod"
+        component={AddNewShippingMethod}
+        options={({ navigation, route }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 12,
+
+                height: 30,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: "#777777",
+                paddingHorizontal: 12,
+              }}
+              onPress={() => navigation.goBack()}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  color: "#f4f4f4",
+                  fontWeight: "700",
+                  fontSize: 21,
+                  marginRight: 8,
+                }}
+              >
+                {"New Shipping Method"}
+              </Text>
+              <IconMI
+                name="local-shipping"
+                color={"#0082ff"}
+                size={30}
+                style={{ marginRight: 12 }}
+              />
+            </View>
+          ),
+          headerTintColor: "#121212",
+          headerTitle: "",
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        })}
+      />
       <Stack.Screen
         name="History"
         component={History}
@@ -804,64 +868,6 @@ function SellerStack() {
             backgroundColor: "#121212",
           },
         }}
-      />
-      <Stack.Screen
-        name="AddNewShippingMethod"
-        component={AddNewShippingMethod}
-        options={({ navigation, route }) => ({
-          headerLeft: () => (
-            <TouchableOpacity
-              style={{
-                borderRadius: 3,
-                marginLeft: 12,
-
-                height: 30,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 2,
-                borderColor: "#777777",
-                paddingHorizontal: 12,
-              }}
-              onPress={() => navigation.goBack()}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#777777",
-                }}
-              >
-                {"Go back"}
-              </Text>
-            </TouchableOpacity>
-          ),
-          headerRight: () => (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  color: "#f4f4f4",
-                  fontWeight: "700",
-                  fontSize: 21,
-                  marginRight: 8,
-                }}
-              >
-                {"New Shipping Method"}
-              </Text>
-              <IconMI name="local-shipping" color={"#0082ff"} size={30} />
-            </View>
-          ),
-          headerTintColor: "#121212",
-          headerTitle: "",
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        })}
       />
     </Stack.Navigator>
   );
