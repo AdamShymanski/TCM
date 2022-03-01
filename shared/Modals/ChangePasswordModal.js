@@ -58,7 +58,7 @@ const ChangePasswordModal = ({ setModal }) => {
         <View
           style={{
             width: "90%",
-            backgroundColor: "#121212",
+            backgroundColor: "#fff",
             borderRadius: 8,
             paddingVertical: 18,
             paddingLeft: 24,

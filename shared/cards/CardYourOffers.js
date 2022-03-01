@@ -74,15 +74,19 @@ export function CardYourOffers({ props, setModal, setId }) {
       return (
         <View
           style={{
-            backgroundColor: "#121212",
-            paddingVertical: 12,
-            paddingLeft: 12,
             flexDirection: "row",
+            alignSelf: "flex-start",
             alignItems: "center",
-            width: 172,
+
+            justifyContent: "space-evenly",
+
+            marginTop: 18,
+            paddingHorizontal: 12,
+            paddingVertical: 12,
+
+            backgroundColor: "#121212",
             borderTopLeftRadius: 6,
             borderTopRightRadius: 6,
-            marginTop: 18,
           }}
         >
           <View
@@ -109,15 +113,19 @@ export function CardYourOffers({ props, setModal, setId }) {
       return (
         <View
           style={{
-            backgroundColor: "#121212",
-            paddingVertical: 12,
-            paddingLeft: 12,
             flexDirection: "row",
+            alignSelf: "flex-start",
             alignItems: "center",
-            width: 106,
+
+            justifyContent: "space-evenly",
+
+            marginTop: 18,
+            paddingHorizontal: 12,
+            paddingVertical: 12,
+
+            backgroundColor: "#121212",
             borderTopLeftRadius: 6,
             borderTopRightRadius: 6,
-            marginTop: 18,
           }}
         >
           <View
@@ -145,15 +153,19 @@ export function CardYourOffers({ props, setModal, setId }) {
       return (
         <View
           style={{
-            backgroundColor: "#121212",
-            paddingVertical: 12,
-            paddingLeft: 12,
             flexDirection: "row",
+            alignSelf: "flex-start",
             alignItems: "center",
-            width: 100,
+
+            justifyContent: "space-evenly",
+
+            marginTop: 18,
+            paddingHorizontal: 12,
+            paddingVertical: 12,
+
+            backgroundColor: "#121212",
             borderTopLeftRadius: 6,
             borderTopRightRadius: 6,
-            marginTop: 18,
           }}
         >
           <View

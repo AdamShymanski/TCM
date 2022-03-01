@@ -18,7 +18,7 @@ import {
 import { Checkbox, TextInput } from "react-native-paper";
 
 import { useNavigation } from "@react-navigation/native";
-import { fetchBigCards, fetchMoreBigCards, updateCard } from "../authContext";
+import { fetchBigCards, fetchMoreBigCards, editCard } from "../authContext";
 
 import pikachu from "../assets/pikachu.png";
 import PickerModal from "../shared/Modals/PickerModal";
@@ -529,7 +529,7 @@ export default function EditCard({ route }) {
               outValues[0] = parseFloat(outValues[0]);
             }
 
-            await updateCard(
+            await editCard(
               route.params.props,
               outValues,
               initValues,

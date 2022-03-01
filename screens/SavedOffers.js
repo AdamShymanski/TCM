@@ -5,9 +5,10 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { fetchSavedCards, db, auth } from "../authContext";
 import { useIsFocused } from "@react-navigation/native";
+
 import { CardSavedOffers } from "../shared/Cards/CardSavedOffers";
 
-export default function SavedOffers({ navigation }) {
+export default function SavedOffers() {
   const [cardsData, setCardsData] = useState([]);
   const [loadingState, setLoading] = useState(true);
   const [cartState, setCartState] = useState([]);
@@ -91,6 +92,8 @@ export default function SavedOffers({ navigation }) {
         <FlatList
           data={cardsData}
           renderItem={({ item, index }) => {
+            return <CardSavedOffers props={item} cartArray={cartState} />;
+
             if (item.status === "published") {
               return <CardSavedOffers props={item} cartArray={cartState} />;
             }

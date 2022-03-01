@@ -25,12 +25,12 @@ exports.createStripeLinkedAccount = functions.https.onCall(
 
     //Check if account is already assigned to user
 
-    // Do afer successful account linking
-    await admin
-      .firestore()
-      .collection("users")
-      .doc(context.auth.uid)
-      .update({ stripe: { vendorID: account.id } });
+    //! Do afer successful account linking
+    // await admin
+    //   .firestore()
+    //   .collection("users")
+    //   .doc(context.auth.uid)
+    //   .update({ stripe: { vendorID: account.id } });
 
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
@@ -43,7 +43,6 @@ exports.createStripeLinkedAccount = functions.https.onCall(
     return accountLink.url;
   }
 );
-
 exports.paymentSheet = functions.https.onCall(async (data, context) => {
   const doc = await admin
     .firestore()
@@ -87,7 +86,108 @@ exports.paymentSheet = functions.https.onCall(async (data, context) => {
       "pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX",
   };
 });
+exports.useReferralCode = functions.https.onCall(async (data, context) => {
+  let result = false;
+  try {
+    await admin
+      .firestore()
+      .collection("users")
+      .doc(data.code)
+      .update({
+        discounts: {
+          referralProgram: admin.firestore.FieldValue.arrayUnion(
+            context.auth.uid
+          ),
+        },
+      })
+      .then((res) => {
+        result = res;
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
 
-// exports.helloWorld = functions.https.onRequest((req, res) => {
-//   res.status(200).send({ data: "Gello" });
-// });
+    return result;
+  } catch (e) {
+    console.log(e);
+  }
+});
+exports.calculateDiscount = functions.https.onCall(async (data, context) => {
+  let result = false;
+  try {
+    await admin
+      .firestore()
+      .collection("users")
+      .doc(context.auth.uid)
+      .get()
+      .then((doc) => {
+        const array = doc.data()?.discounts.referralProgram;
+        array.forEach((item) => {
+          result += 2;
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    return result;
+  } catch (e) {
+    console.log(e);
+  }
+});
+exports.purchaseSheet = functions.https.onCall(async (data, context) => {
+  //check for any discount
+
+  //start from referral program, fetch all uids from array at discounts/referralProgram
+  //then check each user if they had made any purchase yet and if they wasn't used yet
+  // if yes, each active user is 2 USD, mark these uids in array as used
+
+  try {
+    //fetch array
+    const usedUids = [];
+    const totalDiscount = 0;
+
+    const doc = await admin.collection("users").doc(context.auth.uid).get();
+
+    if (doc.data().discounts.referralProgram.lenght > 0) {
+      const newArray = doc.data().discounts.referralProgram;
+
+      doc.data().discounts.referralProgram.forEach((element, index) => {
+        if (element.used === false && element.activated === true) {
+          newArray[index].used = true;
+          totalDiscount += 2;
+        }
+      });
+      admin
+        .firestore()
+        .collection("users")
+        .doc(context.auth.uid)
+        .update({ discounts: { referralProgram: newArray } });
+    }
+
+    //   await admin
+    //     .firestore()
+    //     .collection("users")
+    //     .doc(data.code)
+    //     .update({
+    //       discounts: {
+    //         referralProgram: admin.firestore.FieldValue.arrayUnion(
+    //           context.auth.uid
+    //         ),
+    //       },
+    //     })
+    //     .then((res) => {
+    //       result = res;
+    //       console.log(res);
+    //     })
+    //     .catch((err) => {
+    //       console.log(err);
+    //     });
+    // }
+
+    return result;
+  } catch (e) {
+    console.log(e);
+  }
+});

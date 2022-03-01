@@ -16,10 +16,39 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 import { ShareModal } from "./../shared/Modals/ShareModal";
 
+import { auth, db } from "../authContext";
+
 export default function ReferralProgram() {
   const [snackbarState, setSnackbarState] = useState(false);
-  const [modalState, setModalState] = useState(true);
+  const [modalState, setModalState] = useState(false);
   const [modalMode, setModalMode] = useState("code");
+  const [data, setData] = useState({ ACVYC: 0, DONP: 0, TDR: 0 });
+
+  useEffect(() => {
+    const resolvePromise = async () => {
+      let ACVYC = 0;
+      let DONP = 0;
+      let TDR = 0;
+
+      const doc = await db.collection("users").doc(auth.currentUser.uid).get();
+
+      doc.data()?.discounts.referralProgram.forEach((item) => {
+        ACVYC++;
+        db.collection("users")
+          .doc(item.uid)
+          .get()
+          .then((doc) => {
+            if (doc.data()?.sellerProfile?.statistics?.purchases > 0) {
+              if (item.used === false) DONP += 2;
+              TDR += 2;
+            }
+          });
+      });
+
+      setData({ ACVYC: ACVYC, DONP: DONP, TDR: TDR });
+    };
+    resolvePromise();
+  }, []);
 
   return (
     <ScrollView
@@ -35,11 +64,14 @@ export default function ReferralProgram() {
 
       <Text
         style={{
-          color: "#f4f4f4",
           width: "96%",
-          marginTop: 12,
-          fontFamily: "Roboto_Medium",
+
           fontSize: 16,
+          color: "#f4f4f4",
+          fontFamily: "Roboto_Medium",
+
+          marginTop: 12,
+          marginLeft: 12,
         }}
       >
         Invite a friend to create a{" "}
@@ -50,12 +82,14 @@ export default function ReferralProgram() {
       </Text>
       <Text
         style={{
-          color: "#f4f4f4",
           width: "94%",
-          marginTop: 12,
-          fontSize: 12,
 
+          fontSize: 12,
+          color: "#f4f4f4",
           fontFamily: "Roboto_Medium",
+
+          marginTop: 12,
+          marginLeft: 12,
         }}
       >
         <Text style={{ fontWeight: "700", color: "#0082ff" }}>- </Text>In
@@ -204,7 +238,7 @@ export default function ReferralProgram() {
             </View>
 
             <Text style={{ fontSize: 34, fontWeight: "700", color: "#05FD00" }}>
-              0
+              {data.ACVYC}
             </Text>
           </View>
         </View>
@@ -269,12 +303,13 @@ export default function ReferralProgram() {
                 marginTop: 4,
               }}
             >
-              0{" "}
+              {data.DONP}
               <Text
                 style={{
                   color: "#0082ff",
                 }}
               >
+                {" "}
                 USD
               </Text>
             </Text>
@@ -299,12 +334,13 @@ export default function ReferralProgram() {
                 marginTop: 4,
               }}
             >
-              0{" "}
+              {data.TDR}
               <Text
                 style={{
                   color: "#0082ff",
                 }}
               >
+                {" "}
                 USD
               </Text>
             </Text>

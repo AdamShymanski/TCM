@@ -33,6 +33,7 @@ export default function OfferCard({
   isSavedState,
   cartArray,
   nameOfCard,
+  userCountry,
 }) {
   const condition = props.condition;
   const description = props.description;
@@ -46,9 +47,18 @@ export default function OfferCard({
   const [loadingState, setLoading] = useState(true);
   const [imageViewerState, setImageViewer] = useState(false);
   const [owner, setOwner] = useState({
-    name: null,
-    countryCodes: null,
-    collectionSize: null,
+    nick: "",
+    countryCode: null,
+    sellerProfile: {
+      statistics: {
+        views: 0,
+        purchases: 0,
+        numberOfOffers: 0,
+        sales: 0,
+      },
+      avgRating: 0,
+      rating: [],
+    },
   });
   const [isSaved, setSaveOffer] = useState(false);
   const [photosArray, setPhotosArray] = useState([
@@ -65,6 +75,8 @@ export default function OfferCard({
   const [pokemonName, setPokemonName] = useState(false);
 
   const navigation = useNavigation();
+
+  const [shippingImposible, setShippingImposible] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -86,6 +98,34 @@ export default function OfferCard({
         if (nameOfCard) {
           setPokemonName(await fetchCardsName(props.cardId));
         }
+
+        db.collection("users")
+          .doc(props.owner)
+          .get()
+          .then((doc) => {
+            if (doc.data().country !== userCountry) {
+              if ("international" in doc.data()) {
+                if (
+                  doc.data().sellerProfile.shippingMethods.international
+                    .lenght < 1
+                ) {
+                  setShippingImposible(true);
+                }
+              } else {
+                setShippingImposible(true);
+              }
+            } else {
+              if (!("domestic" in doc.data())) {
+                setShippingImposible(true);
+              } else {
+                if (
+                  doc.data().sellerProfile.shippingMethods.domestic.lenght < 1
+                ) {
+                  setShippingImposible(true);
+                }
+              }
+            }
+          });
 
         setLoading(false);
       }
@@ -123,7 +163,7 @@ export default function OfferCard({
       }
     }
   };
-  
+
   const renderSaveIndicator = () => {
     if (isSaved) {
       return (
@@ -202,8 +242,12 @@ export default function OfferCard({
           justifyContent: "center",
         }}
         onPress={() => {
-          setCartState(true);
-          addToCart(props.id);
+          if (shippingImposible) {
+            setSnackbar("Shipping is imposible for this item");
+          } else {
+            setCartState(true);
+            addToCart(props.id);
+          }
         }}
       >
         <Text
@@ -324,8 +368,8 @@ export default function OfferCard({
             <TouchableOpacity
               onPress={() => {
                 if (ownerId !== auth.currentUser.uid) {
-                  navigation.navigate("Sellers", {
-                    screen: "SellerProfile",
+                  navigation.navigate("Seller", {
+                    screen: "OtherSellersOffers",
                     params: { sellerId: ownerId },
                   });
                 }
@@ -339,7 +383,7 @@ export default function OfferCard({
                   fontWeight: "700",
                 }}
               >
-                {owner.name}
+                {owner.nick}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -362,7 +406,7 @@ export default function OfferCard({
           </View>
           <SellerDetailsBar
             props={{
-              collectionSize: owner.collectionSize,
+              sellerProfile: owner.sellerProfile,
               hide: detailsBarState,
             }}
           />
@@ -586,6 +630,11 @@ export default function OfferCard({
                   alignItems: "center",
                   justifyContent: "center",
                 }}
+                onPress={() => {
+                  if (shippingImposible) {
+                    setSnackbar("Shipping is imposible for this item");
+                  }
+                }}
               >
                 <Text
                   style={{
@@ -727,7 +776,7 @@ export default function OfferCard({
                   fontWeight: "700",
                 }}
               >
-                {owner.name}
+                {owner.nick}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -750,7 +799,7 @@ export default function OfferCard({
           </View>
           <SellerDetailsBar
             props={{
-              collectionSize: owner.collectionSize,
+              sellerProfile: owner.sellerProfile,
               hide: detailsBarState,
             }}
           />

@@ -27,6 +27,7 @@ import YourOffers from "./screens/YourOffers.js";
 import ImageBrowser from "./screens/ImageBrowser";
 import SavedOffers from "./screens/SavedOffers.js";
 import SellerProfile from "./screens/SellerProfile";
+import OtherSellersOffers from "./screens/OtherSellersOffers";
 import DeletingAccount from "./screens/DeletingAccount";
 import ChatConversations from "./screens/ChatConverstations";
 import FinishGoogleRegister from "./screens/FinishGoogleRegister";
@@ -35,6 +36,8 @@ import Rating from "./screens/subscreens/Seller/Rating";
 import Checkout from "./screens/Checkout";
 import Transactions from "./screens/Transactions";
 import AddNewShippingMethod from "./screens/subscreens/Seller/AddNewShippingMethod";
+import AddAddress from "./screens/subscreens/Checkout/AddAddress";
+
 import History from "./screens/subscreens/Seller/History";
 import ReferralProgram from "./screens/ReferralProgram";
 import StripeCheckout from "./screens/StripeCheckout";
@@ -173,14 +176,24 @@ function SettingsStack() {
   );
 }
 function CartStack() {
-  const [checkoutPageState, setCheckoutPageState] = useState(
-    "shippingAddressPage"
-  );
-  //"shippingAddressPage"
+  const [checkoutPageState, setCheckoutPageState] = useState("shippingPage");
+  //"shippingPage"
   //"summaryPage"
   //"endPage"
+  // start - "loadingPage"
+
   return (
     <Stack.Navigator>
+      <Stack.Screen
+        name="Cart"
+        component={Cart}
+        options={{
+          headerTitle: () => <CustomHeader version={"cart"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
       <Stack.Screen
         name="Checkout"
         children={() => (
@@ -208,7 +221,7 @@ function CartStack() {
                   }}
                   onPress={() => {
                     if (checkoutPageState === "summaryPage") {
-                      setCheckoutPageState("shippingAddressPage");
+                      setCheckoutPageState("shippingPage");
                     } else {
                       navigation.goBack();
                     }
@@ -221,17 +234,57 @@ function CartStack() {
                       color: "#777777",
                     }}
                   >
-                    {checkoutPageState === "shippingAddressPage"
+                    {checkoutPageState === "shippingPage"
                       ? "Cancel"
                       : "Go Back"}
-                    {}
                   </Text>
                 </TouchableOpacity>
               );
             } else return null;
           },
-
           headerRight: () => {
+            if (checkoutPageState === "loadingPage") {
+              return (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 12,
+                  }}
+                >
+                  <IconMCI
+                    name={"truck-delivery-outline"}
+                    color={"#5c5c5c"}
+                    size={26}
+                  />
+                  <View
+                    style={{
+                      width: 38,
+                      height: 2,
+                      backgroundColor: "#3d3d3d",
+                      marginHorizontal: 10,
+                      borderRadius: 3,
+                    }}
+                  />
+                  <IconMCI name={"cash-register"} color={"#5c5c5c"} size={26} />
+                  <View
+                    style={{
+                      width: 38,
+                      height: 2,
+                      backgroundColor: "#3d3d3d",
+                      marginHorizontal: 10,
+                      borderRadius: 3,
+                    }}
+                  />
+                  <IconMCI
+                    name={"flag-checkered"}
+                    color={"#5c5c5c"}
+                    size={26}
+                  />
+                </View>
+              );
+            }
             return (
               <View
                 style={{
@@ -251,7 +304,7 @@ function CartStack() {
                     width: 38,
                     height: 2,
                     backgroundColor:
-                      checkoutPageState !== "shippingAddressPage"
+                      checkoutPageState !== "shippingPage"
                         ? "#0560b7"
                         : "#3d3d3d",
                     marginHorizontal: 10,
@@ -261,9 +314,7 @@ function CartStack() {
                 <IconMCI
                   name={"cash-register"}
                   color={
-                    checkoutPageState !== "shippingAddressPage"
-                      ? "#0082ff"
-                      : "#5c5c5c"
+                    checkoutPageState !== "shippingPage" ? "#0082ff" : "#5c5c5c"
                   }
                   size={26}
                 />
@@ -295,14 +346,49 @@ function CartStack() {
         })}
       />
       <Stack.Screen
-        name="Cart"
-        component={Cart}
-        options={{
-          headerTitle: () => <CustomHeader version={"cart"} />,
+        name="AddAddress"
+        component={AddAddress}
+        options={({ navigation, route }) => ({
+          headerLeft: () => {
+            if (checkoutPageState !== "endPage") {
+              return (
+                <TouchableOpacity
+                  style={{
+                    borderRadius: 3,
+                    marginLeft: 12,
+
+                    height: 30,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderWidth: 2,
+                    borderColor: "#777777",
+                    paddingHorizontal: 12,
+                  }}
+                  onPress={() => {
+                    navigation.goBack();
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "700",
+                      color: "#777777",
+                    }}
+                  >
+                    Go Back
+                  </Text>
+                </TouchableOpacity>
+              );
+            } else return null;
+          },
+
+          headerTintColor: "#121212",
+          headerTitle: "",
           headerStyle: {
             backgroundColor: "#121212",
           },
-        }}
+        })}
       />
     </Stack.Navigator>
   );
@@ -458,44 +544,6 @@ function YourOffersStack() {
 
   return (
     <Stack.Navigator>
-      {/* <Stack.Screen
-        name="SelectShippingServiceProvider"
-        component={SelectShippingServiceProvider}
-        options={({ navigation, route }) => ({
-          headerLeft: () => (
-            <TouchableOpacity
-              style={{
-                borderRadius: 3,
-                marginLeft: 12,
-
-                height: 30,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 2,
-                borderColor: "#777777",
-                paddingHorizontal: 12,
-              }}
-              onPress={() => navigation.goBack()}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#777777",
-                }}
-              >
-                {"Go back"}
-              </Text>
-            </TouchableOpacity>
-          ),
-          headerTintColor: "#121212",
-          headerTitle: "",
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        })}
-      /> */}
       <Stack.Screen
         name="YourOffers"
         component={YourOffers}
@@ -677,6 +725,16 @@ function SellerStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
+        name="SellerProfile"
+        component={SellerProfile}
+        options={{
+          headerTitle: () => <CustomHeader version={"sellerProfile"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
+      <Stack.Screen
         name="AddNewShippingMethod"
         component={AddNewShippingMethod}
         options={({ navigation, route }) => ({
@@ -739,6 +797,7 @@ function SellerStack() {
           },
         })}
       />
+
       <Stack.Screen
         name="History"
         component={History}
@@ -864,14 +923,42 @@ function SellerStack() {
         })}
       />
       <Stack.Screen
-        name="SellerProfile"
-        component={SellerProfile}
-        options={{
-          headerTitle: () => <CustomHeader version={"sellerProfile"} />,
+        name="OtherSellersOffers"
+        component={OtherSellersOffers}
+        options={({ navigation, route }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 12,
+
+                height: 30,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: "#777777",
+                paddingHorizontal: 12,
+              }}
+              onPress={() => navigation.goBack()}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerTintColor: "#121212",
+          headerTitle: "",
           headerStyle: {
             backgroundColor: "#121212",
           },
-        }}
+        })}
       />
     </Stack.Navigator>
   );
@@ -1072,21 +1159,21 @@ export default function App() {
                 <CustomDrawer navigation={navigation} />
               )}
             >
-              <Drawer.Screen name="Seller" component={SellerStack} />
+              <Drawer.Screen name="Cart" component={CartStack} />
+              <Drawer.Screen name="Settings" component={SettingsStack} />
+
+              <Drawer.Screen name="Search" component={SearchStack} />
+              <Drawer.Screen name="Home" component={HomeStack} />
               <Drawer.Screen
                 name="ReferralProgram"
                 component={ReferralProgramStack}
               />
+              <Drawer.Screen name="Seller" component={SellerStack} />
               <Drawer.Screen name="YourOffers" component={YourOffersStack} />
-              <Drawer.Screen name="Home" component={HomeStack} />
-
-              <Drawer.Screen name="Search" component={SearchStack} />
               <Drawer.Screen
                 name="Transactions"
                 component={TransactionsStack}
               />
-              <Drawer.Screen name="Settings" component={SettingsStack} />
-              <Drawer.Screen name="Cart" component={CartStack} />
               <Drawer.Screen name="StripeCheckout" component={StripeCheckout} />
               <Drawer.Screen name="Chat" component={ChatStack} />
               <Drawer.Screen name="SavedOffers" component={SavedOffersStack} />
@@ -1095,7 +1182,7 @@ export default function App() {
                 component={DeletingAccount}
               />
             </Drawer.Navigator>
-            {adBanerState ? (
+            {/* {adBanerState ? (
               <AdMobBanner
                 bannerSize="smartBannerPortrait"
                 adUnitID="ca-app-pub-2637485113454186/2096785031"
@@ -1108,7 +1195,7 @@ export default function App() {
                 }}
                 //detect when add is loaded
               />
-            ) : null}
+            ) : null} */}
           </NavigationContainer>
         </StripeProvider>
       );

@@ -7,6 +7,7 @@ import inStock from "../../assets/in_stock.png";
 import bluePricetag from "../../assets/blue_pricetag.png";
 
 import { fetchBigCardsDetails } from "../../authContext";
+import OtherSellersOffers from "./../../screens/OtherSellersOffers";
 
 export default function DefaultCard({ props, setId, setProps }) {
   const [imageViewerState, setImageViewer] = useState(false);
@@ -127,104 +128,151 @@ export default function DefaultCard({ props, setId, setProps }) {
             }}>
             {props.name}
           </Text>
-          <View
-            style={{
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}>
+          {details[0] === 0 ? (
             <View
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginTop: 12,
-              }}>
-              <Image
-                source={inStock}
-                style={{
-                  width: 21,
-                  height: undefined,
-                  aspectRatio: 22 / 21.1,
-                  marginRight: 8,
-                }}
-              />
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
               <Text
-                style={{ fontWeight: '700', fontSize: 14, color: '#f4f4f4' }}>
-                {details[0]}
+                style={{
+                  fontWeight: "700",
+                  color: "#970000",
+                  fontSize: 14,
+                }}
+              >
+                OUT OF STOCK
               </Text>
             </View>
-
+          ) : (
             <View
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginTop: 12,
-              }}>
-              <Image
-                source={bluePricetag}
-                style={{
-                  width: 18,
-                  height: undefined,
-                  aspectRatio: 1 / 1,
-                  marginRight: 8,
-                }}
-              />
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
               <View
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  width: "60%",
-                  justifyContent: "space-evenly",
+                  marginTop: 12,
                 }}
               >
+                <Image
+                  source={inStock}
+                  style={{
+                    width: 21,
+                    height: undefined,
+                    aspectRatio: 22 / 21.1,
+                    marginRight: 8,
+                  }}
+                />
                 <Text
-                  style={{ fontWeight: '600', fontSize: 10, color: '#696969' }}>
-                  from
-                </Text>
-                <Text
-                  style={{ fontWeight: "700", color: "#f4f4f4", fontSize: 12 }}
+                  style={{ fontWeight: "700", fontSize: 14, color: "#f4f4f4" }}
                 >
-                  {details[2]}
-                </Text>
-                <Text
-                  style={{ fontWeight: '600', fontSize: 10, color: '#696969' }}>
-                  to
-                </Text>
-                <Text
-                  style={{ fontWeight: "700", color: "#f4f4f4", fontSize: 12 }}
-                >
-                  {details[1]} USD
+                  {details[0]}
                 </Text>
               </View>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginTop: 12,
+                }}
+              >
+                <Image
+                  source={bluePricetag}
+                  style={{
+                    width: 18,
+                    height: undefined,
+                    aspectRatio: 1 / 1,
+                    marginRight: 8,
+                  }}
+                />
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    width: "60%",
+                    justifyContent: "space-evenly",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontWeight: "600",
+                      fontSize: 10,
+                      color: "#696969",
+                    }}
+                  >
+                    from
+                  </Text>
+                  <Text
+                    style={{
+                      fontWeight: "700",
+                      color: "#f4f4f4",
+                      fontSize: 12,
+                    }}
+                  >
+                    {details[2]}
+                  </Text>
+                  <Text
+                    style={{
+                      fontWeight: "600",
+                      fontSize: 10,
+                      color: "#696969",
+                    }}
+                  >
+                    to
+                  </Text>
+                  <Text
+                    style={{
+                      fontWeight: "700",
+                      color: "#f4f4f4",
+                      fontSize: 12,
+                    }}
+                  >
+                    {details[1]} USD
+                  </Text>
+                </View>
+              </View>
             </View>
-          </View>
-          <TouchableOpacity
-            style={{
-              width: '80%',
+          )}
 
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
+          {details[0] === 0 ? null : (
+            <TouchableOpacity
+              style={{
+                width: "80%",
 
-              backgroundColor: details[0] !== 0 ? '#0082FF' : '#00315e',
-              borderRadius: 3,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
 
-              marginTop: 18,
-              paddingVertical: 1.6,
-            }}
-            onPress={() => {
-              if (details[0] !== 0) {
-                setId(props.id);
-                setProps((prevProps) => ({
-                  ...prevProps,
-                  screen: "offers",
-                }));
-              }
-            }}
-          >
-            <Text style={{ fontWeight: "700", fontSize: 15, color: "#121212" }}>
-              Select
-            </Text>
-          </TouchableOpacity>
+                backgroundColor: details[0] !== 0 ? "#0082FF" : "#00315e",
+                borderRadius: 3,
+
+                marginTop: 18,
+                paddingVertical: 1.6,
+              }}
+              onPress={() => {
+                if (details[0] !== 0) {
+                  setId(props.id);
+                  setProps((prevProps) => ({
+                    ...prevProps,
+                    screen: "offers",
+                  }));
+                }
+              }}
+            >
+              <Text
+                style={{ fontWeight: "700", fontSize: 15, color: "#121212" }}
+              >
+                Select
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </View>

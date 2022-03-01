@@ -40,14 +40,22 @@ export default function Search({ props, setProps }) {
   const [noCardsState, setNoCards] = useState(false);
   const [cartState, setCartState] = useState(false);
 
+  const [countryState, setCountry] = useState(false);
+
   const isFocused = useIsFocused();
 
   useEffect(() => {
     const resolvePromise = async () => {
       setProps((prev) => ({ ...prev, loadingState: true }));
+
       await fetchSavedOffersId(setSavedOffersId, setProps);
       const doc = await db.collection("users").doc(auth.currentUser.uid).get();
-      setCartState(doc.data().cart);
+
+      if (doc.data().cart) {
+        setCartState(doc.data().cart);
+        setCountry(doc.data().country);
+      } else setCartState([]);
+
       await fetchMostRecentOffers(setMostRecentOffers);
       setProps((prev) => ({ ...prev, loadingState: false }));
     };
@@ -72,6 +80,31 @@ export default function Search({ props, setProps }) {
   useEffect(() => {
     if (props.loadingState && mostRecentOffers.length !== 0) setNoCards(true);
   }, [props.loadingState]);
+
+  // useEffect(() => {
+  //   setMostRecentOffers((prevState) => {
+  //     const output = prevState;
+
+  //     prevState.forEach(async (item, index) => {
+  //       let internationalShipping;
+  //       if (item.internationalShipping === undefined) {
+  //         await db
+  //           .collection("users")
+  //           .doc(item.owner)
+  //           .get()
+  //           .then((doc) => {
+  //             output.internationalShipping = doc.data()?.shippingMethods
+  //               ?.international
+  //               ? true
+  //               : false;
+  //           });
+  //         output.internationalShipping = internationalShipping;
+  //       }
+
+  //       item.internationalShipping;
+  //     });
+  //   });
+  // }, [mostRecentOffers]);
 
   useEffect(async () => {
     if (!isFocused) {
@@ -280,18 +313,12 @@ export default function Search({ props, setProps }) {
                   isSavedState={savedOffersId}
                   cartArray={cartState}
                   nameOfCard={true}
+                  userCountry={countryState}
                 />
               );
-              // if (item.status === "published") {
-              //   return (
-              //     <OfferCard
-              //       props={item}
-              //       isSavedState={savedOffersId}
-              //       cartArray={cartState}
-              //       nameOfCard={true}
-              //     />
-              //   );
-              // }
+              if (item.status === "published") {
+              }
+              return null;
             }}
             ListEmptyComponent={
               <View
@@ -360,7 +387,7 @@ export default function Search({ props, setProps }) {
         !props.loadingState ? (
           <FlatList
             data={offersData}
-            renderItem={({ item }) => {
+            renderItem={async ({ item }) => {
               if (item.status === "published") {
                 return (
                   <OfferCard
@@ -368,8 +395,11 @@ export default function Search({ props, setProps }) {
                     isSavedState={savedOffersId}
                     cartState={cartState}
                     nameOfCard={false}
+                    userCountry={countryState}
                   />
                 );
+              } else {
+                return null;
               }
             }}
             ListEmptyComponent={

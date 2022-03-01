@@ -10,7 +10,7 @@ import {
   removeFromCart,
 } from "../../authContext";
 
-export default function SummaryObject({ props }) {
+export default function SummaryObject({ props, last }) {
   //fetch ID of cards from CF
 
   const [loading, setLoading] = useState(true);
@@ -59,6 +59,7 @@ export default function SummaryObject({ props }) {
 
         backgroundColor: "#121212",
         borderRadius: 5,
+        marginBottom: last ? 0 : 8,
       }}
     >
       <Image
