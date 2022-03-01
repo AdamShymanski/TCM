@@ -69,7 +69,7 @@ export default function Home() {
             }}
           >
             Earn{" "}
-            <Text style={{ color: "#05FD00", fontWeight: "700" }}> $1 </Text>{" "}
+            <Text style={{ color: "#05FD00", fontWeight: "700" }}> 2 USD </Text>{" "}
             for every new user registered with your code.
           </Text>
         </View>

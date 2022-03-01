@@ -7,6 +7,7 @@ import "firebase/functions";
 import pokemon from "pokemontcgsdk";
 
 import * as GoogleSignIn from "expo-google-sign-in";
+import ReferralProgram from "./screens/ReferralProgram";
 
 if (firebase.apps.length === 0) {
   firebase.initializeApp({
@@ -23,12 +24,409 @@ export const firebaseObj = firebase;
 export const db = firebase.firestore();
 export const auth = firebase.auth();
 export const storage = firebase.storage();
+
+if (__DEV__) {
+  firebase.functions().useEmulator("192.168.0.103", 5001);
+}
 export const functions = firebase.functions();
 
-export async function fetchUserData() {
-  const response = await db.collection("users").doc(auth.currentUser.uid).get();
-  return response.data();
+//! CARDS
+export async function fetchCards(props, setProps) {
+  try {
+    pokemon.configure({ apiKey: "3c362cd9-2286-48d4-989a-0d2a65b9d5a8" });
+
+    // setProps((prevState) => ({ ...prevState, loadingState: true }));
+
+    let initArray = [];
+
+    const clearOutArray = (array) => {
+      let arrayOfIds = [];
+
+      array.forEach((item, index) => {
+        if (arrayOfIds.includes(item.id) || props.cardsData.includes(item.id)) {
+          array.splice(index, 1);
+        } else {
+          arrayOfIds.push(item.id);
+        }
+      });
+
+      // arrayOfIds = [];
+
+      return array;
+    };
+
+    if (props.inputValue) {
+      const sArg = props.inputValue.split(" ");
+
+      if (!/\d/.test(props.inputValue)) {
+        if (props.inputValue.split(" ").length > 1) {
+          let parsedArg;
+          props.inputValue.split(" ").forEach((item, index) => {
+            if (index == 0) {
+              parsedArg = item + "*";
+              return;
+            }
+            if (index == props.inputValue.split(" ").length - 1) {
+              parsedArg = parsedArg + item;
+              return;
+            }
+            parsedArg = parsedArg + item + "*";
+          });
+
+          try {
+            const result = await pokemon.card.where({
+              q: `name:${parsedArg}`,
+              pageSize: 10,
+              page: 1,
+              orderBy: props.sorterParams,
+            });
+
+            initArray = [...initArray, ...result.data];
+          } catch (error) {
+            console.log(error);
+          }
+        } else {
+          try {
+            const result = await pokemon.card.where({
+              q: `name:${sArg}`,
+              pageSize: 10,
+              page: 1,
+              orderBy: props.sorterParams,
+            });
+
+            initArray = [...initArray, ...result.data];
+          } catch (error) {
+            console.log(error);
+          }
+        }
+
+        if (props.inputValue.split(" ").length > 1) {
+          try {
+            const result1 = await pokemon.card.where({
+              q: `name:${sArg[1]} subtypes:${sArg[0]}`,
+              pageSize: 5,
+              page: 1,
+              orderBy: props.sorterParams,
+            });
+
+            initArray = [...initArray, ...result1.data];
+          } catch (error) {
+            console.log(error);
+          }
+
+          try {
+            const result2 = await pokemon.card.where({
+              q: `name:${sArg[0]} subtypes:${sArg[1]}`,
+              pageSize: 5,
+              page: 1,
+              orderBy: props.sorterParams,
+            });
+
+            initArray = [...initArray, ...result2.data];
+          } catch (error) {
+            console.log(error);
+          }
+        }
+      } else {
+        const sArg = props.inputValue.split("/");
+        try {
+          const result = await pokemon.card.where({
+            q: `number:${sArg[0]} set.printedTotal:${sArg[1]}`,
+            pageSize: 5,
+            page: 1,
+            orderBy: props.sorterParams,
+          });
+          initArray = [...initArray, ...result.data];
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    }
+
+    setProps((prevState) => ({
+      ...prevState,
+      cardsData: clearOutArray(initArray),
+    }));
+  } catch (error) {
+    console.log(error);
+  }
 }
+export async function fetchMoreCards(props, setProps) {
+  try {
+    pokemon.configure({ apiKey: "6aa1ef65-fa80-4ea4-b35f-9466d2add1a6" });
+
+    let initArray = [...props.cardsData];
+
+    const clearOutArray = (array) => {
+      let arrayOfIds = [];
+
+      array.forEach((item, index) => {
+        if (arrayOfIds.includes(item.id) || props.cardsData.includes(item.id)) {
+          array.splice(index, 1);
+        } else {
+          arrayOfIds.push(item.id);
+        }
+      });
+
+      // arrayOfIds = [];
+
+      return array;
+    };
+
+    if (!/\d/.test(props.inputValue)) {
+      const result = await pokemon.card.where({
+        q: `name:${props.inputValue}`,
+        pageSize: 5,
+        page: props.pageNumber,
+        orderBy:
+          props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+      });
+
+      initArray = [...initArray, ...result.data];
+
+      if (props.inputValue.split(" ").length > 1) {
+        const sArg = props.inputValue.split(" ");
+
+        const result1 = await pokemon.card.where({
+          q: `name:${sArg[1]} subtypes:${sArg[0]}`,
+          pageSize: 5,
+          page: props.pageNumber,
+          orderBy:
+            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+        });
+
+        initArray = [...initArray, ...result1.data];
+
+        const result2 = await pokemon.card.where({
+          q: `name:${sArg[0]} subtypes:${sArg[1]}`,
+          pageSize: 5,
+          page: props.pageNumber,
+          orderBy:
+            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+        });
+
+        initArray = [...initArray, ...result2.data];
+
+        const result3 = await pokemon.card.where({
+          q: `name:${props.inputValue} rarity:${parseRarity(sArg[0])}`,
+          pageSize: 5,
+          page: props.pageNumber,
+          orderBy:
+            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+        });
+
+        initArray = [...initArray, ...result3.data];
+
+        const result4 = await pokemon.card.where({
+          q: `name:${props.inputValue} rarity:${parseRarity(sArg[1])}`,
+          pageSize: 5,
+          page: props.pageNumber,
+          orderBy:
+            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+        });
+
+        initArray = [...initArray, ...result4.data];
+
+        const result5 = await pokemon.card.where({
+          q: `name:${props.inputValue} rarity:${parseRarity(
+            sArg[1] + sArg[2]
+          )}`,
+          pageSize: 5,
+          page: props.pageNumber,
+          orderBy:
+            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+        });
+
+        initArray = [...initArray, ...result5.data];
+
+        const result6 = await pokemon.card.where({
+          q: `name:${props.inputValue} rarity:${parseRarity(sArg[2])}`,
+          pageSize: 5,
+          page: props.pageNumber,
+          orderBy:
+            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+        });
+
+        initArray = [...initArray, ...result6.data];
+      }
+    } else {
+      const sArg = props.inputValue.split("/");
+      const result = await pokemon.card.where({
+        q: `number:${sArg[0]} set.printedTotal:${sArg[1]}`,
+        pageSize: 5,
+        page: props.pageNumber,
+        orderBy:
+          props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
+      });
+      initArray = [...initArray, ...result.data];
+    }
+
+    const idsArray = [];
+    initArray.forEach((item, index, array) => {
+      idsArray.forEach((id) => {
+        if (id == item.id) {
+          array.splice(index, 1);
+        } else {
+          idsArray.push(item.id);
+        }
+      });
+    });
+
+    setProps((prevState) => ({
+      ...prevState,
+      cardsData: clearOutArray(initArray),
+    }));
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+//! CHAT
+export async function fetchLastMessage(
+  setLastMessage,
+  setHour,
+  setNotificationState,
+  data
+) {
+  const result = await db
+    .collection(`chats/${data.id}/messages`)
+    .doc(data.data.lastMessage)
+    .get();
+
+  setLastMessage(result.data());
+  setHour(
+    result.data().createdAt.toDate().toLocaleTimeString("en-US").substring(0, 5)
+  );
+  if (result.data().uid === auth.currentUser.uid) {
+    setNotificationState(true);
+  } else {
+    setNotificationState(false);
+  }
+}
+export async function checkForUnreadedMessages(result) {
+  try {
+    let returnStatement = false;
+    await db
+      .collection("users")
+      .doc(auth.currentUser.uid)
+      .get()
+      .then((doc) => {
+        const result = doc.data();
+        if (result.lastSupportMessageReaded) {
+          returnStatement = false;
+        } else {
+          returnStatement = true;
+        }
+      });
+
+    // await db.collection("chats");
+    // search for unreaded messages
+    return returnStatement;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+export async function createChat(message, secondUserUid, setChatRef) {
+  db.collection("chats")
+    .add({
+      members: [auth.currentUser.uid, secondUserUid],
+      lastMessage: "",
+      notificationFor: secondUserUid,
+    })
+    .then(async (doc) => {
+      db.collection(`chats/${doc.id}/messages`)
+        .add(message[0])
+        .then(async (messageDoc) => {
+          await db
+            .collection(`chats`)
+            .doc(doc.id)
+            .update({ lastMessage: messageDoc.id });
+
+          setChatRef(`chats/${doc.id}/messages`);
+        });
+    });
+}
+export async function sendMessage(id, message) {
+  try {
+    await db
+      .collection("chats")
+      .doc(id)
+      .update({
+        messages: firebase.firestore.FieldValue.arrayUnion({
+          content: message,
+          sentAt: firebase.firestore.FieldValue.serverTimestamp(),
+          uid: auth.currentUser.uid,
+          name: auth.currentUser.uid,
+          received: false,
+        }),
+      });
+  } catch (err) {}
+}
+export async function setChatListeners(setListenerData) {
+  const secondUserUid = (doc) => {
+    if (doc.data().members[0] == auth.currentUser.uid) {
+      return doc.data().members[1];
+    } else return doc.data().members[0];
+  };
+
+  db.collection("chats")
+    .where("members", "array-contains", auth.currentUser.uid)
+    .onSnapshot((doc) => {
+      const array = [];
+      doc.forEach((doc) => {
+        array.push({ data: doc.data(), uid: secondUserUid(doc), id: doc.id });
+      });
+      setListenerData(array);
+    });
+}
+
+//! PURCHASE Co-Related FUNCTIONS
+export async function addNewShippingMethod(props, range) {
+  try {
+    if (range === "domestic") {
+      db.collection("users")
+        .doc(auth.currentUser.uid)
+        .update({
+          sellerProfile: {
+            shippingMethods: {
+              domestic: firebase.firestore.FieldValue.arrayUnion(props),
+            },
+          },
+        });
+    } else {
+      db.collection("users")
+        .doc(auth.currentUser.uid)
+        .update({
+          sellerProfile: {
+            shippingMethods: {
+              international: firebase.firestore.FieldValue.arrayUnion(props),
+            },
+          },
+        });
+    }
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+export async function addNewRating(props) {
+  try {
+    props.author = auth.currentUser.uid;
+    db.collection("users")
+      .doc(auth.currentUser.uid)
+      .update({
+        sellerProfile: {
+          rating: firebase.firestore.FieldValue.arrayUnion(props),
+        },
+      });
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+
+//! OFFERS - AND RELATED TO IT
 export async function addCard(values, gradingSwitch, photoState, cardId) {
   if (values.condition) condition = parseFloat(values.condition);
   else condition = null;
@@ -89,7 +487,11 @@ export async function addCard(values, gradingSwitch, photoState, cardId) {
             .get();
 
           let update = user.data();
-          update.collectionSize = update.collectionSize + 1;
+
+          update.sellerProfile.statistics.numberOfOffers = update.sellerProfile
+            .statistics.numberOfOffers
+            ? update.sellerProfile.statistics.numberOfOffers + 1
+            : 1;
 
           await db.collection("users").doc(auth.currentUser.uid).set(update);
         })
@@ -105,28 +507,7 @@ export async function addCard(values, gradingSwitch, photoState, cardId) {
       });
     });
 }
-export async function fetchPhotos(offerId) {
-  try {
-    const pathsArray = [];
-
-    const path = "cards/" + `${offerId}/`;
-
-    for (let i = 0; i < 3; i++) {
-      var pathReference = storage.ref(path + i);
-
-      try {
-        await pathReference.getDownloadURL().then((url) => {
-          pathsArray.push(url);
-        });
-      } catch (error) {}
-    }
-
-    return pathsArray;
-  } catch (error) {
-    console.log(error);
-  }
-}
-export async function updateCard(props, outValues, initValues, valuesOrder) {
+export async function editCard(props, outValues, initValues, valuesOrder) {
   try {
     let cardUpdateObj = {};
 
@@ -210,7 +591,14 @@ export async function deleteCard(id) {
     await db
       .collection("users")
       .doc(auth.currentUser.uid)
-      .update({ collectionSize: user.data().collectionSize - 1 });
+      .update({
+        sellerProfile: {
+          statistics: {
+            numberOfOffers:
+              user.data().sellerProfile.statistics.numberOfOffers - 1,
+          },
+        },
+      });
 
     async function handleOtherChanges() {
       const offert = await db.collection("cards").doc(id).get();
@@ -314,6 +702,112 @@ export async function deleteCard(id) {
     console.log(error);
   }
 }
+//?
+export async function fetchPhotos(offerId) {
+  try {
+    const pathsArray = [];
+
+    const path = "cards/" + `${offerId}/`;
+
+    for (let i = 0; i < 3; i++) {
+      var pathReference = storage.ref(path + i);
+
+      try {
+        await pathReference.getDownloadURL().then((url) => {
+          pathsArray.push(url);
+        });
+      } catch (error) {}
+    }
+
+    return pathsArray;
+  } catch (error) {
+    console.log(error);
+  }
+}
+export async function fetchOffers(id, filterParams) {
+  try {
+    const arr = [];
+
+    //language filter localy
+
+    if (id) {
+      let docArr = db.collection("cards").where("cardId", "==", id);
+
+      const languageFilter = (offer) => {
+        if (filterParams.language.length === 0) return true;
+        return filterParams.language.includes(offer.language);
+      };
+
+      if (filterParams.graded) {
+        if (
+          filterParams.price.from &&
+          filterParams.price.to &&
+          filterParams.condition
+        ) {
+          docArr = db
+            .collection("cards")
+            .where("cardId", "==", id)
+            .where("price", ">=", filterParams.price.from)
+            .where("price", "<=", filterParams.price.to)
+            .where("condition", "==", filterParams.condition)
+            .where("isGraded", "==", true);
+        } else if (filterParams.condition) {
+          docArr = db
+            .collection("cards")
+            .where("cardId", "==", id)
+            .where("condition", "==", filterParams.condition)
+            .where("isGraded", "==", true);
+        } else if (filterParams.price.from && filterParams.price.to) {
+          docArr = db
+            .collection("cards")
+            .where("cardId", "==", id)
+            .where("price", ">=", filterParams.price.from)
+            .where("price", "<=", filterParams.price.to)
+            .where("isGraded", "==", true);
+        } else {
+          docArr = db
+            .collection("cards")
+            .where("cardId", "==", id)
+            .where("isGraded", "==", true);
+        }
+      } else if (filterParams.condition) {
+        if (filterParams.price.from && filterParams.price.to) {
+          docArr = db
+            .collection("cards")
+            .where("cardId", "==", id)
+            .where("price", ">=", filterParams.price.from)
+            .where("price", "<=", filterParams.price.to)
+            .where("condition", "==", filterParams.condition);
+        } else {
+          docArr = db
+            .collection("cards")
+            .where("cardId", "==", id)
+            .where("condition", "==", filterParams.condition);
+        }
+      } else if (filterParams.price.from && filterParams.price.to) {
+        docArr = db
+          .collection("cards")
+          .where("cardId", "==", id)
+          .where("price", ">=", filterParams.price.from)
+          .where("price", "<=", filterParams.price.to);
+      }
+
+      const snapshot = await docArr.get();
+
+      snapshot.forEach((doc) => {
+        let offers = doc.data();
+        offers.id = doc.id;
+        console.log(doc.data());
+
+        if (languageFilter(offers)) arr.push(offers);
+      });
+
+      return arr;
+    } else return [];
+  } catch (error) {
+    console.log(error);
+  }
+}
 export async function fetchCardsName(id) {
   try {
     const promise = new Promise(async (resolve, reject) => {
@@ -324,61 +818,6 @@ export async function fetchCardsName(id) {
     return promise;
   } catch (error) {
     console.log(error);
-  }
-}
-export async function deleteAccount() {
-  try {
-    let arr = [];
-
-    const result = await db
-      .collection("cards")
-      .where("owner", "==", auth.currentUser.uid)
-      .get();
-
-    //fetch all users card, and push them to arr
-    result.forEach((doc) => {
-      let cardObj = doc.data();
-      cardObj.id = doc.id;
-      arr.push(cardObj);
-    });
-
-    if (arr.length > 0) {
-      const promise = new Promise(async (resolve, reject) => {
-        arr.forEach(async (doc, index) => {
-          await deleteCard(doc.id);
-          if (arr.length == index + 1) resolve();
-        });
-      });
-      await promise.then(async () => {
-        await db.collection("users").doc(auth.currentUser.uid).delete();
-        await auth.currentUser.delete();
-
-        if (auth.currentUser?.providerData[0].providerId == "google.com") {
-          await GoogleSignIn.signOutAsync();
-        } else {
-          auth.signOut();
-        }
-      });
-    } else {
-      await db.collection("users").doc(auth.currentUser.uid).delete();
-      await auth.currentUser.delete();
-
-      if (auth.currentUser?.providerData[0].providerId == "google.com") {
-        await GoogleSignIn.signOutAsync();
-      } else {
-        auth.signOut();
-      }
-    }
-  } catch (error) {
-    console.log(error);
-  }
-}
-export async function fetchName() {
-  try {
-    const result = await db.collection("users").doc(auth.currentUser.uid).get();
-    return result.data().nick;
-  } catch (error) {
-    console.log(errorCode, errorMessage);
   }
 }
 export async function fetchOwnerData(ownerId) {
@@ -627,32 +1066,52 @@ export async function fetchOwnerData(ownerId) {
   ];
 
   try {
-    let name,
-      country,
-      savedOffers,
-      countryCode,
-      rating,
-      collectionSize,
-      sold,
-      visits,
-      bought,
-      cart;
+    let nick, country, savedOffers, countryCode, cart, sellerProfile;
+
+    const calculateAvgRating = (doc) => {
+      let total = 0;
+
+      if (doc.data()?.sellerProfile !== undefined) {
+        doc.data()?.sellerProfile.rating.forEach((rate) => {
+          total += rate.stars;
+        });
+        return total / doc.data()?.sellerProfile.rating.length;
+      } else {
+        return "-";
+      }
+    };
 
     await db
       .collection("users")
       .doc(ownerId)
       .get()
       .then((doc) => {
-        name = doc.data()?.nick;
+        nick = doc.data()?.nick;
         country = doc.data()?.country;
         savedOffers = doc.data()?.savedOffers;
 
-        cart = doc.data()?.cart;
+        cart = doc.data()?.cart ? doc.data()?.cart : [];
         sold = doc.data()?.sold;
         rating = doc.data()?.rating;
         visits = doc.data()?.visits;
         bought = doc.data()?.bought;
-        collectionSize = doc.data()?.collectionSize;
+
+        sellerProfile = doc.data()?.sellerProfile;
+
+        if (sellerProfile === undefined) {
+          sellerProfile = {
+            statistics: {
+              views: 0,
+              purchases: 0,
+              numberOfOffers: 0,
+              sales: 0,
+            },
+            avgRating: 0,
+            rating: [],
+          };
+        } else {
+          sellerProfile.avgRating = calculateAvgRating(doc);
+        }
 
         countryCodes.forEach((item, i) => {
           if (item.Name == country) {
@@ -661,21 +1120,22 @@ export async function fetchOwnerData(ownerId) {
         });
       });
     return {
-      name,
+      nick,
       country,
       savedOffers,
       countryCode,
-      sold,
-      rating,
-      visits,
-      bought,
-      collectionSize,
+      sellerProfile,
       cart,
     };
   } catch (error) {
     console.log(error);
   }
 }
+function parseRarity(inputString) {
+  return `Rare ${inputString}`;
+}
+
+//! MY ACCOUNT
 export async function reauthenticate(password) {
   try {
     const credential = firebase.auth.EmailAuthProvider.credential(
@@ -686,78 +1146,6 @@ export async function reauthenticate(password) {
     await auth.currentUser.reauthenticateWithCredential(credential);
 
     return true;
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
-}
-export async function fetchMostRecentOffers(setMostRecentOffers) {
-  try {
-    const offers = [];
-    await db
-      .collection("cards")
-      .orderBy("timestamp", "desc")
-      .limit(4)
-      .get()
-      .then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          let result = doc.data();
-          result.id = doc.id;
-          offers.push(result);
-        });
-      });
-
-    setMostRecentOffers(offers);
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
-}
-export async function fetchMoreMostRecentOffers(
-  mostRecentOffers,
-  setMostRecentOffers
-) {
-  try {
-    const newOffers = [];
-    const lastVisible = mostRecentOffers[mostRecentOffers.length - 1].timestamp;
-
-    // const clearOutArray = (array) => {
-    //   let arrayOfIds = [];
-
-    //   array.forEach((item, index) => {
-    //     if (arrayOfIds.includes(item.id)) {
-    //       array.splice(index, 1);
-    //     } else {
-    //       arrayOfIds.push(item.id);
-    //     }
-    //   });
-
-    //   // arrayOfIds = [];
-
-    //   return array;
-    // };
-
-    console.log(lastVisible);
-    console.log(mostRecentOffers.length - 1);
-
-    await db
-      .collection("cards")
-      .orderBy("timestamp", "desc")
-      .startAfter(lastVisible)
-      .limit(4)
-      .get()
-      .then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          let result = doc.data();
-          result.id = doc.id;
-          newOffers.push(result);
-        });
-      });
-
-    // setMostRecentOffers((prevState) => [
-    //   ...clearOutArray([newOffers, prevState]),
-    // ]);
-    setMostRecentOffers((prevState) => [...prevState, ...newOffers]);
   } catch (error) {
     console.log(error);
     return false;
@@ -782,12 +1170,36 @@ export async function register(email, password, nick, country, setError) {
         displayName: nick,
       });
 
-      await db.collection("users").doc(user.uid).set({
-        nick: nick.trim(),
-        country: country.trim(),
-        collectionSize: 0,
-        savedOffers: [],
-      });
+      await db
+        .collection("users")
+        .doc(user.uid)
+        .set({
+          nick: nick.trim(),
+          country: country.trim(),
+          discounts: {
+            referralProgram: [],
+            compensation: [],
+          },
+          sellerProfile: {
+            status: "unset",
+            rating: [],
+            shippingMethods: {
+              domestic: [],
+              international: [],
+            },
+            statistics: {
+              purchases: 0,
+              sales: 0,
+              views: 0,
+              numberOfOffers: 0,
+            },
+          },
+          stripe: {
+            vendorId: null,
+            merchantId: null,
+          },
+          savedOffers: [],
+        });
 
       await login(email.trim(), password.trim());
     })
@@ -800,6 +1212,228 @@ export async function register(email, password, nick, country, setError) {
         setError("Email has been already used.");
       }
     });
+}
+export async function deleteAccount() {
+  try {
+    let arr = [];
+
+    const result = await db
+      .collection("cards")
+      .where("owner", "==", auth.currentUser.uid)
+      .get();
+
+    //fetch all users card, and push them to arr
+    result.forEach((doc) => {
+      let cardObj = doc.data();
+      cardObj.id = doc.id;
+      arr.push(cardObj);
+    });
+
+    if (arr.length > 0) {
+      const promise = new Promise(async (resolve, reject) => {
+        arr.forEach(async (doc, index) => {
+          await deleteCard(doc.id);
+          if (arr.length == index + 1) resolve();
+        });
+      });
+      await promise.then(async () => {
+        await db.collection("users").doc(auth.currentUser.uid).delete();
+        await auth.currentUser.delete();
+
+        if (auth.currentUser?.providerData[0].providerId == "google.com") {
+          await GoogleSignIn.signOutAsync();
+        } else {
+          auth.signOut();
+        }
+      });
+    } else {
+      await db.collection("users").doc(auth.currentUser.uid).delete();
+      await auth.currentUser.delete();
+
+      if (auth.currentUser?.providerData[0].providerId == "google.com") {
+        await GoogleSignIn.signOutAsync();
+      } else {
+        auth.signOut();
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+export async function sendResetPasswordMail(email, setError) {
+  try {
+    firebase
+      .auth()
+      .sendPasswordResetEmail(email)
+      .then(() => {})
+      .catch((error) => {
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        setError(errorMessage);
+        // ..
+      });
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+export async function googleReSignIn(result) {
+  try {
+    if (result.type === "success") {
+      const credential = firebase.auth.GoogleAuthProvider.credential(
+        result.idToken,
+        result.accessToken
+      );
+
+      await firebase
+        .auth()
+        .currentUser.reauthenticateWithCredential(credential);
+
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+export async function updateUserData(outValues) {
+  try {
+    await db
+      .collection("users")
+      .doc(auth.currentUser.uid)
+      .update({ nick: outValues.nick, country: outValues.country });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+//! OTHER USERS
+export async function fetchName() {
+  try {
+    const result = await db.collection("users").doc(auth.currentUser.uid).get();
+    return result.data().nick;
+  } catch (error) {
+    console.log(errorCode, errorMessage);
+  }
+}
+export async function fetchUserData() {
+  const response = await db.collection("users").doc(auth.currentUser.uid).get();
+  return response.data();
+}
+export async function fetchUsersCards() {
+  try {
+    let arr = [];
+
+    const docArr = await db
+      .collection("cards")
+      .where("owner", "==", auth.currentUser.uid)
+      .get();
+
+    docArr.forEach((doc) => {
+      let cardObj = doc.data();
+      cardObj.id = doc.id;
+      arr.push(cardObj);
+    });
+
+    return arr;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+//! CART
+export async function fetchCart(setOffers, setLoading) {
+  try {
+    const doc = await db.collection("users").doc(auth.currentUser.uid).get();
+
+    const outputArray = [];
+    const arrLength = doc.data().cart.length;
+
+    if (arrLength === 0 || arrLength === undefined || null) {
+      setOffers(false);
+      setLoading(false);
+    } else {
+      const checkSeller = (name) => {
+        let result = false;
+        outputArray.forEach((item) => {
+          if (item.title == name) result = true;
+        });
+        return result;
+      };
+      const pushOfferToArray = (name, offer) => {
+        outputArray.forEach((item, i) => {
+          if (item.title == name) outputArray[i].data.push(offer);
+        });
+      };
+
+      const promise = new Promise((resolve, reject) => {
+        doc.data().cart.forEach(async (item, index) => {
+          const card = await db.collection("cards").doc(item).get();
+          const owner = await fetchOwnerData(card.data().owner);
+          if (checkSeller(owner.nick)) {
+            pushOfferToArray(owner.nick, { ...card.data(), id: card.id });
+          } else {
+            let obj = {
+              data: [{ ...card.data(), id: card.id }],
+              title: owner.nick,
+              uid: card.data().owner,
+            };
+            outputArray.push(obj);
+          }
+
+          if (index === arrLength - 1) resolve();
+        });
+      });
+      await promise;
+
+      setOffers(outputArray);
+      setLoading(false);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+export async function addToCart(offerID) {
+  try {
+    db.collection("users")
+      .doc(auth.currentUser.uid)
+      .update({
+        cart: firebase.firestore.FieldValue.arrayUnion(offerID),
+      });
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+export async function removeFromCart(offerID) {
+  try {
+    db.collection("users")
+      .doc(auth.currentUser.uid)
+      .update({
+        cart: firebase.firestore.FieldValue.arrayRemove(offerID),
+      });
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+
+//! SAVED OFFERS
+export async function saveOffer(ownerId, offerId) {
+  try {
+    await db
+      .collection("users")
+      .doc(ownerId)
+      .update({
+        savedOffers: firebase.firestore.FieldValue.arrayUnion(offerId),
+      });
+    return true;
+  } catch (error) {
+    console.log(errorCode, errorMessage);
+    return false;
+  }
 }
 export async function unsaveOffer(ownerId, offerId) {
   try {
@@ -840,440 +1474,6 @@ export async function fetchSavedCards(setSavedCards, setLoading) {
     console.log(error);
   }
 }
-export async function fetchCart(setOffers, setLoading) {
-  try {
-    const doc = await db.collection("users").doc(auth.currentUser.uid).get();
-
-    const outputArray = [];
-    const arrLength = doc.data().cart.length;
-
-    if (arrLength === 0 || arrLength === undefined || null) {
-      setOffers([]);
-      setLoading(false);
-    } else {
-      const checkSeller = (name) => {
-        let result = false;
-        outputArray.forEach((item) => {
-          if (item.title == name) result = true;
-        });
-        return result;
-      };
-      const pushOfferToArray = (name, offer) => {
-        outputArray.forEach((item, i) => {
-          if (item.title == name) outputArray[i].data.push(offer);
-        });
-      };
-
-      const promise = new Promise((resolve, reject) => {
-        doc.data().cart.forEach(async (item, index) => {
-          const card = await db.collection("cards").doc(item).get();
-          const owner = await fetchOwnerData(card.data().owner);
-          if (checkSeller(owner.name)) {
-            pushOfferToArray(owner.name, { ...card.data(), id: card.id });
-          } else {
-            let obj = {
-              data: [{ ...card.data(), id: card.id }],
-              title: owner.name,
-            };
-            outputArray.push(obj);
-          }
-
-          if (index === arrLength - 1) resolve();
-        });
-      });
-      await promise;
-
-      setOffers(outputArray);
-      console.log(outputArray);
-      setLoading(false);
-    }
-  } catch (error) {
-    console.log(error);
-  }
-}
-export async function saveOffer(ownerId, offerId) {
-  try {
-    await db
-      .collection("users")
-      .doc(ownerId)
-      .update({
-        savedOffers: firebase.firestore.FieldValue.arrayUnion(offerId),
-      });
-    return true;
-  } catch (error) {
-    console.log(errorCode, errorMessage);
-    return false;
-  }
-}
-export async function fetchOffers(id, filterParams) {
-  try {
-    const arr = [];
-
-    //language filter localy
-
-    if (id) {
-      let docArr = db.collection("cards").where("cardId", "==", id);
-
-      const languageFilter = (offer) => {
-        if (filterParams.language.length === 0) return true;
-        return filterParams.language.includes(offer.language);
-      };
-
-      if (filterParams.graded) {
-        if (
-          filterParams.price.from &&
-          filterParams.price.to &&
-          filterParams.condition
-        ) {
-          docArr = db
-            .collection("cards")
-            .where("cardId", "==", id)
-            .where("price", ">=", filterParams.price.from)
-            .where("price", "<=", filterParams.price.to)
-            .where("condition", "==", filterParams.condition)
-            .where("isGraded", "==", true);
-        } else if (filterParams.condition) {
-          docArr = db
-            .collection("cards")
-            .where("cardId", "==", id)
-            .where("condition", "==", filterParams.condition)
-            .where("isGraded", "==", true);
-        } else if (filterParams.price.from && filterParams.price.to) {
-          docArr = db
-            .collection("cards")
-            .where("cardId", "==", id)
-            .where("price", ">=", filterParams.price.from)
-            .where("price", "<=", filterParams.price.to)
-            .where("isGraded", "==", true);
-        } else {
-          docArr = db
-            .collection("cards")
-            .where("cardId", "==", id)
-            .where("isGraded", "==", true);
-        }
-      } else if (filterParams.condition) {
-        if (filterParams.price.from && filterParams.price.to) {
-          docArr = db
-            .collection("cards")
-            .where("cardId", "==", id)
-            .where("price", ">=", filterParams.price.from)
-            .where("price", "<=", filterParams.price.to)
-            .where("condition", "==", filterParams.condition);
-        } else {
-          docArr = db
-            .collection("cards")
-            .where("cardId", "==", id)
-            .where("condition", "==", filterParams.condition);
-        }
-      } else if (filterParams.price.from && filterParams.price.to) {
-        docArr = db
-          .collection("cards")
-          .where("cardId", "==", id)
-          .where("price", ">=", filterParams.price.from)
-          .where("price", "<=", filterParams.price.to);
-      }
-
-      const snapshot = await docArr.get();
-
-      snapshot.forEach((doc) => {
-        let offers = doc.data();
-        offers.id = doc.id;
-        console.log(doc.data());
-
-        if (languageFilter(offers)) arr.push(offers);
-      });
-
-      return arr;
-    } else return [];
-  } catch (error) {
-    console.log(error);
-  }
-}
-export async function fetchMoreCards(props, setProps) {
-  try {
-    pokemon.configure({ apiKey: "6aa1ef65-fa80-4ea4-b35f-9466d2add1a6" });
-
-    let initArray = [...props.cardsData];
-
-    const clearOutArray = (array) => {
-      let arrayOfIds = [];
-
-      array.forEach((item, index) => {
-        if (arrayOfIds.includes(item.id) || props.cardsData.includes(item.id)) {
-          array.splice(index, 1);
-        } else {
-          arrayOfIds.push(item.id);
-        }
-      });
-
-      // arrayOfIds = [];
-
-      return array;
-    };
-
-    if (!/\d/.test(props.inputValue)) {
-      const result = await pokemon.card.where({
-        q: `name:${props.inputValue}`,
-        pageSize: 5,
-        page: props.pageNumber,
-        orderBy:
-          props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
-      });
-
-      initArray = [...initArray, ...result.data];
-
-      if (props.inputValue.split(" ").length > 1) {
-        const sArg = props.inputValue.split(" ");
-
-        const result1 = await pokemon.card.where({
-          q: `name:${sArg[1]} subtypes:${sArg[0]}`,
-          pageSize: 5,
-          page: props.pageNumber,
-          orderBy:
-            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
-        });
-
-        initArray = [...initArray, ...result1.data];
-
-        const result2 = await pokemon.card.where({
-          q: `name:${sArg[0]} subtypes:${sArg[1]}`,
-          pageSize: 5,
-          page: props.pageNumber,
-          orderBy:
-            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
-        });
-
-        initArray = [...initArray, ...result2.data];
-
-        const result3 = await pokemon.card.where({
-          q: `name:${props.inputValue} rarity:${parseRarity(sArg[0])}`,
-          pageSize: 5,
-          page: props.pageNumber,
-          orderBy:
-            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
-        });
-
-        initArray = [...initArray, ...result3.data];
-
-        const result4 = await pokemon.card.where({
-          q: `name:${props.inputValue} rarity:${parseRarity(sArg[1])}`,
-          pageSize: 5,
-          page: props.pageNumber,
-          orderBy:
-            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
-        });
-
-        initArray = [...initArray, ...result4.data];
-
-        const result5 = await pokemon.card.where({
-          q: `name:${props.inputValue} rarity:${parseRarity(
-            sArg[1] + sArg[2]
-          )}`,
-          pageSize: 5,
-          page: props.pageNumber,
-          orderBy:
-            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
-        });
-
-        initArray = [...initArray, ...result5.data];
-
-        const result6 = await pokemon.card.where({
-          q: `name:${props.inputValue} rarity:${parseRarity(sArg[2])}`,
-          pageSize: 5,
-          page: props.pageNumber,
-          orderBy:
-            props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
-        });
-
-        initArray = [...initArray, ...result6.data];
-      }
-    } else {
-      const sArg = props.inputValue.split("/");
-      const result = await pokemon.card.where({
-        q: `number:${sArg[0]} set.printedTotal:${sArg[1]}`,
-        pageSize: 5,
-        page: props.pageNumber,
-        orderBy:
-          props.sorterParams === "Rarity Declining" ? "-rarity" : "+rarity",
-      });
-      initArray = [...initArray, ...result.data];
-    }
-
-    const idsArray = [];
-    initArray.forEach((item, index, array) => {
-      idsArray.forEach((id) => {
-        if (id == item.id) {
-          array.splice(index, 1);
-        } else {
-          idsArray.push(item.id);
-        }
-      });
-    });
-
-    setProps((prevState) => ({
-      ...prevState,
-      cardsData: clearOutArray(initArray),
-    }));
-  } catch (error) {
-    console.log(error);
-  }
-}
-export async function fetchCards(props, setProps) {
-  try {
-    pokemon.configure({ apiKey: "3c362cd9-2286-48d4-989a-0d2a65b9d5a8" });
-
-    // setProps((prevState) => ({ ...prevState, loadingState: true }));
-
-    let initArray = [];
-
-    const clearOutArray = (array) => {
-      let arrayOfIds = [];
-
-      array.forEach((item, index) => {
-        if (arrayOfIds.includes(item.id) || props.cardsData.includes(item.id)) {
-          array.splice(index, 1);
-        } else {
-          arrayOfIds.push(item.id);
-        }
-      });
-
-      // arrayOfIds = [];
-
-      return array;
-    };
-
-    if (props.inputValue) {
-      const sArg = props.inputValue.split(" ");
-
-      if (!/\d/.test(props.inputValue)) {
-        if (props.inputValue.split(" ").length > 1) {
-          let parsedArg;
-          props.inputValue.split(" ").forEach((item, index) => {
-            if (index == 0) {
-              parsedArg = item + "*";
-              return;
-            }
-            if (index == props.inputValue.split(" ").length - 1) {
-              parsedArg = parsedArg + item;
-              return;
-            }
-            parsedArg = parsedArg + item + "*";
-          });
-
-          try {
-            const result = await pokemon.card.where({
-              q: `name:${parsedArg}`,
-              pageSize: 10,
-              page: 1,
-              orderBy: props.sorterParams,
-            });
-
-            initArray = [...initArray, ...result.data];
-          } catch (error) {
-            console.log(error);
-          }
-        } else {
-          try {
-            const result = await pokemon.card.where({
-              q: `name:${sArg}`,
-              pageSize: 10,
-              page: 1,
-              orderBy: props.sorterParams,
-            });
-
-            initArray = [...initArray, ...result.data];
-          } catch (error) {
-            console.log(error);
-          }
-        }
-
-        if (props.inputValue.split(" ").length > 1) {
-          try {
-            const result1 = await pokemon.card.where({
-              q: `name:${sArg[1]} subtypes:${sArg[0]}`,
-              pageSize: 5,
-              page: 1,
-              orderBy: props.sorterParams,
-            });
-
-            initArray = [...initArray, ...result1.data];
-          } catch (error) {
-            console.log(error);
-          }
-
-          try {
-            const result2 = await pokemon.card.where({
-              q: `name:${sArg[0]} subtypes:${sArg[1]}`,
-              pageSize: 5,
-              page: 1,
-              orderBy: props.sorterParams,
-            });
-
-            initArray = [...initArray, ...result2.data];
-          } catch (error) {
-            console.log(error);
-          }
-        }
-      } else {
-        const sArg = props.inputValue.split("/");
-        try {
-          const result = await pokemon.card.where({
-            q: `number:${sArg[0]} set.printedTotal:${sArg[1]}`,
-            pageSize: 5,
-            page: 1,
-            orderBy: props.sorterParams,
-          });
-          initArray = [...initArray, ...result.data];
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    }
-
-    setProps((prevState) => ({
-      ...prevState,
-      cardsData: clearOutArray(initArray),
-    }));
-  } catch (error) {
-    console.log(error);
-  }
-}
-export async function fetchBigCardsDetails(id, setDetails, mounted) {
-  try {
-    const doc = await db.collection("cardsData").doc(id).get();
-    if (doc.data() !== undefined) {
-      if (mounted) {
-        setDetails([
-          doc.data().offersNumber,
-          doc.data().highestPrice,
-          doc.data().lowestPrice,
-        ]);
-      }
-    }
-  } catch (error) {
-    console.log(error);
-  }
-}
-export async function fetchUsersCards() {
-  try {
-    let arr = [];
-
-    const docArr = await db
-      .collection("cards")
-      .where("owner", "==", auth.currentUser.uid)
-      .get();
-
-    docArr.forEach((doc) => {
-      let cardObj = doc.data();
-      cardObj.id = doc.id;
-      arr.push(cardObj);
-    });
-
-    return arr;
-  } catch (error) {
-    console.log(error);
-  }
-}
 export async function fetchSavedOffersId(setSavedOffersId, setProps) {
   try {
     db.collection("users")
@@ -1285,273 +1485,88 @@ export async function fetchSavedOffersId(setSavedOffersId, setProps) {
     console.log(error);
   }
 }
-export async function updateUserData(outValues) {
+
+//! MOST RECENT OFFERS
+export async function fetchMostRecentOffers(setMostRecentOffers) {
   try {
+    const offers = [];
     await db
-      .collection("users")
-      .doc(auth.currentUser.uid)
-      .update({ nick: outValues.nick, country: outValues.country });
-  } catch (error) {
-    console.log(error);
-  }
-}
-export async function createChat(message, secondUserUid, setChatRef) {
-  db.collection("chats")
-    .add({
-      members: [auth.currentUser.uid, secondUserUid],
-      lastMessage: "",
-      notificationFor: secondUserUid,
-    })
-    .then(async (doc) => {
-      db.collection(`chats/${doc.id}/messages`)
-        .add(message[0])
-        .then(async (messageDoc) => {
-          await db
-            .collection(`chats`)
-            .doc(doc.id)
-            .update({ lastMessage: messageDoc.id });
-
-          setChatRef(`chats/${doc.id}/messages`);
-        });
-    });
-}
-export async function sendMessage(id, message) {
-  try {
-    await db
-      .collection("chats")
-      .doc(id)
-      .update({
-        messages: firebase.firestore.FieldValue.arrayUnion({
-          content: message,
-          sentAt: firebase.firestore.FieldValue.serverTimestamp(),
-          uid: auth.currentUser.uid,
-          name: auth.currentUser.uid,
-          received: false,
-        }),
-      });
-  } catch (err) {}
-}
-export async function setChatListeners(setListenerData) {
-  const secondUserUid = (doc) => {
-    if (doc.data().members[0] == auth.currentUser.uid) {
-      return doc.data().members[1];
-    } else return doc.data().members[0];
-  };
-
-  db.collection("chats")
-    .where("members", "array-contains", auth.currentUser.uid)
-    .onSnapshot((doc) => {
-      const array = [];
-      doc.forEach((doc) => {
-        array.push({ data: doc.data(), uid: secondUserUid(doc), id: doc.id });
-      });
-      setListenerData(array);
-    });
-}
-export async function setTransactionsListeners(setListenerData) {
-  const secondUserUid = (doc) => {
-    if (doc.data().members[0] == auth.currentUser.uid) {
-      return doc.data().members[1];
-    } else return doc.data().members[0];
-  };
-
-  db.collection("transactions")
-    .where("seller", "==", auth.currentUser.uid)
-    .onSnapshot((doc) => {
-      //
-      // {
-      //   type: sell
-      //   offers:["x", "y"]
-      // }
-      //
-      //
-      setListenerData(array);
-    });
-  db.collection("transactions")
-    .where("buyer", "==", auth.currentUser.uid)
-    .onSnapshot((doc) => {
-      //
-      // {
-      //   type: buy
-      //   offers:["x", "y"]
-      // }
-      //
-      //
-      setListenerData(array);
-    });
-}
-export async function fetchLastMessage(
-  setLastMessage,
-  setHour,
-  setNotificationState,
-  data
-) {
-  const result = await db
-    .collection(`chats/${data.id}/messages`)
-    .doc(data.data.lastMessage)
-    .get();
-
-  setLastMessage(result.data());
-  setHour(
-    result.data().createdAt.toDate().toLocaleTimeString("en-US").substring(0, 5)
-  );
-  if (result.data().uid === auth.currentUser.uid) {
-    setNotificationState(true);
-  } else {
-    setNotificationState(false);
-  }
-}
-export async function googleReSignIn(result) {
-  try {
-    if (result.type === "success") {
-      const credential = firebase.auth.GoogleAuthProvider.credential(
-        result.idToken,
-        result.accessToken
-      );
-
-      await firebase
-        .auth()
-        .currentUser.reauthenticateWithCredential(credential);
-
-      return true;
-    } else {
-      return false;
-    }
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
-}
-export async function checkForUnreadedMessages(result) {
-  try {
-    let returnStatement = false;
-    await db
-      .collection("users")
-      .doc(auth.currentUser.uid)
+      .collection("cards")
+      .orderBy("timestamp", "desc")
+      .limit(4)
       .get()
-      .then((doc) => {
-        const result = doc.data();
-        if (result.lastSupportMessageReaded) {
-          returnStatement = false;
-        } else {
-          returnStatement = true;
-        }
-      });
-
-    // await db.collection("chats");
-    // search for unreaded messages
-    return returnStatement;
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
-}
-export async function sendResetPasswordMail(email, setError) {
-  try {
-    firebase
-      .auth()
-      .sendPasswordResetEmail(email)
-      .then(() => {})
-      .catch((error) => {
-        var errorCode = error.code;
-        var errorMessage = error.message;
-        setError(errorMessage);
-        // ..
-      });
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
-}
-export async function requestApi() {
-  try {
-    // firebase.functions().useFunctionsEmulator("http://0.0.0.0:5000");
-    // firebase.functions().useFunctionsEmulator("http://0.0.0.0:5001");
-
-    // firebase.functions("us-central1").useEmulator("0.0.0.0", 5001);
-    // firebase.functions().useEmulator("0.0.0.0", 5001);
-    const addMessage = firebase.functions().httpsCallable("paymentSheet");
-
-    addMessage()
-      .then((result) => {
-        console.log(result);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
-}
-export async function addToCart(offerID) {
-  try {
-    db.collection("users")
-      .doc(auth.currentUser.uid)
-      .update({
-        cart: firebase.firestore.FieldValue.arrayUnion(offerID),
-      });
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
-}
-export async function removeFromCart(offerID) {
-  try {
-    db.collection("users")
-      .doc(auth.currentUser.uid)
-      .update({
-        cart: firebase.firestore.FieldValue.arrayRemove(offerID),
-      });
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
-}
-export async function addNewShippingMethod(props, range) {
-  try {
-    if (range === "domestic") {
-      db.collection("users")
-        .doc(auth.currentUser.uid)
-        .update({
-          sellerProfile: {
-            shippingMethods: {
-              domestic: firebase.firestore.FieldValue.arrayUnion(props),
-            },
-          },
+      .then((querySnapshot) => {
+        querySnapshot.forEach(async (doc) => {
+          let result = doc.data();
+          result.id = doc.id;
+          offers.push(result);
         });
-    } else {
-      db.collection("users")
-        .doc(auth.currentUser.uid)
-        .update({
-          sellerProfile: {
-            shippingMethods: {
-              international: firebase.firestore.FieldValue.arrayUnion(props),
-            },
-          },
-        });
-    }
+      });
+
+    setMostRecentOffers(offers);
   } catch (error) {
     console.log(error);
     return false;
   }
 }
-export async function addNewRating(props) {
+export async function fetchMoreMostRecentOffers(
+  mostRecentOffers,
+  setMostRecentOffers
+) {
   try {
-    props.author = auth.currentUser.uid;
-    db.collection("users")
-      .doc(auth.currentUser.uid)
-      .update({
-        sellerProfile: {
-          rating: firebase.firestore.FieldValue.arrayUnion(props),
-        },
+    const newOffers = [];
+    const lastVisible = mostRecentOffers[mostRecentOffers.length - 1].timestamp;
+
+    await db
+      .collection("cards")
+      .orderBy("timestamp", "desc")
+      .startAfter(lastVisible)
+      .limit(4)
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          let result = doc.data();
+          result.id = doc.id;
+          newOffers.push(result);
+        });
       });
+
+    setMostRecentOffers((prevState) => [...prevState, ...newOffers]);
   } catch (error) {
     console.log(error);
     return false;
   }
 }
 
-function parseRarity(inputString) {
-  return `Rare ${inputString}`;
-}
+// export async function setTransactionsListeners(setListenerData) {
+//   const secondUserUid = (doc) => {
+//     if (doc.data().members[0] == auth.currentUser.uid) {
+//       return doc.data().members[1];
+//     } else return doc.data().members[0];
+//   };
+
+//   db.collection("transactions")
+//     .where("seller", "==", auth.currentUser.uid)
+//     .onSnapshot((doc) => {
+//       //
+//       // {
+//       //   type: sell
+//       //   offers:["x", "y"]
+//       // }
+//       //
+//       //
+//       setListenerData(array);
+//     });
+//   db.collection("transactions")
+//     .where("buyer", "==", auth.currentUser.uid)
+//     .onSnapshot((doc) => {
+//       //
+//       // {
+//       //   type: buy
+//       //   offers:["x", "y"]
+//       // }
+//       //
+//       //
+//       setListenerData(array);
+//     });
+// }

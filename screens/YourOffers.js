@@ -8,6 +8,7 @@ import {
   FlatList,
   ActivityIndicator,
   Linking,
+  Image,
 } from "react-native";
 
 import { MaterialIcons } from "@expo/vector-icons";
@@ -17,7 +18,9 @@ import DeleteCardModal from "../shared/Modals/DeleteCardModal";
 import { AlertModal } from "../shared/Modals/AlertModal";
 import { CardYourOffers } from "../shared/Cards/CardYourOffers";
 
-import { fetchUsersCards, functions } from "../authContext";
+import { db, fetchUsersCards, functions, auth } from "../authContext";
+
+import Stripe_logo from "../assets/Stripe_logo.png";
 
 export default function YourOffers() {
   const navigation = useNavigation();
@@ -26,12 +29,19 @@ export default function YourOffers() {
   const [modalState, setModalState] = useState(null);
   const [alertModal, setAlertModal] = useState(null);
   const [loadingState, setLoadingState] = useState(true);
+  const [vendorId, setVendorId] = useState(undefined);
 
   const [id, setId] = useState(null);
 
   useEffect(() => {
     const resolvePromises = async () => {
-      setCardsData(await fetchUsersCards());
+      //fetch id of stripe vendor account
+      const doc = await db.collection("users").doc(auth.currentUser.uid).get();
+      setVendorId(doc.data()?.stripe?.vendorId);
+
+      if (vendorId !== undefined) {
+        setCardsData(await fetchUsersCards());
+      }
     };
 
     resolvePromises();
@@ -50,6 +60,7 @@ export default function YourOffers() {
 
     resolvePromises();
   }, [modalState]);
+
   return (
     <View
       style={{
@@ -70,89 +81,18 @@ export default function YourOffers() {
         </View>
       ) : (
         <View style={{ flex: 1 }}>
-          {cardsData.length >= 1 ? (
+          {vendorId === undefined ? (
             <View
               style={{
                 flex: 1,
-              }}
-            >
-              <TouchableOpacity
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "96%",
-                  backgroundColor: "#121212",
-                  paddingVertical: 10,
-                  marginLeft: "2%",
-
-                  marginBottom: 6,
-                  marginTop: 14,
-                  borderRadius: 4,
-                }}
-                onPress={() => {
-                  navigation.navigate("AddCard");
-                }}
-              >
-                <MaterialIcons
-                  name="add"
-                  size={24}
-                  color="#f4f4f4"
-                  style={{ position: "absolute", left: "25%" }}
-                />
-                <Text
-                  style={{
-                    color: "#f4f4f4",
-                    fontWeight: "700",
-                    fontSize: 15,
-                    marginRight: 8,
-                  }}
-                >
-                  {"Add a new Card"}
-                </Text>
-              </TouchableOpacity>
-              <FlatList
-                data={cardsData}
-                renderItem={({ item, index }) => {
-                  return (
-                    <CardYourOffers
-                      props={item}
-                      setModal={setModalState}
-                      setId={setId}
-                    />
-                  );
-                }}
-                keyExtractor={(item, index) => index.toString()}
-              />
-              {/* <View
-                style={{
-                  width: "100%",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#121212",
-                  
-                  marginTop: 10,
-                  borderRadius: 4,
-                  paddingVertical: 10,
-                }}
-              >
-                <TouchableOpacity>
-                  <Text>Shipping</Text>
-                </TouchableOpacity>
-              </View> */}
-            </View>
-          ) : (
-            <View
-              style={{
-                flex: 1,
-                alignItems: "center",
-                justifyContent: "center",
                 backgroundColor: "#1b1b1b",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
               <Icon
-                name="cards"
+                name="shield-check"
                 color={"#0082ff"}
                 size={58}
                 style={{ marginBottom: 12, marginTop: 20 }}
@@ -167,7 +107,7 @@ export default function YourOffers() {
                   textAlign: "center",
                 }}
               >
-                Add New Offers!
+                Let us know you!
               </Text>
               <Text
                 style={{
@@ -178,8 +118,10 @@ export default function YourOffers() {
                   textAlign: "center",
                 }}
               >
-                Add photos, description, price and condition of the card and
-                sell it. It's really easy with PTCG Marketplace.
+                Before we allow you to post your offer, we need to verify your
+                identity for safety reasons. Therefore, you must create Stripe
+                account. It's really easy and don't take more then 5 minutes to
+                set up.
               </Text>
 
               <TouchableOpacity
@@ -196,7 +138,7 @@ export default function YourOffers() {
                   borderRadius: 4,
                 }}
                 onPress={() => {
-                  functions.useEmulator("192.168.0.104", 5001);
+                  functions.useEmulator("192.168.0.103", 5001);
                   const query = functions.httpsCallable(
                     "createStripeLinkedAccount"
                   );
@@ -209,23 +151,163 @@ export default function YourOffers() {
                     .catch((err) => console.log(err));
                 }}
               >
-                <MaterialIcons
-                  name="add"
-                  size={24}
-                  color="#121212"
-                  style={{ position: "absolute", left: "25%" }}
-                />
                 <Text
                   style={{
                     color: "#121212",
                     fontWeight: "700",
                     fontSize: 15,
-                    marginLeft: 12,
                   }}
                 >
                   {"Add Vendor Details"}
                 </Text>
               </TouchableOpacity>
+              <View style={{ flexDirection: "row", marginTop: 12 }}>
+                <Text style={{ fontFamily: "Roboto_Medium", color: "#555555" }}>
+                  Powered by{"  "}
+                </Text>
+                <Image
+                  source={Stripe_logo}
+                  style={{
+                    aspectRatio: 282 / 117,
+                    width: undefined,
+                    height: 20,
+                  }}
+                />
+              </View>
+            </View>
+          ) : (
+            <View style={{ flex: 1 }}>
+              {cardsData.length >= 1 ? (
+                <View
+                  style={{
+                    flex: 1,
+                  }}
+                >
+                  <TouchableOpacity
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "96%",
+                      backgroundColor: "#121212",
+                      paddingVertical: 10,
+                      marginLeft: "2%",
+
+                      marginBottom: 6,
+                      marginTop: 14,
+                      borderRadius: 4,
+                    }}
+                    onPress={() => {
+                      navigation.navigate("AddCard");
+                    }}
+                  >
+                    <MaterialIcons
+                      name="add"
+                      size={24}
+                      color="#f4f4f4"
+                      style={{ position: "absolute", left: "25%" }}
+                    />
+                    <Text
+                      style={{
+                        color: "#f4f4f4",
+                        fontWeight: "700",
+                        fontSize: 15,
+                        marginRight: 8,
+                      }}
+                    >
+                      {"Add a new Card"}
+                    </Text>
+                  </TouchableOpacity>
+                  <FlatList
+                    data={cardsData}
+                    renderItem={({ item, index }) => {
+                      return (
+                        <CardYourOffers
+                          props={item}
+                          setModal={setModalState}
+                          setId={setId}
+                        />
+                      );
+                    }}
+                    keyExtractor={(item, index) => index.toString()}
+                  />
+                </View>
+              ) : (
+                <View
+                  style={{
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "#1b1b1b",
+                  }}
+                >
+                  <Icon
+                    name="cards"
+                    color={"#0082ff"}
+                    size={58}
+                    style={{ marginBottom: 12, marginTop: 20 }}
+                  />
+                  <Text
+                    style={{
+                      color: "#f4f4f4",
+                      fontSize: 38,
+                      fontWeight: "700",
+                      marginBottom: 12,
+                      paddingHorizontal: 20,
+                      textAlign: "center",
+                    }}
+                  >
+                    Add New Offers!
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      width: "80%",
+                      color: "#4f4f4f",
+                      marginBottom: 60,
+                      textAlign: "center",
+                    }}
+                  >
+                    Add photos, description, price and condition of the card and
+                    sell it. It's really easy with PTCG Marketplace.
+                  </Text>
+
+                  <TouchableOpacity
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "90%",
+                      backgroundColor: "#0082ff",
+                      paddingVertical: 8,
+                      marginLeft: "2%",
+                      marginTop: 10,
+                      marginBottom: 6,
+                      borderRadius: 4,
+                    }}
+                    onPress={() => {
+                      navigation.navigate("AddCard");
+                    }}
+                  >
+                    <MaterialIcons
+                      name="add"
+                      size={24}
+                      color="#121212"
+                      style={{ position: "absolute", left: "25%" }}
+                    />
+                    <Text
+                      style={{
+                        color: "#121212",
+                        fontWeight: "700",
+                        fontSize: 15,
+                        marginLeft: 12,
+                      }}
+                    >
+                      {"Add new Card"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           )}
         </View>

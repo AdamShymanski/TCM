@@ -17,6 +17,7 @@ import ZigzagLines from "react-native-zigzag-lines";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 import { useIsFocused } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 
 export default function Cart({ route }) {
   const [offersState, setOffersState] = useState([]);
@@ -52,6 +53,7 @@ export default function Cart({ route }) {
   };
 
   const isFocused = useIsFocused();
+  const navigation = useNavigation();
 
   useEffect(async () => {
     if (!isFocused) {
@@ -171,7 +173,7 @@ export default function Cart({ route }) {
               flexDirection: "row",
             }}
             onPress={() => {
-              null;
+              navigation.navigate("Checkout");
             }}
           >
             <Text

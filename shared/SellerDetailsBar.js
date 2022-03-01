@@ -51,7 +51,7 @@ export default function SellerDetailsBar({ props }) {
               size={15}
               style={{ color: "#f4f4f4" }}
             />
-            <Text
+            {/* <Text
               style={{
                 color: "#f4f4f4",
                 fontSize: 13,
@@ -60,10 +60,10 @@ export default function SellerDetailsBar({ props }) {
               }}
             >
               0
-            </Text>
+            </Text> */}
           </View>
           <Text style={{ color: "#9C9C9C", fontSize: 10, fontWeight: "700" }}>
-            no rates yet
+            No rating yet
           </Text>
         </View>
         <View
@@ -101,7 +101,7 @@ export default function SellerDetailsBar({ props }) {
                 fontWeight: "700",
               }}
             >
-              {props.collectionSize}
+              {props.sellerProfile.statistics.numberOfOffers}
             </Text>
           </View>
           <View style={{ flexDirection: "row" }}>

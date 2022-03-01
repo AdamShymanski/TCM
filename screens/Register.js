@@ -11,7 +11,7 @@ import { TextInput } from "react-native-paper";
 import { Formik, ErrorMessage } from "formik";
 import * as yup from "yup";
 
-import { register } from "../authContext";
+import { register, functions } from "../authContext";
 import { CountryPickerModal } from "../shared/Modals/CountryPickerModal";
 
 const strongPasswordRegEx =
@@ -44,19 +44,22 @@ const reviewSchema = yup.object({
       .oneOf([yup.ref("password")], "Passwords aren't the same! ")
       .required("Confirm Password is required!                  "),
   }),
-
   country: yup
     .string("Wrong format!")
     .required("Country is required!")
     .matches(firstCapitalLetter, "Wrong country name!"),
+  referralCode: yup
+    .string("Wrong format!")
+    .max(28, "Wrong Code!")
+    .min(28, "Wrong Code!"),
 });
 
 export default function Register() {
   const [countryPickerState, setCountryPickerState] = useState("");
   const [countryInputTouched, setCountryInputTouched] = useState(false);
 
-  const [loadingIndicator, setLoadingIndicator] = useState(false);
   const [error, setError] = useState("");
+  const [loadingIndicator, setLoadingIndicator] = useState(false);
 
   return (
     <ScrollView style={{ backgroundColor: "#1b1b1b", flex: 1 }}>
@@ -94,17 +97,38 @@ export default function Register() {
           email: "",
           password: "",
           confirmPassword: "",
+          referralCode: "",
         }}
         validationSchema={reviewSchema}
         onSubmit={async (values, actions) => {
           setLoadingIndicator(true);
-          await register(
-            values.email,
-            values.password,
-            values.nick,
-            values.country,
-            setError
-          );
+
+          if (values.referralCode !== "") {
+            const functionCall = functions.httpsCallable("useReferralCode");
+
+            functionCall({ code: values.referralCode.trim() })
+              .then(async () => {
+                await register(
+                  values.email,
+                  values.password,
+                  values.nick,
+                  values.country,
+                  setError
+                );
+              })
+              .catch((error) => {
+                setError("Wrong Referral Code!");
+              });
+          } else {
+            await register(
+              values.email,
+              values.password,
+              values.nick,
+              values.country,
+              setError
+            );
+          }
+
           setLoadingIndicator(false);
         }}
         style={{
@@ -341,6 +365,64 @@ export default function Register() {
               />
             </TouchableOpacity>
             <ErrorMessage component="div" name="country">
+              {(msg) => (
+                <Text
+                  style={{
+                    width: "70%",
+                    marginTop: 8,
+                    marginBottom: 18,
+                    height: 20,
+                    flexDirection: "row",
+                    justifyContent: "flex-end",
+                    color: "#b40424",
+                    fontWeight: "700",
+                  }}
+                >
+                  {msg}
+                </Text>
+              )}
+            </ErrorMessage>
+            <View
+              style={{ width: "70%", alignItems: "flex-start", marginTop: 28 }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: "#5c5c5c",
+                  fontFamily: "Roboto_Medium",
+                }}
+              >
+                SOMEONE REFERRED YOU TO US ?
+              </Text>
+            </View>
+
+            <TextInput
+              mode={"outlined"}
+              value={props.values.referralCode}
+              onChangeText={props.handleChange("referralCode")}
+              label="Referral Code (optional)"
+              outlineColor={"#5c5c5c"}
+              error={
+                props.touched.referralCode && props.errors.referralCode
+                  ? true
+                  : false
+              }
+              style={{
+                width: "70%",
+                backgroundColor: "#1B1B1B",
+                color: "#f4f4f4",
+                marginTop: 8,
+              }}
+              theme={{
+                colors: {
+                  primary: "#0082ff",
+                  placeholder: "#5c5c5c",
+                  background: "transparent",
+                  text: "#f4f4f4",
+                },
+              }}
+            />
+            <ErrorMessage component="div" name="referralCode">
               {(msg) => (
                 <Text
                   style={{

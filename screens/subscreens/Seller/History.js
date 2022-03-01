@@ -92,7 +92,7 @@ export default function History() {
               AMOUNT
             </Text>
             <Text style={{ color: "#f4f4f4", fontSize: 16, fontWeight: "700" }}>
-              + 125.00 USD
+              + 125.00 <Text style={{ color: "#0082ff" }}>USD</Text>
             </Text>
           </View>
           <View>
@@ -193,7 +193,7 @@ export default function History() {
               AMOUNT
             </Text>
             <Text style={{ color: "#f4f4f4", fontSize: 16, fontWeight: "700" }}>
-              - 125.00 USD
+              - 125.00 <Text style={{ color: "#0082ff" }}>USD</Text>
             </Text>
           </View>
           <View>

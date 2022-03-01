@@ -29,21 +29,24 @@ import {
 } from "../../authContext";
 
 export function CardSavedOffers({ props, cartArray }) {
-  const condition = props.condition;
-  const description = props.description;
-  const price = props.price;
-  const languageVersion = props.languageVersion;
-
   let cardPhotos = [];
 
   const [loadingState, setLoading] = useState(true);
   const [imageViewerState, setImageViewer] = useState(false);
 
   const [owner, setOwner] = useState({
-    name: "",
-    reputation: 0,
-    collectionSize: 0,
-    countryCodes: "",
+    nick: "",
+    countryCode: null,
+    sellerProfile: {
+      statistics: {
+        views: 0,
+        purchases: 0,
+        numberOfOffers: 0,
+        sales: 0,
+      },
+      avgRating: 0,
+      rating: [],
+    },
   });
 
   const navigation = useNavigation();
@@ -277,7 +280,7 @@ export function CardSavedOffers({ props, cartArray }) {
                   fontWeight: "700",
                 }}
               >
-                {owner.name}
+                {owner.nick}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -300,7 +303,7 @@ export function CardSavedOffers({ props, cartArray }) {
           </View>
           <SellerDetailsBar
             props={{
-              collectionSize: owner.collectionSize,
+              sellerProfile: owner.sellerProfile,
               hide: detailsBarState,
             }}
           />
@@ -393,7 +396,7 @@ export function CardSavedOffers({ props, cartArray }) {
                       fontSize: 16,
                     }}
                   >
-                    {condition}
+                    {props.condition}
                   </Text>
                 </View>
 
@@ -421,7 +424,7 @@ export function CardSavedOffers({ props, cartArray }) {
                       fontSize: 12.5,
                     }}
                   >
-                    {languageVersion}
+                    {props.languageVersion}
                   </Text>
                 </View>
               </View>
@@ -450,7 +453,7 @@ export function CardSavedOffers({ props, cartArray }) {
                       fontSize: 12,
                     }}
                   >
-                    {description}
+                    {props.description}
                   </Text>
                 </View>
               </View>
@@ -490,7 +493,7 @@ export function CardSavedOffers({ props, cartArray }) {
               <Text style={{ color: "#0082ff", fontSize: 14 }}>
                 {"Price    "}
               </Text>
-              {price}
+              {props.price}
               <Text style={{ color: "#CDCDCD", fontSize: 14 }}>{"  USD"}</Text>
             </Text>
 

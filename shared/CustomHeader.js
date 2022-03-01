@@ -11,6 +11,7 @@ import IconM from "react-native-vector-icons/MaterialIcons";
 import IconF from "react-native-vector-icons/Feather";
 
 import referral_program_icon from "../assets/referral_program.png";
+import ptcgm_logo from "../assets/images/ptcgm_logo.png";
 
 export default function CustomHeader({ version, props, setProps }) {
   const searchForCard = async () => {
@@ -510,7 +511,15 @@ export default function CustomHeader({ version, props, setProps }) {
     // }, [props.sorterParams]);
 
     return (
-      <View style={styles.header}>
+      <View
+        style={{
+          width: "100%",
+          height: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
         <MaterialIcons
           name="menu"
           size={28}
@@ -518,53 +527,51 @@ export default function CustomHeader({ version, props, setProps }) {
           onPress={() => {
             openMenu();
           }}
-          style={styles.icon}
+          style={{
+            color: "#f4f4f4",
+            marginLeft: 16,
+          }}
         />
-        <View style={styles.headerTitle}>
-          {/* <TextInput
-            mode="outlined"
-            placeholderTextColor={"#5c5c5c"}
-            outlineColor={"#121212"}
-            onEndEditing={() => {
-              searchForCard();
-            }}
-            value={props.inputValue}
-            onChangeText={(text) => {
-              setProps((prevState) => ({ ...prevState, inputValue: text }));
-            }}
-            placeholder={inputPlaceholder}
-            onFocus={() => {
-              setInputPlaceholder("");
-              setProps((prevState) => ({
-                ...prevState,
-                inputFocusState: true,
-              }));
-            }}
-            onBlur={() => {
-              setInputPlaceholder("Seach for a card by name");
-              setProps((prevState) => ({
-                ...prevState,
-                inputFocusState: false,
-              }));
-            }}
+
+        {/* <View
+          style={{
+            flexDirection: "row",
+          }}
+        >
+          <Text
             style={{
-              width: 260,
-              height: 40,
-              marginBottom: 5,
-              borderColor: "#121212",
-              backgroundColor: "#1b1b1b",
-              borderWidth: 2,
-              borderRadius: 5,
-              paddingLeft: 10,
               color: "#f4f4f4",
+              fontWeight: "700",
+              fontSize: 21,
+              marginRight: 8,
             }}
+          >
+            {"PTCGM"}
+          </Text>
+          <Icon name="swap-vertical" color={"#0082ff"} size={30} />
+        </View> */}
+
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-end",
+          }}
+        >
+          <Text
+            style={{
+              color: "#f4f4f4",
+              fontFamily: "Roboto_Medium",
+              fontSize: 14,
+              marginRight: 12,
+              marginBottom: 7,
+            }}
+          >
+            {"Welcome to"}
+          </Text>
+          <Image
+            source={ptcgm_logo}
+            style={{ aspectRatio: 478 / 192, width: undefined, height: 40 }}
           />
-          <MaterialIcons
-            name="search"
-            size={26}
-            color={"#f4f4f4"}
-            style={{ position: "absolute", right: 14, top: 8 }}
-          /> */}
         </View>
       </View>
     );

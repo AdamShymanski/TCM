@@ -8,7 +8,6 @@ import {
   Drawer,
 } from "react-native-paper";
 import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
-import { CommonActions } from "@react-navigation/native";
 
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import IconM from "react-native-vector-icons/MaterialIcons";
@@ -23,10 +22,14 @@ import {
 
 export default function CustomDrawer({ navigation }) {
   const [owner, setOwner] = useState({
-    name: "",
-    reputation: 0,
-    collectionSize: 0,
+    nick: "",
     countryCode: "",
+    sellerProfile: {
+      avgRating: 0,
+      statistics: {
+        numberOfOffers: 0,
+      },
+    },
   });
   const [notificationState, setNotificationState] = useState(false);
 
@@ -75,19 +78,23 @@ export default function CustomDrawer({ navigation }) {
                   }}
                 />
               </View>
-              <Title style={styles.title}>{owner.name}</Title>
+              <Title style={styles.title}>{owner.nick}</Title>
             </View>
 
             <View style={styles.row}>
               <View style={styles.section}>
                 <Paragraph style={[styles.paragraph, styles.caption]}>
-                  {owner.collectionSize}
+                  {owner.sellerProfile.statistics.numberOfOffers}
                 </Paragraph>
                 <Caption style={styles.caption}>Cards</Caption>
               </View>
               <View style={styles.section}>
                 <Paragraph style={[styles.paragraph, styles.caption]}>
-                  -
+                  <Text>
+                    {owner.sellerProfile.avgRating
+                      ? owner.sellerProfile.avgRating
+                      : "-"}
+                  </Text>
                 </Paragraph>
                 <Caption style={styles.caption}>Rating</Caption>
               </View>
@@ -107,20 +114,6 @@ export default function CustomDrawer({ navigation }) {
             />
             <DrawerItem
               icon={({ color, size }) => (
-                <Icon
-                  name="account-cash-outline"
-                  color={"#f4f4f4"}
-                  size={size}
-                />
-              )}
-              labelStyle={{ color: "#f4f4f4" }}
-              label="Seller Profile"
-              onPress={() => {
-                navigation.navigate("SellerProfile");
-              }}
-            />
-            <DrawerItem
-              icon={({ color, size }) => (
                 <Icon name="cart-outline" color={"#f4f4f4"} size={size} />
               )}
               labelStyle={{ color: "#f4f4f4" }}
@@ -131,32 +124,12 @@ export default function CustomDrawer({ navigation }) {
             />
             <DrawerItem
               icon={({ color, size }) => (
-                <Icon name="swap-vertical" color={"#f4f4f4"} size={size} />
-              )}
-              labelStyle={{ color: "#f4f4f4" }}
-              label="Transactions"
-              onPress={() => {
-                navigation.navigate("Transactions");
-              }}
-            />
-            <DrawerItem
-              icon={({ color, size }) => (
                 <Icon name="bookmark-outline" color={"#f4f4f4"} size={size} />
               )}
               labelStyle={{ color: "#f4f4f4" }}
               label="Saved Offers"
               onPress={() => {
                 navigation.navigate("SavedOffers");
-              }}
-            />
-            <DrawerItem
-              icon={({ color, size }) => (
-                <Icon name="cards-outline" color={"#f4f4f4"} size={size} />
-              )}
-              labelStyle={{ color: "#f4f4f4" }}
-              label="Your Offers"
-              onPress={() => {
-                navigation.navigate("YourOffers");
               }}
             />
             <DrawerItem
@@ -206,12 +179,12 @@ export default function CustomDrawer({ navigation }) {
             />
             <DrawerItem
               icon={({ color, size }) => (
-                <IconF name="settings" color={"#f4f4f4"} size={size - 4} />
+                <Icon name="swap-vertical" color={"#f4f4f4"} size={size} />
               )}
               labelStyle={{ color: "#f4f4f4" }}
-              label="Settings"
+              label="Transactions"
               onPress={() => {
-                navigation.navigate("Settings");
+                navigation.navigate("Transactions");
               }}
             />
             {/* <DrawerItem
@@ -230,8 +203,81 @@ export default function CustomDrawer({ navigation }) {
             /> */}
           </Drawer.Section>
         </View>
+        <Drawer.Section
+          style={styles.bottomDrawerSection}
+          title={
+            <Text
+              style={{
+                color: "#5c5c5c",
+                fontFamily: "Roboto_Medium",
+              }}
+            >
+              Selling
+            </Text>
+          }
+        >
+          <DrawerItem
+            icon={({ color, size }) => (
+              <Icon name="account-cash-outline" color={"#f4f4f4"} size={size} />
+            )}
+            labelStyle={{ color: "#f4f4f4" }}
+            label="Seller Profile"
+            onPress={() => {
+              navigation.navigate("Seller", { screen: "SellerProfile" });
+            }}
+          />
+
+          <DrawerItem
+            icon={({ color, size }) => (
+              <Icon name="cards-outline" color={"#f4f4f4"} size={size} />
+            )}
+            labelStyle={{ color: "#f4f4f4" }}
+            label="Your Offers"
+            onPress={() => {
+              navigation.navigate("YourOffers");
+            }}
+          />
+        </Drawer.Section>
+        <Drawer.Section
+          style={styles.bottomDrawerSection}
+          title={
+            <Text
+              style={{
+                color: "#5c5c5c",
+                fontFamily: "Roboto_Medium",
+              }}
+            >
+              Other
+            </Text>
+          }
+        >
+          <DrawerItem
+            icon={({ color, size }) => (
+              <IconF name="settings" color={"#f4f4f4"} size={size - 4} />
+            )}
+            labelStyle={{ color: "#f4f4f4" }}
+            label="Settings"
+            onPress={() => {
+              navigation.navigate("Settings");
+            }}
+          />
+          <DrawerItem
+            icon={({ color, size }) => (
+              <Icon
+                name="script-text-outline"
+                color={"#f4f4f4"}
+                size={size - 4}
+              />
+            )}
+            labelStyle={{ color: "#f4f4f4" }}
+            label="Terms & Conditions"
+            onPress={() => {
+              navigation.navigate("Settings");
+            }}
+          />
+        </Drawer.Section>
       </DrawerContentScrollView>
-      <Drawer.Section style={styles.bottomDrawerSection}>
+      {/* <Drawer.Section style={styles.bottomDrawerSection}>
         <DrawerItem
           // icon={({ color, size }) => (
           //   <Icon name="exit-to-app" color={"#f4f4f4"} size={size} />
@@ -247,7 +293,7 @@ export default function CustomDrawer({ navigation }) {
           //   auth.signOut();
           // }}
         />
-      </Drawer.Section>
+      </Drawer.Section> */}
     </View>
   );
 }
