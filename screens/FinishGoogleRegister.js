@@ -92,6 +92,7 @@ export default function FinishGoogleRegister({ callback, name }) {
                   numberOfOffers: 0,
                 },
               },
+              cart: [],
               stripe: {
                 vendorId: null,
                 merchantId: null,

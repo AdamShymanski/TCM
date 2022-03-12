@@ -30,7 +30,9 @@ const reviewSchema = yup.object({
     .max(5, "Price is too long!"),
 });
 
-export default function AddNewShippingMethod({ navigation }) {
+export default function EditShippingMethod({ navigation }) {
+  const { shippingMethods, index } = navigation.params;
+
   const [errorState, setError] = useState(false);
   const [modalState, setModal] = useState(false);
   const [trackingState, setTracking] = useState(true);

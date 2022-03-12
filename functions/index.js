@@ -7,42 +7,92 @@ const stripe = require("stripe")(
 admin.initializeApp();
 //Stripe Account
 
-exports.helloWorld = functions.https.onCall(async (data, context) => {
-  console.log(context.auth.uid);
-  // res.json({ result: `Hello World` });
-  return "Hello World";
+exports.fetchStripeAccount = functions.https.onCall(async (data, context) => {
+  const doc = await admin
+    .firestore()
+    .collection("users")
+    .doc(context.auth.uid)
+    .get();
+
+  const vendorId = doc.data().stripe.vendorID;
+
+  const account = await stripe.accounts.retrieve(vendorId);
+  const balance = await stripe.balance.retrieve({
+    stripeAccount: vendorId,
+  });
+
+  const transactions = await stripe.balanceTransactions.list(
+    {
+      limit: 3,
+    },
+    { stripeAccount: vendorId }
+  );
+
+  account.balance = balance;
+  account.transactions =
+    transactions.data.lenght > 0 ? transactions.data : null;
+  return account;
 });
 exports.addTransaction = functions.https.onCall(async (data, context) => {
-  console.log(context.auth.uid);
-  // res.json({ result: `Hello World` });
+  await admin
+    .firestore()
+    .collection("transactions")
+    .set({
+      timeStamp: admin.firestore.FieldValue.serverTimestamp(),
+      buyer: context.auth.uid,
+      seller: data.seller,
+      offers: [...data.cart],
+      shippingMethod: {
+        //shipping method
+      },
+      shippingAddress: {},
+      paymentId: {
+        // stripe payment id
+      },
+    });
   return "Hello World";
 });
-exports.createStripeLinkedAccount = functions.https.onCall(
-  async (data, context) => {
-    const account = await stripe.accounts.create({
-      type: "standard",
-    });
+exports.createStripeAccount = functions.https.onCall(async (data, context) => {
+  const account = await stripe.accounts.create({
+    type: "standard",
+  });
 
-    //Check if account is already assigned to user
+  //Check if account is already assigned to user
+  //! Do afer successful account linking
 
-    //! Do afer successful account linking
-    // await admin
-    //   .firestore()
-    //   .collection("users")
-    //   .doc(context.auth.uid)
-    //   .update({ stripe: { vendorID: account.id } });
+  await admin
+    .firestore()
+    .collection("users")
+    .doc(context.auth.uid)
+    .update({ stripe: { vendorID: account.id } });
 
-    const accountLink = await stripe.accountLinks.create({
-      account: account.id,
-      refresh_url: "https://ptcgmarketplace.com/",
-      return_url: "https://ptcgmarketplace.com/",
-      type: "account_onboarding",
-    });
+  const accountLink = await stripe.accountLinks.create({
+    account: account.id,
+    refresh_url: "https://ptcgmarketplace.com/",
+    return_url: "https://ptcgmarketplace.com/",
+    type: "account_onboarding",
+  });
 
-    // console.log(accountLink.url);
-    return accountLink.url;
-  }
-);
+  // console.log(accountLink.url);
+  return accountLink.url;
+});
+exports.linkStripeAccount = functions.https.onCall(async (data, context) => {
+  const doc = await admin
+    .firestore()
+    .collection("users")
+    .doc(context.auth.uid)
+    .get();
+
+  const accountLink = await stripe.accountLinks.create({
+    account: doc.data().stripe.vendorID,
+    refresh_url: "https://ptcgmarketplace.com/",
+    return_url: "https://ptcgmarketplace.com/",
+    type: "account_onboarding",
+  });
+
+  // console.log(accountLink.url);
+  return accountLink.url;
+});
 exports.paymentSheet = functions.https.onCall(async (data, context) => {
   const doc = await admin
     .firestore()

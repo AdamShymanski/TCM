@@ -306,6 +306,7 @@ export default function Search({ props, setProps }) {
         {props.screen === "mostRecentOffers" && !props.loadingState ? (
           <FlatList
             data={mostRecentOffers}
+            scrollEventThrottle={2000}
             renderItem={({ item }) => {
               return (
                 <OfferCard
@@ -354,6 +355,7 @@ export default function Search({ props, setProps }) {
             style={{ paddingHorizontal: 8 }}
             data={props.cardsData}
             numColumns={2}
+            scrollEventThrottle={2000}
             renderItem={({ item }) => {
               return (
                 <DefaultCard props={item} setId={setId} setProps={setProps} />
@@ -387,6 +389,7 @@ export default function Search({ props, setProps }) {
         !props.loadingState ? (
           <FlatList
             data={offersData}
+            scrollEventThrottle={2000}
             renderItem={async ({ item }) => {
               if (item.status === "published") {
                 return (

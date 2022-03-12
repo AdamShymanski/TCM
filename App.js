@@ -35,7 +35,8 @@ import Search from "./screens/Search";
 import Rating from "./screens/subscreens/Seller/Rating";
 import Checkout from "./screens/Checkout";
 import Transactions from "./screens/Transactions";
-import AddNewShippingMethod from "./screens/subscreens/Seller/AddNewShippingMethod";
+import AddShippingMethod from "./screens/subscreens/Seller/AddShippingMethod";
+import TransactionDetails from "./screens/subscreens/Transactions/TransactionDetails";
 import AddAddress from "./screens/subscreens/Checkout/AddAddress";
 
 import History from "./screens/subscreens/Seller/History";
@@ -59,6 +60,7 @@ import * as Sentry from "sentry-expo";
 import * as Linking from "expo-linking";
 
 import clipboard_text_clock from "./assets/clipboard_text_clock.png";
+import opened_box from "./assets/opened_box.png";
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -735,70 +737,6 @@ function SellerStack() {
         }}
       />
       <Stack.Screen
-        name="AddNewShippingMethod"
-        component={AddNewShippingMethod}
-        options={({ navigation, route }) => ({
-          headerLeft: () => (
-            <TouchableOpacity
-              style={{
-                borderRadius: 3,
-                marginLeft: 12,
-
-                height: 30,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 2,
-                borderColor: "#777777",
-                paddingHorizontal: 12,
-              }}
-              onPress={() => navigation.goBack()}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#777777",
-                }}
-              >
-                {"Go back"}
-              </Text>
-            </TouchableOpacity>
-          ),
-          headerRight: () => (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  color: "#f4f4f4",
-                  fontWeight: "700",
-                  fontSize: 21,
-                  marginRight: 8,
-                }}
-              >
-                {"New Shipping Method"}
-              </Text>
-              <IconMI
-                name="local-shipping"
-                color={"#0082ff"}
-                size={30}
-                style={{ marginRight: 12 }}
-              />
-            </View>
-          ),
-          headerTintColor: "#121212",
-          headerTitle: "",
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        })}
-      />
-
-      <Stack.Screen
         name="History"
         component={History}
         options={({ navigation, route }) => ({
@@ -854,6 +792,69 @@ function SellerStack() {
                   width: 28,
                   marginRight: 16,
                 }}
+              />
+            </View>
+          ),
+          headerTintColor: "#121212",
+          headerTitle: "",
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        })}
+      />
+      <Stack.Screen
+        name="AddShippingMethod"
+        component={AddShippingMethod}
+        options={({ navigation, route }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 12,
+
+                height: 30,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: "#777777",
+                paddingHorizontal: 12,
+              }}
+              onPress={() => navigation.goBack()}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  color: "#f4f4f4",
+                  fontWeight: "700",
+                  fontSize: 21,
+                  marginRight: 8,
+                }}
+              >
+                {"New Shipping Method"}
+              </Text>
+              <IconMI
+                name="local-shipping"
+                color={"#0082ff"}
+                size={30}
+                style={{ marginRight: 12 }}
               />
             </View>
           ),
@@ -999,6 +1000,72 @@ function TransactionsStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
+        name="TransactionDetails"
+        component={TransactionDetails}
+        options={({ navigation, route }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 12,
+
+                height: 30,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: "#777777",
+                paddingHorizontal: 12,
+              }}
+              onPress={() => navigation.navigate("Transactions")}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  color: "#f4f4f4",
+                  fontWeight: "700",
+                  fontSize: 21,
+                  marginRight: 16,
+                }}
+              >
+                {"Details"}
+              </Text>
+              <Image
+                source={opened_box}
+                style={{
+                  aspectRatio: 82 / 78,
+                  height: undefined,
+                  width: 28,
+                  marginRight: 16,
+                }}
+              />
+            </View>
+          ),
+          headerTintColor: "#121212",
+          headerTitle: "",
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        })}
+      />
+      <Stack.Screen
         name="Transactions"
         component={Transactions}
         options={{
@@ -1027,7 +1094,6 @@ export default function App() {
   };
 
   const linking = {
-    // prefixes: ["https://www.expo.io"],
     prefixes: [prefix],
     config: {
       screens: {
@@ -1159,21 +1225,20 @@ export default function App() {
                 <CustomDrawer navigation={navigation} />
               )}
             >
-              <Drawer.Screen name="Cart" component={CartStack} />
               <Drawer.Screen name="Settings" component={SettingsStack} />
-
-              <Drawer.Screen name="Search" component={SearchStack} />
-              <Drawer.Screen name="Home" component={HomeStack} />
-              <Drawer.Screen
-                name="ReferralProgram"
-                component={ReferralProgramStack}
-              />
-              <Drawer.Screen name="Seller" component={SellerStack} />
-              <Drawer.Screen name="YourOffers" component={YourOffersStack} />
               <Drawer.Screen
                 name="Transactions"
                 component={TransactionsStack}
               />
+              <Drawer.Screen name="Search" component={SearchStack} />
+              <Drawer.Screen name="Home" component={HomeStack} />
+              <Drawer.Screen name="Seller" component={SellerStack} />
+              <Drawer.Screen name="Cart" component={CartStack} />
+              <Drawer.Screen
+                name="ReferralProgram"
+                component={ReferralProgramStack}
+              />
+              <Drawer.Screen name="YourOffers" component={YourOffersStack} />
               <Drawer.Screen name="StripeCheckout" component={StripeCheckout} />
               <Drawer.Screen name="Chat" component={ChatStack} />
               <Drawer.Screen name="SavedOffers" component={SavedOffersStack} />

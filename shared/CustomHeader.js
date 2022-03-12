@@ -85,6 +85,7 @@ export default function CustomHeader({ version, props, setProps }) {
       </View>
     );
   }
+
   if (version == "sellerProfile") {
     return (
       <View
@@ -507,6 +508,7 @@ export default function CustomHeader({ version, props, setProps }) {
       </View>
     );
   }
+
   if (version == "home") {
     // useEffect(async () => {
     //   searchForCard();
