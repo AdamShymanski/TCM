@@ -128,7 +128,7 @@ export default function Home() {
                 fontWeight: "700",
               }}
             >
-              AN
+              A
             </Text>{" "}
             CARD
           </Text>

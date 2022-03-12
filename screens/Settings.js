@@ -422,6 +422,7 @@ export default function Settings() {
                 paddingVertical: 12,
                 flexDirection: "row",
                 backgroundColor: "#121212",
+
                 alignItems: "center",
               }}
             >
@@ -472,58 +473,41 @@ export default function Settings() {
               alignItems: "center",
             }}
           >
-            <TouchableOpacity
+            <View
               style={{
-                height: 30,
-                marginTop: 20,
-                width: "70%",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
+                backgroundColor: "#121212",
+                paddingVertical: 22,
+                marginTop: 18,
+                borderRadius: 5,
 
-                backgroundColor: "#0082FF",
-                borderRadius: 3,
-                paddingHorizontal: 12,
-              }}
-              onPress={async () => {
-                if (
-                  auth.currentUser?.providerData[0].providerId != "google.com"
-                ) {
-                  setActionType("deleteAccount");
-                  setModal(true);
-                } else {
-                  await reSignInWithGoogleAsync("deleteAccount");
-                }
+                alignItems: "center",
+                justifyContent: "space-evenly",
+                width: "92%",
               }}
             >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#121212",
-                }}
-              >
-                Delete Account
-              </Text>
-            </TouchableOpacity>
-
-            {auth.currentUser?.providerData[0].providerId != "google.com" ? (
               <TouchableOpacity
                 style={{
-                  height: 30,
-                  marginTop: 20,
-                  width: "70%",
+                  width: "90%",
+
+                  paddingHorizontal: 12,
+                  paddingVertical: 4,
 
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
 
-                  backgroundColor: "#0082FF",
                   borderRadius: 3,
-                  paddingHorizontal: 12,
+                  backgroundColor: "#0082FF",
                 }}
-                onPress={() => {
-                  setChangePasswordModal(true);
+                onPress={async () => {
+                  if (
+                    auth.currentUser?.providerData[0].providerId != "google.com"
+                  ) {
+                    setActionType("deleteAccount");
+                    setModal(true);
+                  } else {
+                    await reSignInWithGoogleAsync("deleteAccount");
+                  }
                 }}
               >
                 <Text
@@ -533,37 +517,67 @@ export default function Settings() {
                     color: "#121212",
                   }}
                 >
-                  Change Password
+                  Delete Account
                 </Text>
               </TouchableOpacity>
-            ) : null}
-            <TouchableOpacity
-              style={{
-                height: 30,
-                marginTop: 20,
-                width: "70%",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
+              {auth.currentUser?.providerData[0].providerId != "google.com" ? (
+                <TouchableOpacity
+                  style={{
+                    marginTop: 20,
+                    width: "92%",
 
-                backgroundColor: "#0082FF",
-                borderRadius: 3,
-                paddingHorizontal: 12,
-              }}
-              onPress={async () => {
-                auth.signOut();
-              }}
-            >
-              <Text
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+
+                    backgroundColor: "#0082FF",
+                    borderRadius: 3,
+                    paddingHorizontal: 12,
+                    paddingVertical: 4,
+                  }}
+                  onPress={() => {
+                    setChangePasswordModal(true);
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "700",
+                      color: "#121212",
+                    }}
+                  >
+                    Change Password
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+              <TouchableOpacity
                 style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#121212",
+                  marginTop: 20,
+                  width: "92%",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+
+                  backgroundColor: "#0082FF",
+                  borderRadius: 3,
+                  paddingHorizontal: 12,
+                  paddingVertical: 4,
+                }}
+                onPress={async () => {
+                  auth.signOut();
                 }}
               >
-                Sign Out
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#121212",
+                  }}
+                >
+                  Sign Out
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </ScrollView>
         <Snackbar

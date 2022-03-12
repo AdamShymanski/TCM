@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-
 import { ActivityIndicator, TextInput } from "react-native-paper";
+
+import { CountryPickerModal } from "../../../shared/Modals/CountryPickerModal";
 
 import { Formik, ErrorMessage } from "formik";
 import * as yup from "yup";
+
+import { db, auth, firebaseObj } from "../../../authContext";
 
 // import {
 //   getFunctions,
@@ -35,6 +38,8 @@ export default function AddAddress({ setPage, setShippingAddress }) {
   const [countryPickerState, setCountryPickerState] = useState("");
   const [countryInputTouched, setCountryInputTouched] = useState(false);
 
+  const [countryPickerTouched, setCountryPickerTouched] = useState("");
+
   const [error, setError] = useState("");
 
   const phoneNumberRegEx =
@@ -49,13 +54,7 @@ export default function AddAddress({ setPage, setShippingAddress }) {
     city: yup.string("Wrong format!").required("Required!").max(30),
     streetAddress1: yup.string("Wrong format!").required("Required!").max(30),
     streetAddress2: yup.string("Required!").max(30),
-    phoneNumber: yup
-      .string("Wrong format!")
-      .required("Required!")
-      .matches(
-        phoneNumberRegEx,
-        "At least one number, capital & lower letter!"
-      ),
+    phoneNumber: yup.string("Wrong format!").required("Required!").max(13),
   });
 
   return (
@@ -105,29 +104,40 @@ export default function AddAddress({ setPage, setShippingAddress }) {
         validationSchema={reviewSchema}
         onSubmit={async (values, actions) => {
           const addShippingAddress = async (props) => {
-            const checkIfAddressExists = (props) => {};
-            await db
-              .collection("users")
-              .doc(auth.currentUser.uid)
-              .update({
-                shippingAddress:
-                  firebase.firestore.FieldValue.arrayUnion(props),
-              });
+            const checkIfAddressExists = (props) => {
+              const result = true;
+              db.collection("users")
+                .doc(auth.currentUser.uid)
+                .get()
+                .then((doc) => {
+                  //comapre values to shipppingAddresses in array
+                  if ("shippingAddresses" in doc.data()) {
+                    doc.data().shippingAddresses.forEach((address) => {
+                      if (JSON.stringify(address) === JSON.stringify(values)) {
+                        setError("Address already exists!");
+                        result = false;
+                      }
+                    });
+                  }
+                });
+              return result;
+            };
+            console.log("Address does not exist!");
+
+            if (checkIfAddressExists()) {
+              console.log("XXXX");
+
+              await db
+                .collection("users")
+                .doc(auth.currentUser.uid)
+                .update({
+                  shippingAddresses:
+                    firebaseObj.firestore.FieldValue.arrayUnion(props),
+                });
+            }
           };
 
-          await addShippingAddress({
-            firstName: "Adam",
-            lastName: "Szymański",
-            zipCode: "92-446",
-            country: "Poland",
-            state: "Łódzkie",
-            city: "Łódź",
-            streetAddress1: "Wacława Wojewódzkiego 1 m2",
-            streetAddress2: "",
-            phoneNumber: "+48 606417902",
-          });
-
-          navigation.navigate("Checkout");
+          navigation.navigate("Checkout", {screen:"Ch"});
         }}
         style={{
           flex: 1,
@@ -335,15 +345,17 @@ export default function AddAddress({ setPage, setShippingAddress }) {
                     outlineColor={props.errors.country ? "#b40424" : "#5c5c5c"}
                     style={{
                       width: "100%",
+                      marginTop: 20,
                       backgroundColor: "#1b1b1b",
-                      marginTop:
-                        props.errors.country && countryInputTouched ? 0 : 20,
                     }}
                     disabled={true}
                     theme={{
                       colors: {
                         text: "#fff",
-                        disabled: props.errors.country ? "#b40424" : "#5c5c5c",
+                        disabled:
+                          props.errors.country && countryInputTouched
+                            ? "#b40424"
+                            : "#5c5c5c",
                         background: "transparent",
                       },
                     }}
@@ -643,8 +655,8 @@ export default function AddAddress({ setPage, setShippingAddress }) {
                   paddingHorizontal: 20,
                 }}
                 onPress={async () => {
-                  setPage("loadingPage");
-                  // props.handleSubmit();
+                  setCountryInputTouched(true);
+                  props.handleSubmit();
                 }}
               >
                 <Text

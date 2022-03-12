@@ -56,80 +56,121 @@ export default function Checkout({ pageState, setPage }) {
       await fetchCart(setOffersState, () => {});
 
       // fetch id's of owners of cards in users cart
-      // db.collection("users")
-      //   .doc(auth.currentUser.uid)
-      //   .get()
-      //   .then((user) => {
-      //     const cart = user.data().cart;
-      //     cart.forEach((id) => {
-      //       db.collection("cards")
-      //         .doc(id)
-      //         .get()
-      //         .then((offer) => {
-      //           //fetch owner name and shipping methods - put them in avaliable shipping methods
-      //           // setShippingMethod((prevState) => ({
-      //           //   ...prevState,
-      //           //   [offer.data().owner]: false,
-      //           // }));
-      //         });
-      //     });
-      //   });
+      db.collection("users")
+        .doc(auth.currentUser.uid)
+        .get()
+        .then((user) => {
+          const cart = user.data().cart;
+          cart.forEach((id) => {
+            db.collection("cards")
+              .doc(id)
+              .get()
+              .then((offer) => {
+                // fetch owner name and shipping methods - put them in avaliable shipping methods
+                setShippingMethod((prevState) => ({
+                  ...prevState,
+                  [offer.data().owner]: false,
+                }));
+
+                setAvalibleShippingMethods((prevState) => [
+                  ...prevState,
+                  {
+                    title: "Nick",
+                    uid: offer.data().owner,
+                    data: [
+                      {
+                        range: "Domestic",
+                        tracking: false,
+                        carrier: "FedEx",
+                        name: "First Class",
+                        from: 2,
+                        to: 3,
+                        price: 5.99,
+                      },
+                      {
+                        range: "Domestic",
+                        tracking: true,
+                        carrier: "USPS",
+                        name: "First Class",
+                        from: 2,
+                        to: 3,
+                        price: 5.99,
+                      },
+                    ],
+                  },
+                ]);
+
+                // db.collection("users")
+                //   .owner.get()
+                //   .then((owner) => {
+                //     setAvalibleShippingMethods((prevState) => [
+                //       ...prevState,
+                //       {
+                //         title: owner.data().nick,
+                //         uid: offer.data().owner,
+                //         data: owner.data().sellerProfile.shippingMethods,
+                //       },
+                //     ]);
+                //   });
+              });
+          });
+        });
 
       // const doc = await db.collection("users").doc(auth.currentUser.uid).get();
-      // if (doc.data().shippingAddress) {
-      //   setAddressesArray(doc.data().shippingAddress);
+      // if (doc.data().shippingAddresses) {
+      //   setAddressesArray(doc.data().shippingAddresses);
       // }
 
-      setAvalibleShippingMethods([
-        {
-          title: "Rig",
-          uid: "fjk8iEmFHohqau0Pp0JCvAQBNuH2",
-          data: [
-            {
-              range: "Domestic",
-              tracking: false,
-              carrier: "FedEx",
-              name: "First Class",
-              from: 2,
-              to: 3,
-              price: 5.99,
-            },
-            {
-              range: "Domestic",
-              tracking: true,
-              carrier: "USPS",
-              name: "First Class",
-              from: 2,
-              to: 3,
-              price: 5.99,
-            },
-          ],
-        },
-        {
-          title: "Tommy",
-          uid: "1wHQ7P6haMb0lGXqYGH8kjhIfcv1",
-          data: [
-            {
-              range: "Domestic",
-              tracking: true,
-              carrier: "DHL",
-              name: "First Class",
-              from: 2,
-              to: 3,
-              price: 5.99,
-            },
-            {
-              range: "Domestic",
-              tracking: false,
-              carrier: "UPS",
-              name: "First Class",
-              from: 2,
-              to: 3,
-              price: 5.99,
-            },
-          ],
-        },
-      ]);
+      // setAvalibleShippingMethods([
+      //   {
+      //     title: "Rig",
+      //     uid: "fjk8iEmFHohqau0Pp0JCvAQBNuH2",
+      //     data: [
+      //       {
+      //         range: "Domestic",
+      //         tracking: false,
+      //         carrier: "FedEx",
+      //         name: "First Class",
+      //         from: 2,
+      //         to: 3,
+      //         price: 5.99,
+      //       },
+      //       {
+      //         range: "Domestic",
+      //         tracking: true,
+      //         carrier: "USPS",
+      //         name: "First Class",
+      //         from: 2,
+      //         to: 3,
+      //         price: 5.99,
+      //       },
+      //     ],
+      //   },
+      //   {
+      //     title: "Tommy",
+      //     uid: "1wHQ7P6haMb0lGXqYGH8kjhIfcv1",
+      //     data: [
+      //       {
+      //         range: "Domestic",
+      //         tracking: true,
+      //         carrier: "DHL",
+      //         name: "First Class",
+      //         from: 2,
+      //         to: 3,
+      //         price: 5.99,
+      //       },
+      //       {
+      //         range: "Domestic",
+      //         tracking: false,
+      //         carrier: "UPS",
+      //         name: "First Class",
+      //         from: 2,
+      //         to: 3,
+      //         price: 5.99,
+      //       },
+      //     ],
+      //   },
+      // ]);
 
       setAddressesArray([
         {

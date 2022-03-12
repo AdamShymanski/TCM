@@ -5,11 +5,14 @@ import red_arrow from "../../assets/red_arrow.png";
 import green_arrow from "../../assets/green_arrow.png";
 
 import IconMI from "react-native-vector-icons/MaterialIcons";
+import { useNavigation } from "@react-navigation/native";
 
 export default function TransactionObject() {
   const [cardReceived, setCardReceived] = useState(false);
   const [disputeButtonState, setDisputeButtonState] = useState(true);
   const type = "bought";
+
+  const navigation = useNavigation();
 
   if (type === "sold") {
     return (
@@ -208,6 +211,7 @@ export default function TransactionObject() {
             </View>
             <TouchableOpacity
               style={{ flexDirection: "row", alignItems: "center" }}
+              onPress={() => navigation.navigate("TransactionDetails")}
             >
               <Text
                 style={{

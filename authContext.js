@@ -7,7 +7,6 @@ import "firebase/functions";
 import pokemon from "pokemontcgsdk";
 
 import * as GoogleSignIn from "expo-google-sign-in";
-import ReferralProgram from "./screens/ReferralProgram";
 
 if (firebase.apps.length === 0) {
   firebase.initializeApp({
@@ -382,7 +381,7 @@ export async function setChatListeners(setListenerData) {
 }
 
 //! PURCHASE Co-Related FUNCTIONS
-export async function addNewShippingMethod(props, range) {
+export async function addShippingMethod(props, range) {
   try {
     if (range === "domestic") {
       db.collection("users")
@@ -1072,10 +1071,10 @@ export async function fetchOwnerData(ownerId) {
       let total = 0;
 
       if (doc.data()?.sellerProfile !== undefined) {
-        doc.data()?.sellerProfile.rating.forEach((rate) => {
+        doc.data()?.sellerProfile?.rating.forEach((rate) => {
           total += rate.stars;
         });
-        return total / doc.data()?.sellerProfile.rating.length;
+        return total / doc.data()?.sellerProfile?.rating?.length;
       } else {
         return "-";
       }
@@ -1118,7 +1117,11 @@ export async function fetchOwnerData(ownerId) {
             countryCode = countryCodes[i].Code.toLowerCase();
           }
         });
+      })
+      .catch((error) => {
+        console.log(error);
       });
+
     return {
       nick,
       country,
@@ -1194,6 +1197,7 @@ export async function register(email, password, nick, country, setError) {
               numberOfOffers: 0,
             },
           },
+          cart: [],
           stripe: {
             vendorId: null,
             merchantId: null,
