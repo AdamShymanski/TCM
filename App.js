@@ -38,6 +38,7 @@ import Transactions from "./screens/Transactions";
 import AddShippingMethod from "./screens/subscreens/Seller/AddShippingMethod";
 import TransactionDetails from "./screens/subscreens/Transactions/TransactionDetails";
 import AddAddress from "./screens/subscreens/Checkout/AddAddress";
+import EditShippingMethod from "./screens/subscreens/Seller/EditShippingMethod";
 
 import History from "./screens/subscreens/Seller/History";
 import ReferralProgram from "./screens/ReferralProgram";
@@ -186,16 +187,6 @@ function CartStack() {
 
   return (
     <Stack.Navigator>
-      <Stack.Screen
-        name="Cart"
-        component={Cart}
-        options={{
-          headerTitle: () => <CustomHeader version={"cart"} />,
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        }}
-      />
       <Stack.Screen
         name="Checkout"
         children={() => (
@@ -346,6 +337,16 @@ function CartStack() {
             backgroundColor: "#121212",
           },
         })}
+      />
+      <Stack.Screen
+        name="Cart"
+        component={Cart}
+        options={{
+          headerTitle: () => <CustomHeader version={"cart"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
       />
       <Stack.Screen
         name="AddAddress"
@@ -862,6 +863,69 @@ function SellerStack() {
         })}
       />
       <Stack.Screen
+        name="EditShippingMethod"
+        component={EditShippingMethod}
+        options={({ navigation, route }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 12,
+
+                height: 30,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: "#777777",
+                paddingHorizontal: 12,
+              }}
+              onPress={() => navigation.goBack()}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  color: "#f4f4f4",
+                  fontWeight: "700",
+                  fontSize: 21,
+                  marginRight: 8,
+                }}
+              >
+                {"Edit Shipping Method"}
+              </Text>
+              <IconMI
+                name="local-shipping"
+                color={"#0082ff"}
+                size={30}
+                style={{ marginRight: 12 }}
+              />
+            </View>
+          ),
+          headerTintColor: "#121212",
+          headerTitle: "",
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        })}
+      />
+      <Stack.Screen
         name="Rating"
         component={Rating}
         options={({ navigation, route }) => ({
@@ -996,6 +1060,16 @@ function TransactionsStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
+        name="Transactions"
+        component={Transactions}
+        options={{
+          headerTitle: () => <CustomHeader version={"transactions"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
+      <Stack.Screen
         name="TransactionDetails"
         component={TransactionDetails}
         options={({ navigation, route }) => ({
@@ -1061,16 +1135,6 @@ function TransactionsStack() {
           },
         })}
       />
-      <Stack.Screen
-        name="Transactions"
-        component={Transactions}
-        options={{
-          headerTitle: () => <CustomHeader version={"transactions"} />,
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        }}
-      />
     </Stack.Navigator>
   );
 }
@@ -1083,6 +1147,9 @@ export default function App() {
   const [deepLinkData, setDeepLinkData] = useState(true);
 
   LogBox.ignoreLogs(["INTERNAL"]);
+  LogBox.ignoreLogs([
+    "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing and other functionality - use another VirtualizedList-backed container instead.",
+  ]);
 
   const handleDeepLink = async (event) => {
     let data = Linking.parse(event.url);
@@ -1221,20 +1288,20 @@ export default function App() {
                 <CustomDrawer navigation={navigation} />
               )}
             >
-              <Drawer.Screen name="Settings" component={SettingsStack} />
               <Drawer.Screen
                 name="Transactions"
                 component={TransactionsStack}
               />
+              <Drawer.Screen name="Cart" component={CartStack} />
+              <Drawer.Screen name="YourOffers" component={YourOffersStack} />
+              <Drawer.Screen name="Seller" component={SellerStack} />
+              <Drawer.Screen name="Settings" component={SettingsStack} />
               <Drawer.Screen name="Search" component={SearchStack} />
               <Drawer.Screen name="Home" component={HomeStack} />
-              <Drawer.Screen name="Seller" component={SellerStack} />
-              <Drawer.Screen name="Cart" component={CartStack} />
               <Drawer.Screen
                 name="ReferralProgram"
                 component={ReferralProgramStack}
               />
-              <Drawer.Screen name="YourOffers" component={YourOffersStack} />
               <Drawer.Screen name="StripeCheckout" component={StripeCheckout} />
               <Drawer.Screen name="Chat" component={ChatStack} />
               <Drawer.Screen name="SavedOffers" component={SavedOffersStack} />

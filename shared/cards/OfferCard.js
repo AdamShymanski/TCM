@@ -37,7 +37,7 @@ export default function OfferCard({
 }) {
   const condition = props.condition;
   const description = props.description;
-  const price = props.price;
+  const price = props.price.toFixed(2);
   const languageVersion = props.languageVersion;
 
   const ownerId = props.owner;
@@ -1002,6 +1002,9 @@ export default function OfferCard({
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
+                }}
+                onPress={() => {
+                  navigation.navigate("Cart", { screen: "Checkout" });
                 }}
               >
                 <Text

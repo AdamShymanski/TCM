@@ -16,32 +16,6 @@ export default function OtherSellersOffers({ route }) {
 
   const isFocused = useIsFocused();
 
-  // useEffect(() => {
-  //   const resolvePromises = async () => {
-  //     const docArr = await db
-  //       .collection("cards")
-  //       .where("owner", "==", route.params.sellerId)
-  //       .get();
-
-  //     const arr = [];
-
-  //     docArr.forEach((doc) => {
-  //       let cardObj = doc.data();
-  //       cardObj.id = doc.id;
-  //       arr.push(cardObj);
-  //     });
-
-  //     const doc = await db.collection("users").doc(auth.currentUser.uid).get();
-  //     setCartState(doc.data().cart);
-
-  //     setSellerData(await fetchOwnerData(route.params.sellerId));
-  //     setCardsArray(arr);
-  //     setLoading(false);
-  //   };
-
-  //   resolvePromises();
-  // }, []);
-
   useEffect(async () => {
     if (!isFocused) {
       setSavedOffersId(null);
@@ -50,7 +24,7 @@ export default function OtherSellersOffers({ route }) {
     if (isFocused) {
       await fetchSavedOffersId(setSavedOffersId, setLoading);
       const docArr = await db
-        .collection("cards")
+        .collection("offers")
         .where("owner", "==", route.params.sellerId)
         .get();
 

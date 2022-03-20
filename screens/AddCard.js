@@ -271,7 +271,7 @@ export default function AddCard() {
   const [modalState, setModal] = useState(false);
   const [scError, setScError] = useState(false);
 
-  const [cardId, setId] = useState(null);
+  const [cardId, setId] = useState("swsh1-190");
 
   const [inputPlaceholderState, setInputPlaceholder] = useState(
     "Number or Name of Card"

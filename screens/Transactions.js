@@ -8,23 +8,41 @@ import TransactionObject from "./../shared/Objects/TransactionObject";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 export default function Transactions() {
-  const [noTranscation, setNoTranscation] = useState(false);
+  const [transcations, setTranscations] = useState([]);
   useEffect(() => {
     //fetch transactions
     const resolvePromises = async () => {
-      const user = auth.currentUser;
-      const transactions = await db
+      let outArray = [];
+
+      await db
         .collection("transactions")
-        .where("userId", "==", user.uid)
-        .get();
-      if (transactions.empty) {
-        setNoTranscation(true);
-      } else {
-        setNoTranscation(false);
+        .where("buyer", "==", auth.currentUser.uid)
+        .get()
+        .then((snapshot) => {
+          snapshot.forEach((doc) => {
+            let obj = doc.data();
+            obj.id = doc.id;
+            outArray.push(obj);
+          });
+        });
+
+      await db
+        .collection("transactions")
+        .where("seller", "==", auth.currentUser.uid)
+        .get()
+        .then((snapshot) => {
+          snapshot.forEach((doc) => {
+            outArray.push(doc.data());
+          });
+        });
+
+      if (outArray.length > 0) {
+        setTranscations(outArray);
       }
     };
+    resolvePromises();
   }, []);
-  if (noTranscation) {
+  if (transcations.lenght === 0) {
     return (
       <View
         style={{
@@ -77,10 +95,10 @@ export default function Transactions() {
       }}
     >
       <FlatList
-        data={["a", "b", "c"]}
+        data={transcations}
         style={{ flex: 1, width: "100%" }}
         renderItem={({ item, index }) => {
-          return <TransactionObject />;
+          return <TransactionObject props={item} />;
         }}
         keyExtractor={(item, index) => index.toString()}
       />

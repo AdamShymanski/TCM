@@ -47,7 +47,7 @@
     "firebase": "8.10.0",
     "firebase-admin": "^10.0.1",
     "firebase-functions": "^3.16.0",
-    "firebase-tools": "^10.1.2",
+    "firebase-tools": "^10.2.2",
     "formik": "^2.2.9",
     "metro": "0.64.0",
     "pokemontcgsdk": "^2.0.0",

@@ -82,6 +82,7 @@ export default function FinishGoogleRegister({ callback, name }) {
               },
               sellerProfile: {
                 status: "unset",
+                firstSell: null,
                 rating: [],
                 shippingMethods: {
                   domestic: [],
@@ -100,6 +101,7 @@ export default function FinishGoogleRegister({ callback, name }) {
                 merchantId: null,
               },
               savedOffers: [],
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             });
 
           if (values.referralCode !== "") {

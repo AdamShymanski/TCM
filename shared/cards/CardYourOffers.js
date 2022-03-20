@@ -102,9 +102,10 @@ export function CardYourOffers({ props, setModal, setId }) {
               color: "#ffe100",
               fontFamily: "Roboto_Medium",
               marginLeft: 6,
+              fontSize: 10,
             }}
           >
-            Verification Pending
+            VERIFICATION PENDING
           </Text>
         </View>
       );
@@ -142,9 +143,10 @@ export function CardYourOffers({ props, setModal, setId }) {
 
               fontFamily: "Roboto_Medium",
               marginLeft: 6,
+              fontSize: 10,
             }}
           >
-            Published
+            PUBLISHED
           </Text>
         </View>
       );
@@ -181,9 +183,10 @@ export function CardYourOffers({ props, setModal, setId }) {
               color: "#ff0000",
               fontFamily: "Roboto_Medium",
               marginLeft: 6,
+              fontSize: 10,
             }}
           >
-            Rejected
+            REJECTED
           </Text>
         </View>
       );
@@ -433,7 +436,7 @@ export function CardYourOffers({ props, setModal, setId }) {
               <Text style={{ color: "#0082ff", fontSize: 14 }}>
                 {"Price    "}
               </Text>
-              {price}
+              {price.toFixed(2)}
               <Text style={{ color: "#CDCDCD", fontSize: 14 }}>{"  USD"}</Text>
             </Text>
 

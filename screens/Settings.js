@@ -34,6 +34,8 @@ import { AreYouSureModal } from "../shared/Modals/AreYouSureModal";
 
 import { useNavigation } from "@react-navigation/native";
 
+import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
+
 const onlyLettersRegEx =
   /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$/u;
 const firstCapitalLetter = /^[A-Z].*/;
@@ -489,7 +491,37 @@ export default function Settings() {
                 style={{
                   width: "90%",
 
-                  paddingHorizontal: 12,
+                  paddingVertical: 4,
+
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+
+                  borderRadius: 3,
+                  backgroundColor: "#0082FF",
+                }}
+                onPress={async () => {
+                  auth.signOut();
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#121212",
+                    marginRight: 10,
+                  }}
+                >
+                  Sign Out
+                </Text>
+                <IconMCI name={"logout"} size={20} color={"#121212"} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  width: "90%",
+                  marginTop: 20,
+
                   paddingVertical: 4,
 
                   flexDirection: "row",
@@ -515,16 +547,18 @@ export default function Settings() {
                     fontSize: 16,
                     fontWeight: "700",
                     color: "#121212",
+                    marginRight: 10,
                   }}
                 >
                   Delete Account
                 </Text>
+                <IconMCI name={"delete"} size={20} color={"#121212"} />
               </TouchableOpacity>
               {auth.currentUser?.providerData[0].providerId != "google.com" ? (
                 <TouchableOpacity
                   style={{
                     marginTop: 20,
-                    width: "92%",
+                    width: "90%",
 
                     flexDirection: "row",
                     alignItems: "center",
@@ -544,39 +578,14 @@ export default function Settings() {
                       fontSize: 16,
                       fontWeight: "700",
                       color: "#121212",
+                      marginRight: 10,
                     }}
                   >
                     Change Password
                   </Text>
+                  <IconMCI name={"key-change"} size={20} color={"#121212"} />
                 </TouchableOpacity>
               ) : null}
-              <TouchableOpacity
-                style={{
-                  marginTop: 20,
-                  width: "92%",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-
-                  backgroundColor: "#0082FF",
-                  borderRadius: 3,
-                  paddingHorizontal: 12,
-                  paddingVertical: 4,
-                }}
-                onPress={async () => {
-                  auth.signOut();
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: "700",
-                    color: "#121212",
-                  }}
-                >
-                  Sign Out
-                </Text>
-              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>

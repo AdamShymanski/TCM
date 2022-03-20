@@ -39,8 +39,9 @@ export default function YourOffers() {
       const doc = await db.collection("users").doc(auth.currentUser.uid).get();
       setVendorId(doc.data()?.stripe?.vendorId);
 
-      if (vendorId !== undefined) {
+      if (vendorId) {
         setCardsData(await fetchUsersCards());
+        console.log("veid", vendorId);
       }
     };
 
@@ -81,7 +82,7 @@ export default function YourOffers() {
         </View>
       ) : (
         <View style={{ flex: 1 }}>
-          {vendorId === undefined ? (
+          {!vendorId ? (
             <View
               style={{
                 flex: 1,
@@ -138,14 +139,11 @@ export default function YourOffers() {
                   borderRadius: 4,
                 }}
                 onPress={() => {
-                  functions.useEmulator("192.168.0.103", 5001);
-                  const query = functions.httpsCallable(
-                    "createStripeLinkedAccount"
-                  );
+                  const query = functions.httpsCallable("createStripeAccount");
 
                   query()
                     .then((result) => {
-                      console.warn(result);
+                      console.log(result.data);
                       Linking.openURL(result.data);
                     })
                     .catch((err) => console.log(err));
@@ -177,7 +175,7 @@ export default function YourOffers() {
             </View>
           ) : (
             <View style={{ flex: 1 }}>
-              {cardsData.length >= 1 ? (
+              {cardsData.length > 0 ? (
                 <View
                   style={{
                     flex: 1,
