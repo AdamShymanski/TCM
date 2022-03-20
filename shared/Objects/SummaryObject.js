@@ -78,7 +78,7 @@ export default function SummaryObject({ props, last }) {
         <View
           style={{
             justifyContent: "space-between",
-            height: 70,
+            height: 90,
             marginLeft: 12,
           }}
         >
@@ -91,7 +91,7 @@ export default function SummaryObject({ props, last }) {
           >
             {pokemonName}
           </Text>
-          <View style={{ flexDirection: "row" }}>
+          <View style={{ flexDirection: "row", marginTop: 8 }}>
             <Text
               style={{
                 color: "#585858",
@@ -166,6 +166,27 @@ export default function SummaryObject({ props, last }) {
               >
                 /10
               </Text>
+            </Text>
+          </View>
+          <View style={{ flexDirection: "row" }}>
+            <Text
+              style={{
+                color: "#585858",
+                fontFamily: "Roboto_Medium",
+                fontSize: 11,
+              }}
+            >
+              Language
+            </Text>
+            <Text
+              style={{
+                color: "#f4f4f4",
+                fontFamily: "Roboto_Medium",
+                fontSize: 11,
+                marginLeft: 4,
+              }}
+            >
+              {`${props.languageVersion}`}
             </Text>
           </View>
         </View>

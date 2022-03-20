@@ -17,6 +17,7 @@ import { functions, auth, fetchName, fetchCart, db } from "../authContext";
 
 import { ActivityIndicator, TextInput, RadioButton } from "react-native-paper";
 
+import { LogBox } from "react-native";
 import SummaryObject from "./../shared/Objects/SummaryObject";
 import DHL_logo from "../assets/DHL_logo.png";
 import FedExExpress_logo from "../assets/FedEx_Express_logo.png";
@@ -28,8 +29,15 @@ import bottom_arrow from "../assets/arrow_right_bottom.png";
 
 import IconMI from "react-native-vector-icons/MaterialIcons";
 import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
+import AddShippingMethod from "./subscreens/Seller/AddShippingMethod";
 
-export default function Checkout({ pageState, setPage }) {
+let transactionId = null;
+
+export default function Checkout({ pageState, setPage, instantBuy }) {
+  LogBox.ignoreLogs([
+    "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing and other functionality - use another VirtualizedList-backed container instead.",
+  ]);
+
   const [shippingMethod, setShippingMethod] = useState({});
   const [shippingAddress, setShippingAddress] = useState({});
 
@@ -38,8 +46,8 @@ export default function Checkout({ pageState, setPage }) {
 
   const [offersState, setOffersState] = useState([]);
 
-  // const [shippingServiceProvider, setShippingServiceProvider] =
-  //   useState("USPS");
+  const [noAvailableShippingMethods, setNoAvailableShippingMethods] =
+    useState(false);
 
   const addEmptyObj = (array) => {
     if (array.length === 0) {
@@ -53,152 +61,97 @@ export default function Checkout({ pageState, setPage }) {
     const resolvePromise = async () => {
       setPage("loadingPage");
 
-      await fetchCart(setOffersState, () => {});
+      if (instantBuy) {
+        //take offer from props - navigation
+      } else {
+        await fetchCart(setOffersState, () => {});
+      }
 
       // fetch id's of owners of cards in users cart
-      db.collection("users")
-        .doc(auth.currentUser.uid)
-        .get()
-        .then((user) => {
-          const cart = user.data().cart;
-          cart.forEach((id) => {
-            db.collection("cards")
-              .doc(id)
-              .get()
-              .then((offer) => {
-                // fetch owner name and shipping methods - put them in avaliable shipping methods
-                setShippingMethod((prevState) => ({
-                  ...prevState,
-                  [offer.data().owner]: false,
-                }));
+      const user = await db.collection("users").doc(auth.currentUser.uid).get();
 
-                setAvalibleShippingMethods((prevState) => [
-                  ...prevState,
-                  {
-                    title: "Nick",
-                    uid: offer.data().owner,
-                    data: [
-                      {
-                        range: "Domestic",
-                        tracking: false,
-                        carrier: "FedEx",
-                        name: "First Class",
-                        from: 2,
-                        to: 3,
-                        price: 5.99,
-                      },
-                      {
-                        range: "Domestic",
-                        tracking: true,
-                        carrier: "USPS",
-                        name: "First Class",
-                        from: 2,
-                        to: 3,
-                        price: 5.99,
-                      },
-                    ],
-                  },
-                ]);
+      if (user.data().addresses.length > 0) {
+        setAddressesArray(user.data().addresses);
+      } else {
+        setAddressesArray([]);
+      }
 
-                // db.collection("users")
-                //   .owner.get()
-                //   .then((owner) => {
-                //     setAvalibleShippingMethods((prevState) => [
-                //       ...prevState,
-                //       {
-                //         title: owner.data().nick,
-                //         uid: offer.data().owner,
-                //         data: owner.data().sellerProfile.shippingMethods,
-                //       },
-                //     ]);
-                //   });
-              });
+      let shippingMethodsArray = [];
+
+      const promise = new Promise((resolve, reject) => {
+        user.data().cart.forEach(async (id, index) => {
+          const offer = await db.collection("offers").doc(id).get();
+
+          const owner = await db
+            .collection("users")
+            .doc(offer.data().owner)
+            .get();
+
+          // if (owner.data().sellerProfile.shippingMethods.domestic.length > 0) {
+          //   shippingMethodsArray.push({
+          //     title: owner.data().nick,
+          //     uid: offer.data().owner,
+          //     data: owner.data().sellerProfile.shippingMethods.domestic,
+          //   });
+          // }
+
+          // if (
+          //   owner.data().sellerProfile.shippingMethods.international.length > 0
+          // ) {
+          //   shippingMethodsArray.push({
+          //     title: owner.data().nick,
+          //     uid: offer.data().owner,
+          //     data: owner.data().sellerProfile.shippingMethods.international,
+          //   });
+          // }
+
+          shippingMethodsArray.push({
+            title: owner.data().nick,
+            uid: offer.data().owner,
+            data: owner.data().sellerProfile.shippingMethods.international,
           });
+
+          if (index === user.data().cart.length - 1) {
+            resolve();
+          }
         });
-
-      // const doc = await db.collection("users").doc(auth.currentUser.uid).get();
-      // if (doc.data().shippingAddresses) {
-      //   setAddressesArray(doc.data().shippingAddresses);
-      // }
-
-      // setAvalibleShippingMethods([
-      //   {
-      //     title: "Rig",
-      //     uid: "fjk8iEmFHohqau0Pp0JCvAQBNuH2",
-      //     data: [
-      //       {
-      //         range: "Domestic",
-      //         tracking: false,
-      //         carrier: "FedEx",
-      //         name: "First Class",
-      //         from: 2,
-      //         to: 3,
-      //         price: 5.99,
-      //       },
-      //       {
-      //         range: "Domestic",
-      //         tracking: true,
-      //         carrier: "USPS",
-      //         name: "First Class",
-      //         from: 2,
-      //         to: 3,
-      //         price: 5.99,
-      //       },
-      //     ],
-      //   },
-      //   {
-      //     title: "Tommy",
-      //     uid: "1wHQ7P6haMb0lGXqYGH8kjhIfcv1",
-      //     data: [
-      //       {
-      //         range: "Domestic",
-      //         tracking: true,
-      //         carrier: "DHL",
-      //         name: "First Class",
-      //         from: 2,
-      //         to: 3,
-      //         price: 5.99,
-      //       },
-      //       {
-      //         range: "Domestic",
-      //         tracking: false,
-      //         carrier: "UPS",
-      //         name: "First Class",
-      //         from: 2,
-      //         to: 3,
-      //         price: 5.99,
-      //       },
-      //     ],
-      //   },
-      // ]);
-
-      setAddressesArray([
-        {
-          firstName: "Adam",
-          lastName: "Szymański",
-          zipCode: "92-446",
-          country: "Poland",
-          state: "Łódzkie",
-          city: "Łódź",
-          streetAddress1: "Wacława Wojewódzkiego 1 m2",
-          streetAddress2: "",
-          phoneNumber: "+48 606417902",
-        },
-      ]);
-
-      avalibleShippingMethods.forEach((item) => {
-        setShippingMethod((prevState) => ({
-          ...prevState,
-          [item.uid]: false,
-        }));
       });
 
-      setAddressesArray((prevState) => addEmptyObj(prevState));
+      promise.then(() => {
+        setAvalibleShippingMethods(shippingMethodsArray);
+      });
 
       setPage("shippingPage");
     };
     resolvePromise();
   }, []);
+
+  useEffect(() => {
+    if (addressesArray) {
+      setAddressesArray((prevState) => addEmptyObj(prevState));
+    }
+  }, [addressesArray]);
+
+  useEffect(() => {
+    if (shippingAddress) {
+      setShippingMethod({});
+    }
+  }, [shippingAddress]);
+
+  useEffect(() => {
+    if (avalibleShippingMethods) {
+      const outputObj = {};
+
+      avalibleShippingMethods.forEach((item) => {
+        outputObj[item.uid] = false;
+      });
+
+      setNoAvailableShippingMethods(false);
+      setShippingMethod(outputObj);
+    } else {
+      setNoAvailableShippingMethods(true);
+    }
+  }, [avalibleShippingMethods]);
 
   if (pageState === "shippingPage") {
     return (
@@ -210,6 +163,7 @@ export default function Checkout({ pageState, setPage }) {
         shippingMethod={shippingMethod}
         addressesArray={addressesArray}
         avalibleShippingMethods={avalibleShippingMethods}
+        noAvailableShippingMethods={noAvailableShippingMethods}
       />
     );
   } else if (pageState === "summaryPage") {
@@ -236,6 +190,7 @@ const ShippingPage = ({
   shippingMethod,
   addressesArray,
   avalibleShippingMethods,
+  noAvailableShippingMethods,
 }) => {
   const [loadingIndicator, setLoadingIndicator] = useState(false);
   const [errorState, setError] = useState(false);
@@ -275,325 +230,352 @@ const ShippingPage = ({
   const navigation = useNavigation();
 
   return (
-    <ScrollView
+    <FlatList
+      numColumns={2}
+      data={addressesArray}
       style={{
-        flex: 1,
-        backgroundColor: "#1b1b1b",
         paddingLeft: "5%",
+        paddingRight: "5%",
+        backgroundColor: "#1b1b1b",
+
+        flex: 1,
       }}
-    >
-      <Text
-        style={{
-          color: "#f4f4f4",
-          fontWeight: "700",
-          fontSize: 22,
-          marginTop: 12,
-          marginBottom: 4,
-        }}
-      >
-        Addresses
-      </Text>
-
-      <FlatList
-        numColumns={2}
-        data={addressesArray}
-        style={{ marginTop: 6, flexGrow: 0, width: "90%" }}
-        renderItem={({ item, index }) => {
-          if (item.empty) {
-            return (
-              <TouchableOpacity
-                style={{
-                  width: "48%",
-                  marginRight: index === 0 || 2 || 4 ? "4%" : "0%",
-
-                  padding: 8,
-                  borderWidth: 2,
-                  borderRadius: 6,
-                  borderColor: "#5c5c5c",
-                  borderStyle: "dashed",
-                  justifyContent: "center",
-
-                  aspectRatio: addressesArray.length > 1 ? undefined : 1 / 1,
-                }}
-                onPress={() => {
-                  navigation.navigate("AddAddress");
-                }}
-              >
-                <Text
-                  style={{
-                    color: "#5c5c5c",
-                    fontFamily: "Roboto_Medium",
-                    fontSize: 16,
-                    alignSelf: "center",
-                  }}
-                >
-                  Add
-                </Text>
-                <Text
-                  style={{
-                    color: "#5c5c5c",
-                    fontFamily: "Roboto_Medium",
-                    fontSize: 16,
-                    alignSelf: "center",
-                  }}
-                >
-                  Address
-                </Text>
-              </TouchableOpacity>
-            );
-          }
+      renderItem={({ item, index }) => {
+        if (item.empty) {
           return (
             <TouchableOpacity
               style={{
                 width: "48%",
                 marginRight: index === 0 || 2 || 4 ? "4%" : "0%",
 
-                padding: 10,
-                borderWidth:
-                  JSON.stringify(shippingAddress) === JSON.stringify(item)
-                    ? 2.5
-                    : 1.5,
+                padding: 8,
+                borderWidth: 2,
                 borderRadius: 6,
-                borderColor:
-                  JSON.stringify(shippingAddress) === JSON.stringify(item)
-                    ? "#0082ff"
-                    : "#5c5c5c",
+                borderColor: "#5c5c5c",
+                borderStyle: "dashed",
+                justifyContent: "center",
+
+                aspectRatio: addressesArray.length > 1 ? undefined : 1 / 1,
               }}
               onPress={() => {
-                setShippingAddress(item);
+                navigation.navigate("AddAddress");
               }}
             >
-              <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
-                {`${item.firstName} ${item.lastName}`}
-              </Text>
-              <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
-                {item.streetAddress1}
-              </Text>
-              {item.streetAddress2 ? (
-                <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
-                  {item.streetAddress2}
-                </Text>
-              ) : null}
               <Text
-                style={{ color: "#f4f4f4", marginLeft: 6 }}
-              >{`${item.city}, ${item.zipCode}`}</Text>
-              <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
-                {item.country}
+                style={{
+                  color: "#5c5c5c",
+                  fontFamily: "Roboto_Medium",
+                  fontSize: 16,
+                  alignSelf: "center",
+                }}
+              >
+                Add
               </Text>
-              <Text style={{ color: "#f4f4f4", marginLeft: 6, marginTop: 8 }}>
-                {item.phoneNumber}
+              <Text
+                style={{
+                  color: "#5c5c5c",
+                  fontFamily: "Roboto_Medium",
+                  fontSize: 16,
+                  alignSelf: "center",
+                }}
+              >
+                Address
               </Text>
             </TouchableOpacity>
           );
-        }}
-        keyExtractor={(item, index) => index.toString()}
-        ListEmptyComponent={
-          <View
+        }
+        return (
+          <TouchableOpacity
             style={{
-              felx: 1,
-              justifyContent: "center",
-              alignItems: "center",
+              width: "48%",
+              marginRight: index === 0 || 2 || 4 ? "4%" : "0%",
+
+              padding: 10,
+              borderWidth:
+                JSON.stringify(shippingAddress) === JSON.stringify(item)
+                  ? 2.5
+                  : 1.5,
+              borderRadius: 6,
+              borderColor:
+                JSON.stringify(shippingAddress) === JSON.stringify(item)
+                  ? "#0082ff"
+                  : "#5c5c5c",
+            }}
+            onPress={() => {
+              setShippingAddress(item);
             }}
           >
-            <ActivityIndicator size="large" color="#0082ff" />
-          </View>
-        }
-      />
-
-      <Text
-        style={{
-          fontSize: 22,
-          color: "#f4f4f4",
-          fontWeight: "700",
-
-          marginTop: 26,
-          marginBottom: 12,
-        }}
-      >
-        Shipping Methods
-      </Text>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          marginBottom: 6,
-          marginLeft: 12,
-        }}
-      >
-        <IconMCI name={"radar"} size={16} color={"#24FF00"} />
-        <Text
-          style={{
-            fontSize: 14,
-            color: "#5c5c5c",
-          }}
-        >
-          {"  - Shipping method with parcel tracking"}
-        </Text>
-      </View>
-
-      <SectionList
-        style={{ width: "90%", flexGrow: 0 }}
-        sections={avalibleShippingMethods}
-        keyExtractor={(item, index) => item + index}
-        renderItem={({ item, index, section }) => {
-          return (
-            <View
-              style={{
-                width: "100%",
-
-                marginTop: 6,
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-
-                borderRadius: 3,
-                backgroundColor: "#121212",
-
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              {item.tracking ? (
-                <IconMCI name={"radar"} size={16} color={"#24FF00"} />
-              ) : null}
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: "#f4f4f4",
-                  fontWeight: "700",
-                }}
-              >
-                {item.carrier}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: "#939393",
-                }}
-              >
-                {item.name}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: "#f4f4f4",
-                }}
-              >
-                {item.from} - {item.to} days
-              </Text>
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: "#f4f4f4",
-                  fontWeight: "700",
-                }}
-              >
-                {item.price} USD
-              </Text>
-              <RadioButton
-                value="first"
-                status={
-                  JSON.stringify(shippingMethod[section.uid]) ===
-                  JSON.stringify(item)
-                    ? "checked"
-                    : "unchecked"
-                }
-                onPress={() => {
-                  setShippingMethod((prevState) => ({
-                    ...prevState,
-                    [section.uid]: item,
-                  }));
-                }}
-                uncheckedColor="#f4f4f4"
-                color="#0082ff"
-              />
-            </View>
-          );
-        }}
-        renderSectionHeader={({ section: { title } }) => (
-          <View>
-            <Text
-              style={{
-                color: "#7c7c7c",
-                fontSize: 12,
-                marginTop: 16,
-              }}
-            >
-              from{"  "}
-              <Text
-                style={{
-                  color: "#bbbbbb",
-                  fontSize: 17,
-                  fontFamily: "Roboto_Medium",
-                }}
-              >
-                {title}
-              </Text>
+            <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
+              {`${item.firstName} ${item.lastName}`}
             </Text>
-          </View>
-        )}
-        ListEmptyComponent={
-          <View
-            style={{
-              felx: 1,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <ActivityIndicator size="large" color="#0082ff" />
-          </View>
-        }
-      />
-      <View
-        style={{
-          width: "90%",
-          marginTop: 38,
-          marginBottom: 22,
-
-          alignItems: "center",
-          flexDirection: "row-reverse",
-        }}
-      >
-        <TouchableOpacity
-          style={{
-            width: "30%",
-            alignItems: "center",
-
-            borderRadius: 4,
-            backgroundColor: "#0082ff",
-
-            paddingVertical: 6,
-            marginLeft: 22,
-          }}
-          onPress={() => {
-            validateForm();
-          }}
-        >
-          <Text style={{ color: "#121212", fontWeight: "700", fontSize: 16 }}>
-            Submit
-          </Text>
-        </TouchableOpacity>
-
-        {loadingIndicator ? (
-          <ActivityIndicator size="small" color="#0082ff" />
-        ) : null}
-        {errorState && !loadingIndicator ? (
+            <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
+              {item.streetAddress1}
+            </Text>
+            {item.streetAddress2 ? (
+              <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
+                {item.streetAddress2}
+              </Text>
+            ) : null}
+            <Text
+              style={{ color: "#f4f4f4", marginLeft: 6 }}
+            >{`${item.city}, ${item.zipCode}`}</Text>
+            <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
+              {item.country}
+            </Text>
+            <Text style={{ color: "#f4f4f4", marginLeft: 6, marginTop: 8 }}>
+              {item.phoneNumber}
+            </Text>
+          </TouchableOpacity>
+        );
+      }}
+      keyExtractor={(item, index) => index.toString()}
+      ListHeaderComponent={() => {
+        return (
           <Text
             style={{
-              color: "#b40424",
+              color: "#f4f4f4",
               fontWeight: "700",
-              width: "63%",
-              textAlign: "left",
+              fontSize: 22,
+              marginTop: 12,
+              marginBottom: 4,
             }}
           >
-            {errorState}
+            Addresses
           </Text>
-        ) : null}
-      </View>
-    </ScrollView>
+        );
+      }}
+      ListFooterComponent={() => {
+        return (
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontSize: 22,
+                color: "#f4f4f4",
+                fontWeight: "700",
+
+                marginTop: 26,
+                marginBottom: 12,
+              }}
+            >
+              Shipping Methods
+            </Text>
+
+            {noAvailableShippingMethods ? (
+              <View>
+                <Text>Seller doesn't provide</Text>
+              </View>
+            ) : (
+              <View>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 6,
+                    marginLeft: 12,
+                  }}
+                >
+                  <IconMCI name={"radar"} size={16} color={"#24FF00"} />
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: "#5c5c5c",
+                    }}
+                  >
+                    {"  - Shipping method with parcel tracking"}
+                  </Text>
+                </View>
+                <SectionList
+                  style={{ width: "100%", flexGrow: 0 }}
+                  sections={avalibleShippingMethods}
+                  keyExtractor={(item, index) => item + index}
+                  renderItem={({ item, index, section }) => {
+                    return (
+                      <View
+                        style={{
+                          width: "100%",
+
+                          marginTop: 6,
+                          paddingHorizontal: 12,
+                          paddingVertical: 8,
+
+                          borderRadius: 3,
+                          backgroundColor: "#121212",
+
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        {item.tracking ? (
+                          <IconMCI name={"radar"} size={16} color={"#24FF00"} />
+                        ) : null}
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            color: "#f4f4f4",
+                            fontWeight: "700",
+                          }}
+                        >
+                          {item.carrier}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            color: "#939393",
+                          }}
+                        >
+                          {item.name}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            color: "#f4f4f4",
+                          }}
+                        >
+                          {item.from} - {item.to} days
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            color: "#f4f4f4",
+                            fontWeight: "700",
+                          }}
+                        >
+                          {item.price} USD
+                        </Text>
+                        <RadioButton
+                          value="first"
+                          status={
+                            JSON.stringify(shippingMethod[section.uid]) ===
+                            JSON.stringify(item)
+                              ? "checked"
+                              : "unchecked"
+                          }
+                          onPress={() => {
+                            setShippingMethod((prevState) => ({
+                              ...prevState,
+                              [section.uid]: item,
+                            }));
+                          }}
+                          uncheckedColor="#f4f4f4"
+                          color="#0082ff"
+                        />
+                      </View>
+                    );
+                  }}
+                  renderSectionHeader={({ section: { title } }) => (
+                    <View>
+                      <Text
+                        style={{
+                          color: "#7c7c7c",
+                          fontSize: 12,
+                          marginTop: 16,
+                        }}
+                      >
+                        from{"  "}
+                        <Text
+                          style={{
+                            color: "#bbbbbb",
+                            fontSize: 17,
+                            fontFamily: "Roboto_Medium",
+                          }}
+                        >
+                          {title}
+                        </Text>
+                      </Text>
+                    </View>
+                  )}
+                  ListEmptyComponent={() => {
+                    return (
+                      <View
+                        style={{
+                          felx: 1,
+                          justifyContent: "center",
+                          alignItems: "center",
+                          marginTop: 20,
+                        }}
+                      >
+                        <ActivityIndicator
+                          size="large"
+                          color="#0082ff"
+                          style={{ marginTop: 20 }}
+                        />
+                      </View>
+                    );
+                  }}
+                />
+              </View>
+            )}
+
+            <View
+              style={{
+                width: "90%",
+                marginTop: 38,
+                marginBottom: 22,
+
+                alignItems: "center",
+                flexDirection: "row-reverse",
+              }}
+            >
+              <TouchableOpacity
+                style={{
+                  width: "30%",
+                  alignItems: "center",
+
+                  borderRadius: 4,
+                  backgroundColor: "#0082ff",
+
+                  paddingVertical: 6,
+                  marginLeft: 22,
+                }}
+                onPress={() => {
+                  validateForm();
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#121212",
+                    fontWeight: "700",
+                    fontSize: 16,
+                  }}
+                >
+                  Submit
+                </Text>
+              </TouchableOpacity>
+
+              {loadingIndicator ? (
+                <ActivityIndicator size="small" color="#0082ff" />
+              ) : null}
+              {errorState && !loadingIndicator ? (
+                <Text
+                  style={{
+                    color: "#b40424",
+                    fontWeight: "700",
+                    width: "63%",
+                    textAlign: "left",
+                  }}
+                >
+                  {errorState}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        );
+      }}
+      ListEmptyComponent={
+        <View
+          style={{
+            felx: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <ActivityIndicator size="large" color="#0082ff" />
+        </View>
+      }
+    />
   );
 };
-//! return FlatList
 
 const SummaryPage = ({
   setPage,
@@ -609,8 +591,6 @@ const SummaryPage = ({
         keyExtractor={(item, index) => item + index}
         renderItem={({ item, index, section }) => {
           if (section.data.length === index + 1) {
-            console.log([section.uid]);
-            console.log(shippingMethod);
             return (
               <View style={{ alignItems: "flex-end" }}>
                 <SummaryObject
@@ -636,9 +616,9 @@ const SummaryPage = ({
                   />
                   <View
                     style={{
-                      width: "80%",
+                      width: "84%",
 
-                      marginTop: 6,
+                      marginTop: 10,
                       marginBottom: 12,
 
                       paddingHorizontal: 12,
@@ -654,9 +634,9 @@ const SummaryPage = ({
                       marginRight: "5%",
                     }}
                   >
-                    {/* {shippingMethod[section.uid].tracking ? (
+                    {shippingMethod[section.uid].tracking ? (
                       <IconMCI name={"radar"} size={16} color={"#24FF00"} />
-                    ) : null} */}
+                    ) : null}
                     <Text
                       style={{
                         fontSize: 14,
@@ -664,7 +644,7 @@ const SummaryPage = ({
                         fontWeight: "700",
                       }}
                     >
-                      {/* {shippingMethod[section.uid].carrier} */}
+                      {shippingMethod[section.uid].carrier}
                     </Text>
                     <Text
                       style={{
@@ -672,7 +652,7 @@ const SummaryPage = ({
                         color: "#939393",
                       }}
                     >
-                      {/* {shippingMethod[section.uid].name} */}
+                      {shippingMethod[section.uid].name}
                     </Text>
                     <Text
                       style={{
@@ -680,8 +660,8 @@ const SummaryPage = ({
                         color: "#f4f4f4",
                       }}
                     >
-                      {/* {shippingMethod[section.uid].from} -{" "}
-                      {shippingMethod[section.uid].to} days */}
+                      {shippingMethod[section.uid].from} -{" "}
+                      {shippingMethod[section.uid].to} days
                     </Text>
                     <Text
                       style={{
@@ -690,7 +670,7 @@ const SummaryPage = ({
                         fontWeight: "700",
                       }}
                     >
-                      {/* {shippingMethod[section.uid].price} USD */}
+                      {shippingMethod[section.uid].price} USD
                     </Text>
                   </View>
                 </View>
@@ -703,7 +683,7 @@ const SummaryPage = ({
           <View>
             <Text
               style={{
-                color: "#f4f4f4",
+                color: "#7c7c7c",
                 fontSize: 12,
                 marginTop: 10,
                 marginLeft: 18,
@@ -712,7 +692,7 @@ const SummaryPage = ({
               from{"  "}
               <Text
                 style={{
-                  color: "#f4f4f4",
+                  color: "#bbbbbb",
                   fontSize: 17,
                   fontFamily: "Roboto_Medium",
                 }}
@@ -723,7 +703,7 @@ const SummaryPage = ({
           </View>
         )}
         ListEmptyComponent={
-          <View style={{ paddingVertical: 18 }}>
+          <View style={{ paddingVertical: 18, marginTop: 20 }}>
             <ActivityIndicator size={"small"} color={"#0082ff"} />
           </View>
         }
@@ -803,7 +783,7 @@ const EndPage = () => {
         onPress={() => {
           navigation.reset({
             index: 0,
-            routes: [{ name: "Transactions" }],
+            routes: [{ name: "Transactions", screen: "TransactionDetails" }],
           });
         }}
       >
@@ -851,18 +831,6 @@ const getHeader = () => {
           {"Take one last look at what you will pay for."}
         </Text>
       </View>
-      <Text
-        style={{
-          color: "#565656",
-          fontFamily: "Roboto_Medium",
-          fontSize: 12,
-          marginLeft: 12,
-          marginBottom: 2,
-          marginTop: 12,
-        }}
-      >
-        REVIEW CARDS
-      </Text>
     </View>
   );
 };
@@ -877,13 +845,12 @@ const getFooter = (setPage, shippingMethod, shippingAddress, offersState) => {
 
   useEffect(() => {
     const resolvePromise = async () => {
-      const query = functions.httpsCallable("paymentSheet");
-
-      query()
-        .then((result) => {
-          initializePaymentSheet(result.data);
-        })
-        .catch((err) => console.log(err));
+      // const query = functions.httpsCallable("paymentSheet");
+      // query()
+      //   .then((result) => {
+      //     initializePaymentSheet(result.data);
+      //   })
+      //   .catch((err) => console.log(err));
     };
 
     resolvePromise();
@@ -926,10 +893,10 @@ const getFooter = (setPage, shippingMethod, shippingAddress, offersState) => {
       }
 
       setTotals({
-        cards: cards,
-        discount: discount,
-        shipping: shipping,
-        final: cards + shipping - discount,
+        cards: cards.toFixed(2),
+        discount: discount.toFixed(2),
+        shipping: shipping.toFixed(2),
+        final: (cards + shipping - discount).toFixed(2),
       });
     }
   }, [offersState]);
@@ -975,35 +942,6 @@ const getFooter = (setPage, shippingMethod, shippingAddress, offersState) => {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* <View
-        style={{
-          width: "100%",
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          paddingRight: 18,
-        }}
-      >
-        <Text
-          style={{
-            color: "#f4f4f4",
-            fontFamily: "Roboto_Medium",
-            fontSize: 12,
-          }}
-        >
-          Total Cards Cost{"  "}
-          <Text
-            style={{
-              fontSize: 14,
-              color: "#0082ff",
-              fontWeight: "700",
-              fontFamily: "Roboto_Regular",
-            }}
-          >
-            {totals.cards} <Text style={{}}>USD</Text>
-          </Text>
-        </Text>
-      </View> */}
-
       <View
         style={{
           flexDirection: "row",
@@ -1181,7 +1119,171 @@ const getFooter = (setPage, shippingMethod, shippingAddress, offersState) => {
             </Text>
           </View>
         </View>
-        {/* <View
+      </View>
+      <View
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          marginBottom: 20,
+        }}
+      >
+        <TouchableOpacity
+          style={{
+            backgroundColor: "#0082ff",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 6,
+            paddingVertical: 7,
+            marginTop: 50,
+
+            width: "90%",
+          }}
+          onPress={() => {
+            // setPage("endPage");
+
+            let outObj = {};
+
+            offersState.forEach((item) => {
+              outObj.seller = item.uid;
+              outObj.offers = item.data;
+
+              outObj.shipping = {
+                method: shippingMethod[item.uid],
+                address: shippingAddress,
+              };
+              outObj.paymentId = "paymentId -- null";
+            });
+
+            //! ONLY FOR DEMO PURPOSE || 1 SELLER ONLY
+            const query = functions.httpsCallable("createTransaction");
+
+            query(outObj)
+              .then((result) => {
+                console.log(result);
+                // transactionId = result.data.id;
+                // setPage("endPage");
+              })
+              .catch((err) => console.log(err));
+          }}
+        >
+          <Text style={{ fontWeight: "700", color: "#121212", fontSize: 18 }}>
+            Purchase
+          </Text>
+        </TouchableOpacity>
+        <View style={{ flexDirection: "row", marginTop: 12 }}>
+          <Text style={{ fontFamily: "Roboto_Medium", color: "#555555" }}>
+            Powered by{"  "}
+          </Text>
+          <Image
+            source={Stripe_logo}
+            style={{ aspectRatio: 282 / 117, width: undefined, height: 20 }}
+          />
+        </View>
+      </View>
+    </View>
+  );
+};
+
+// setAvalibleShippingMethods((prevState) => [
+//   ...prevState,
+//   {
+//     title: "Nick",
+//     uid: offer.data().owner,
+//     data: [
+//       {
+//         range: "Domestic",
+//         tracking: false,
+//         carrier: "FedEx",
+//         name: "First Class",
+//         from: 2,
+//         to: 3,
+//         price: 5.99,
+//       },
+//       {
+//         range: "Domestic",
+//         tracking: true,
+//         carrier: "USPS",
+//         name: "First Class",
+//         from: 2,
+//         to: 3,
+//         price: 5.99,
+//       },
+//     ],
+//   },
+// ]);
+
+// const doc = await db.collection("users").doc(auth.currentUser.uid).get();
+// if (doc.data().shippingAddresses) {
+//   setAddressesArray(doc.data().shippingAddresses);
+// }
+
+// setAvalibleShippingMethods([
+//   {
+//     title: "Rig",
+//     uid: "fjk8iEmFHohqau0Pp0JCvAQBNuH2",
+//     data: [
+//       {
+//         range: "Domestic",
+//         tracking: false,
+//         carrier: "FedEx",
+//         name: "First Class",
+//         from: 2,
+//         to: 3,
+//         price: 5.99,
+//       },
+//       {
+//         range: "Domestic",
+//         tracking: true,
+//         carrier: "USPS",
+//         name: "First Class",
+//         from: 2,
+//         to: 3,
+//         price: 5.99,
+//       },
+//     ],
+//   },
+//   {
+//     title: "Tommy",
+//     uid: "1wHQ7P6haMb0lGXqYGH8kjhIfcv1",
+//     data: [
+//       {
+//         range: "Domestic",
+//         tracking: true,
+//         carrier: "DHL",
+//         name: "First Class",
+//         from: 2,
+//         to: 3,
+//         price: 5.99,
+//       },
+//       {
+//         range: "Domestic",
+//         tracking: false,
+//         carrier: "UPS",
+//         name: "First Class",
+//         from: 2,
+//         to: 3,
+//         price: 5.99,
+//       },
+//     ],
+//   },
+// ]);
+
+// setAddressesArray([
+//   {
+//     firstName: "Adam",
+//     lastName: "Szymański",
+//     zipCode: "92-446",
+//     country: "Poland",
+//     state: "Łódzkie",
+//     city: "Łódź",
+//     streetAddress1: "Wacława Wojewódzkiego 1 m2",
+//     streetAddress2: "",
+//     phoneNumber: "+48 606417902",
+//   },
+// ]);
+
+{
+  /* <View
           style={{
             flex: 1.3,
             flexDirection: "column",
@@ -1294,44 +1396,5 @@ const getFooter = (setPage, shippingMethod, shippingAddress, offersState) => {
             </Text>
           </Text>
         </View>
-      </View> */}
-      </View>
-      <View
-        style={{
-          justifyContent: "center",
-          alignItems: "center",
-          marginBottom: 20,
-        }}
-      >
-        <TouchableOpacity
-          style={{
-            backgroundColor: "#0082ff",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 6,
-            paddingVertical: 7,
-            marginTop: 50,
-
-            width: "90%",
-          }}
-          onPress={() => {
-            setPage("endPage");
-          }}
-        >
-          <Text style={{ fontWeight: "700", color: "#121212", fontSize: 18 }}>
-            Purchase
-          </Text>
-        </TouchableOpacity>
-        <View style={{ flexDirection: "row", marginTop: 12 }}>
-          <Text style={{ fontFamily: "Roboto_Medium", color: "#555555" }}>
-            Powered by{"  "}
-          </Text>
-          <Image
-            source={Stripe_logo}
-            style={{ aspectRatio: 282 / 117, width: undefined, height: 20 }}
-          />
-        </View>
-      </View>
-    </View>
-  );
-};
+      </View> */
+}

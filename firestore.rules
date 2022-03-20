@@ -8,10 +8,13 @@ service cloud.firestore {
     match /chats/{chatID=**}{
     allow read,write
     }
-    match /cards/{cardsID=**}{
+    match /offers/{cardsID=**}{
     allow read,write
     }
     match /cardsData/{cardsNumber=**}{
+    allow read,write
+    }
+    match /transactions/{transactionId=**}{
     allow read,write
     }
   }

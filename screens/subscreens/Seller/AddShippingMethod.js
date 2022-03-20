@@ -16,26 +16,35 @@ import { Formik, ErrorMessage } from "formik";
 import { Snackbar, TextInput } from "react-native-paper";
 import { addShippingMethod } from "../../../authContext";
 
+import { useNavigation } from "@react-navigation/native";
+
 const priceRegEx = /^\d+([.,]\d{1,2})?$/g;
 
 const reviewSchema = yup.object({
   carrier: yup.string("Wrong format!").required("Carrier is required!"),
   name: yup.string("Wrong format!").required("Name is required!"),
-  from: yup.string("Wrong format!").required("Required!"),
-  to: yup.string("Wrong format!").required("Required!"),
+  from: yup
+    .string("Wrong format!")
+    .required("Required!")
+    .matches(/^\d+$/g, "^^^^^^^^^^"),
+  to: yup
+    .string("Wrong format!")
+    .required("Required!")
+    .matches(/^\d+$/g, "^^^^^^^^^^"),
   price: yup
     .string("Wrong format!")
     .matches(priceRegEx, "Wrong format!")
     .required("Price is required!")
     .max(5, "Price is too long!"),
 });
-
-export default function AddShippingMethod({ navigation }) {
+export default function AddShippingMethod() {
   const [errorState, setError] = useState(false);
   const [modalState, setModal] = useState(false);
   const [trackingState, setTracking] = useState(true);
   const [rangeState, setRange] = useState("domestic");
   const [activityIndicator, setActivityIndicator] = useState(false);
+
+  const navigation = useNavigation();
 
   return (
     <ScrollView style={{ backgroundColor: "#1b1b1b", flex: 1 }}>
@@ -149,7 +158,7 @@ export default function AddShippingMethod({ navigation }) {
           ) {
             setError("Wrong avg. delivery time!");
           } else {
-            addShippingMethod(
+            await addShippingMethod(
               {
                 carrier: values.carrier,
                 name: values.name,
@@ -160,6 +169,7 @@ export default function AddShippingMethod({ navigation }) {
               },
               rangeState
             );
+            navigation.navigate("SellerProfile");
           }
 
           setActivityIndicator(false);
@@ -634,8 +644,6 @@ export default function AddShippingMethod({ navigation }) {
             </Text>
             <View
               style={{
-                width: "70%",
-
                 marginTop: 6,
 
                 paddingHorizontal: 12,
@@ -647,13 +655,24 @@ export default function AddShippingMethod({ navigation }) {
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "space-between",
+
+                alignSelf: "flex-start",
               }}
             >
+              {trackingState ? (
+                <IconMCI
+                  name={"radar"}
+                  size={16}
+                  color={"#24FF00"}
+                  style={{ marginRight: 10 }}
+                />
+              ) : null}
               <Text
                 style={{
                   fontSize: 14,
                   color: "#f4f4f4",
                   fontWeight: "700",
+                  marginRight: 10,
                 }}
               >
                 {props.values.carrier ? props.values.carrier : "USPS"}
@@ -662,6 +681,7 @@ export default function AddShippingMethod({ navigation }) {
                 style={{
                   fontSize: 14,
                   color: "#939393",
+                  marginRight: 10,
                 }}
               >
                 {props.values.name ? props.values.name : "Standard"}
@@ -670,6 +690,7 @@ export default function AddShippingMethod({ navigation }) {
                 style={{
                   fontSize: 14,
                   color: "#f4f4f4",
+                  marginRight: 10,
                 }}
               >
                 {`${props.values.from ? ` ${props.values.from}` : " 0"}`} -
@@ -682,7 +703,10 @@ export default function AddShippingMethod({ navigation }) {
                   fontWeight: "700",
                 }}
               >
-                {props.values.price ? props.values.price : "0"} USD
+                {props.values.price
+                  ? parseFloat(props.values.price).toFixed(2)
+                  : "0"}{" "}
+                USD
               </Text>
             </View>
             <View

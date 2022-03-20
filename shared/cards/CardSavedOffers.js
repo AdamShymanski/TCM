@@ -26,6 +26,7 @@ import {
   fetchOwnerData,
   unsaveOffer,
   auth,
+  addToCart,
 } from "../../authContext";
 
 export function CardSavedOffers({ props, cartArray }) {
@@ -493,7 +494,7 @@ export function CardSavedOffers({ props, cartArray }) {
               <Text style={{ color: "#0082ff", fontSize: 14 }}>
                 {"Price    "}
               </Text>
-              {props.price}
+              {props.price.toFixed(2)}
               <Text style={{ color: "#CDCDCD", fontSize: 14 }}>{"  USD"}</Text>
             </Text>
 
@@ -516,6 +517,9 @@ export function CardSavedOffers({ props, cartArray }) {
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
+                }}
+                onPress={() => {
+                  navigation.navigate("Cart", { screen: "Checkout" });
                 }}
               >
                 <Text

@@ -14,15 +14,23 @@ import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 import * as yup from "yup";
 import { Formik, ErrorMessage } from "formik";
 import { Snackbar, TextInput } from "react-native-paper";
-import { addNewShippingMethod } from "../../../authContext";
+import { editShippingMethod, deleteShippingMethod } from "../../../authContext";
+
+import { useNavigation } from "@react-navigation/native";
 
 const priceRegEx = /^\d+([.,]\d{1,2})?$/g;
 
 const reviewSchema = yup.object({
   carrier: yup.string("Wrong format!").required("Carrier is required!"),
   name: yup.string("Wrong format!").required("Name is required!"),
-  from: yup.string("Wrong format!").required("Required!"),
-  to: yup.string("Wrong format!").required("Required!"),
+  from: yup
+    .string("Wrong format!")
+    .required("Required!")
+    .matches(/^\d+$/g, "^^^^^^^^^^"),
+  to: yup
+    .string("Wrong format!")
+    .required("Required!")
+    .matches(/^\d+$/g, "^^^^^^^^^^"),
   price: yup
     .string("Wrong format!")
     .matches(priceRegEx, "Wrong format!")
@@ -30,14 +38,16 @@ const reviewSchema = yup.object({
     .max(5, "Price is too long!"),
 });
 
-export default function EditShippingMethod({ navigation }) {
-  const { shippingMethods, index } = navigation.params;
+export default function EditShippingMethod({ route }) {
+  const { shippingMethod, shippingRange } = route.params;
 
   const [errorState, setError] = useState(false);
   const [modalState, setModal] = useState(false);
-  const [trackingState, setTracking] = useState(true);
-  const [rangeState, setRange] = useState("domestic");
+  const [rangeState, setRange] = useState(shippingRange);
+  const [trackingState, setTracking] = useState(shippingMethod?.tracking);
   const [activityIndicator, setActivityIndicator] = useState(false);
+
+  const navigation = useNavigation();
 
   return (
     <ScrollView style={{ backgroundColor: "#1b1b1b", flex: 1 }}>
@@ -134,33 +144,55 @@ export default function EditShippingMethod({ navigation }) {
 
       <Formik
         initialValues={{
-          carrier: "",
-          name: "",
-          from: "",
-          to: "",
-          price: "",
+          carrier: shippingMethod.carrier,
+          name: shippingMethod.name,
+          from: shippingMethod.from.toString(),
+          to: shippingMethod.to.toString(),
+          price: shippingMethod.price.toFixed(2).toString(),
         }}
         validationSchema={reviewSchema}
         onSubmit={async (values, { setStatus, setErrors }) => {
           setActivityIndicator(true);
 
-          if (
-            parseInt(values.from) <= 0 ||
-            parseInt(values.to) <= 0 ||
-            parseInt(values.from) >= parseInt(values.to)
-          ) {
-            setError("Wrong avg. delivery time!");
+          const detectChanges = () => {
+            if (
+              shippingMethod.from.toString() != values.from ||
+              shippingMethod.to.toString() != values.to ||
+              shippingMethod.price.toString() != values.price ||
+              shippingMethod.carrier != values.carrier ||
+              shippingRange != rangeState ||
+              shippingMethod.name != values.name
+            ) {
+              return true;
+            }
+            return false;
+          };
+
+          if (detectChanges()) {
+            if (
+              parseInt(values.from) <= 0 ||
+              parseInt(values.to) <= 0 ||
+              parseInt(values.from) >= parseInt(values.to)
+            ) {
+              setError("Wrong avg. delivery time!");
+            } else {
+              await editShippingMethod(
+                shippingMethod,
+                {
+                  carrier: values.carrier,
+                  name: values.name,
+                  from: parseInt(values.from),
+                  to: parseInt(values.to),
+                  price: parseFloat(values.price),
+                  tracking: trackingState,
+                },
+                shippingRange,
+                rangeState
+              );
+              navigation.navigate("SellerProfile");
+            }
           } else {
-            addNewShippingMethod(
-              {
-                carrier: values.carrier,
-                name: values.name,
-                from: parseInt(values.from),
-                to: parseInt(values.to),
-                price: parseFloat(values.price),
-              },
-              rangeState
-            );
+            navigation.navigate("SellerProfile");
           }
 
           setActivityIndicator(false);
@@ -180,6 +212,33 @@ export default function EditShippingMethod({ navigation }) {
               marginLeft: "6%",
             }}
           >
+            <TouchableOpacity
+              style={{
+                height: 30,
+                marginTop: 20,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+
+                backgroundColor: "#D80000",
+                borderRadius: 3,
+                width: "70%",
+              }}
+              onPress={async () => {
+                await deleteShippingMethod(shippingMethod, shippingRange);
+                navigation.navigate("SellerProfile");
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#fff",
+                }}
+              >
+                Delete Method
+              </Text>
+            </TouchableOpacity>
             <View style={{ flexDirection: "row", marginTop: 20 }}>
               <TouchableOpacity
                 style={{
@@ -635,8 +694,6 @@ export default function EditShippingMethod({ navigation }) {
             </Text>
             <View
               style={{
-                width: "70%",
-
                 marginTop: 6,
 
                 paddingHorizontal: 12,
@@ -648,33 +705,45 @@ export default function EditShippingMethod({ navigation }) {
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "space-between",
+
+                alignSelf: "flex-start",
               }}
             >
+              {trackingState ? (
+                <IconMCI
+                  name={"radar"}
+                  size={16}
+                  color={"#24FF00"}
+                  style={{ marginRight: 10 }}
+                />
+              ) : null}
               <Text
                 style={{
                   fontSize: 14,
                   color: "#f4f4f4",
                   fontWeight: "700",
+                  marginRight: 10,
                 }}
               >
-                {props.values.carrier ? props.values.carrier : "USPS"}
+                {props.values.carrier}
               </Text>
               <Text
                 style={{
                   fontSize: 14,
                   color: "#939393",
+                  marginRight: 10,
                 }}
               >
-                {props.values.name ? props.values.name : "Standard"}
+                {props.values.name}
               </Text>
               <Text
                 style={{
                   fontSize: 14,
                   color: "#f4f4f4",
+                  marginRight: 10,
                 }}
               >
-                {`${props.values.from ? ` ${props.values.from}` : " 0"}`} -
-                {`${props.values.to ? ` ${props.values.to}` : " 0"}`} days
+                {props.values.from} - {props.values.to} days
               </Text>
               <Text
                 style={{

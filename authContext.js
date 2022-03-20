@@ -26,6 +26,7 @@ export const storage = firebase.storage();
 
 if (__DEV__) {
   firebase.functions().useEmulator("192.168.0.103", 5001);
+  firebase.firestore().useEmulator("192.168.0.103", 5000);
 }
 export const functions = firebase.functions();
 
@@ -383,27 +384,46 @@ export async function setChatListeners(setListenerData) {
 //! PURCHASE Co-Related FUNCTIONS
 export async function addShippingMethod(props, range) {
   try {
-    if (range === "domestic") {
-      db.collection("users")
-        .doc(auth.currentUser.uid)
-        .update({
-          sellerProfile: {
-            shippingMethods: {
-              domestic: firebase.firestore.FieldValue.arrayUnion(props),
-            },
-          },
-        });
-    } else {
-      db.collection("users")
-        .doc(auth.currentUser.uid)
-        .update({
-          sellerProfile: {
-            shippingMethods: {
-              international: firebase.firestore.FieldValue.arrayUnion(props),
-            },
-          },
-        });
-    }
+    db.collection("users")
+      .doc(auth.currentUser.uid)
+      .update({
+        [`sellerProfile.shippingMethods.${range}`]:
+          firebase.firestore.FieldValue.arrayUnion(props),
+      });
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+export async function editShippingMethod(oldObj, newObj, oldRange, newRange) {
+  try {
+    db.collection("users")
+      .doc(auth.currentUser.uid)
+      .update({
+        [`sellerProfile.shippingMethods.${oldRange}`]:
+          firebase.firestore.FieldValue.arrayRemove(oldObj),
+      })
+      .then(() => {
+        db.collection("users")
+          .doc(auth.currentUser.uid)
+          .update({
+            [`sellerProfile.shippingMethods.${newRange}`]:
+              firebase.firestore.FieldValue.arrayUnion(newObj),
+          });
+      });
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+export async function deleteShippingMethod(oldObj, oldRange) {
+  try {
+    db.collection("users")
+      .doc(auth.currentUser.uid)
+      .update({
+        [`sellerProfile.shippingMethods.${oldRange}`]:
+          firebase.firestore.FieldValue.arrayRemove(oldObj),
+      });
   } catch (error) {
     console.log(error);
     return false;
@@ -433,7 +453,7 @@ export async function addCard(values, gradingSwitch, photoState, cardId) {
   //parse price
   values.price = parseFloat(values.price);
 
-  db.collection(`cards`)
+  db.collection(`offers`)
     .add({
       ...values,
       isGraded: gradingSwitch,
@@ -515,7 +535,7 @@ export async function editCard(props, outValues, initValues, valuesOrder) {
       if (item !== initValues[index]) cardUpdateObj[keyName] = item;
     });
 
-    await db.collection("cards").doc(props.id).update(cardUpdateObj);
+    await db.collection("offers").doc(props.id).update(cardUpdateObj);
 
     if (outValues[0] != initValues[0]) {
       let updateObj = {
@@ -525,7 +545,7 @@ export async function editCard(props, outValues, initValues, valuesOrder) {
 
       async function searchForNewHighestPrice() {
         const result = await db
-          .collection("cards")
+          .collection("offers")
           .where("cardId", "==", props.cardId)
           .get();
 
@@ -549,7 +569,7 @@ export async function editCard(props, outValues, initValues, valuesOrder) {
       }
       async function searchForNewLowestPrice() {
         const result = await db
-          .collection("cards")
+          .collection("offers")
           .where("cardId", "==", props.cardId)
           .get();
 
@@ -600,7 +620,7 @@ export async function deleteCard(id) {
       });
 
     async function handleOtherChanges() {
-      const offert = await db.collection("cards").doc(id).get();
+      const offert = await db.collection("offers").doc(id).get();
       const doc = await db
         .collection("cardsData")
         .doc(offert.data().cardId)
@@ -619,7 +639,7 @@ export async function deleteCard(id) {
 
       async function searchForNewHighestPrice() {
         const result = await db
-          .collection("cards")
+          .collection("offers")
           .where("cardId", "==", offert.data().cardId)
           .get();
 
@@ -648,7 +668,7 @@ export async function deleteCard(id) {
 
       async function searchForNewLowestPrice() {
         const result = await db
-          .collection("cards")
+          .collection("offers")
           .where("cardId", "==", offert.data().cardId)
           .get();
 
@@ -696,7 +716,7 @@ export async function deleteCard(id) {
 
     await handleOtherChanges();
 
-    await db.collection("cards").doc(id).delete();
+    await db.collection("offers").doc(id).delete();
   } catch (error) {
     console.log(error);
   }
@@ -730,7 +750,7 @@ export async function fetchOffers(id, filterParams) {
     //language filter localy
 
     if (id) {
-      let docArr = db.collection("cards").where("cardId", "==", id);
+      let docArr = db.collection("offers").where("cardId", "==", id);
 
       const languageFilter = (offer) => {
         if (filterParams.language.length === 0) return true;
@@ -744,7 +764,7 @@ export async function fetchOffers(id, filterParams) {
           filterParams.condition
         ) {
           docArr = db
-            .collection("cards")
+            .collection("offers")
             .where("cardId", "==", id)
             .where("price", ">=", filterParams.price.from)
             .where("price", "<=", filterParams.price.to)
@@ -752,40 +772,40 @@ export async function fetchOffers(id, filterParams) {
             .where("isGraded", "==", true);
         } else if (filterParams.condition) {
           docArr = db
-            .collection("cards")
+            .collection("offers")
             .where("cardId", "==", id)
             .where("condition", "==", filterParams.condition)
             .where("isGraded", "==", true);
         } else if (filterParams.price.from && filterParams.price.to) {
           docArr = db
-            .collection("cards")
+            .collection("offers")
             .where("cardId", "==", id)
             .where("price", ">=", filterParams.price.from)
             .where("price", "<=", filterParams.price.to)
             .where("isGraded", "==", true);
         } else {
           docArr = db
-            .collection("cards")
+            .collection("offers")
             .where("cardId", "==", id)
             .where("isGraded", "==", true);
         }
       } else if (filterParams.condition) {
         if (filterParams.price.from && filterParams.price.to) {
           docArr = db
-            .collection("cards")
+            .collection("offers")
             .where("cardId", "==", id)
             .where("price", ">=", filterParams.price.from)
             .where("price", "<=", filterParams.price.to)
             .where("condition", "==", filterParams.condition);
         } else {
           docArr = db
-            .collection("cards")
+            .collection("offers")
             .where("cardId", "==", id)
             .where("condition", "==", filterParams.condition);
         }
       } else if (filterParams.price.from && filterParams.price.to) {
         docArr = db
-          .collection("cards")
+          .collection("offers")
           .where("cardId", "==", id)
           .where("price", ">=", filterParams.price.from)
           .where("price", "<=", filterParams.price.to);
@@ -796,7 +816,6 @@ export async function fetchOffers(id, filterParams) {
       snapshot.forEach((doc) => {
         let offers = doc.data();
         offers.id = doc.id;
-        console.log(doc.data());
 
         if (languageFilter(offers)) arr.push(offers);
       });
@@ -1185,6 +1204,7 @@ export async function register(email, password, nick, country, setError) {
           },
           sellerProfile: {
             status: "unset",
+            firstSell: null,
             rating: [],
             shippingMethods: {
               domestic: [],
@@ -1203,6 +1223,7 @@ export async function register(email, password, nick, country, setError) {
             merchantId: null,
           },
           savedOffers: [],
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
 
       await login(email.trim(), password.trim());
@@ -1222,7 +1243,7 @@ export async function deleteAccount() {
     let arr = [];
 
     const result = await db
-      .collection("cards")
+      .collection("offers")
       .where("owner", "==", auth.currentUser.uid)
       .get();
 
@@ -1331,7 +1352,7 @@ export async function fetchUsersCards() {
     let arr = [];
 
     const docArr = await db
-      .collection("cards")
+      .collection("offers")
       .where("owner", "==", auth.currentUser.uid)
       .get();
 
@@ -1374,7 +1395,7 @@ export async function fetchCart(setOffers, setLoading) {
 
       const promise = new Promise((resolve, reject) => {
         doc.data().cart.forEach(async (item, index) => {
-          const card = await db.collection("cards").doc(item).get();
+          const card = await db.collection("offers").doc(item).get();
           const owner = await fetchOwnerData(card.data().owner);
           if (checkSeller(owner.nick)) {
             pushOfferToArray(owner.nick, { ...card.data(), id: card.id });
@@ -1462,7 +1483,7 @@ export async function fetchSavedCards(setSavedCards, setLoading) {
 
     const promise = new Promise((resolve, reject) => {
       doc.data().savedOffers.forEach(async (item, index) => {
-        const cardDoc = await db.collection("cards").doc(item).get();
+        const cardDoc = await db.collection("offers").doc(item).get();
         const cardData = cardDoc.data();
         cardData.id = cardDoc.id;
         outputArray.push(cardData);
@@ -1495,7 +1516,7 @@ export async function fetchMostRecentOffers(setMostRecentOffers) {
   try {
     const offers = [];
     await db
-      .collection("cards")
+      .collection("offers")
       .orderBy("timestamp", "desc")
       .limit(4)
       .get()
@@ -1522,7 +1543,7 @@ export async function fetchMoreMostRecentOffers(
     const lastVisible = mostRecentOffers[mostRecentOffers.length - 1].timestamp;
 
     await db
-      .collection("cards")
+      .collection("offers")
       .orderBy("timestamp", "desc")
       .startAfter(lastVisible)
       .limit(4)

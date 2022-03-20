@@ -7,7 +7,6 @@ import {
   Image,
   FlatList,
   ScrollView,
-  SafeAreaView,
   ActivityIndicator,
 } from "react-native";
 
@@ -21,20 +20,25 @@ import cart_up_icon from "../../../assets/cart_up.png";
 import { auth, db, fetchPhotos, fetchCardsName } from "../../../authContext";
 import { Snackbar } from "react-native-paper";
 
-export default function TransactionDetails() {
+export default function TransactionDetails({ route }) {
+  const { props } = route.params;
+
   const [photosArray, setPhotosArray] = useState([]);
   const [pokemonName, setPokemonName] = useState([]);
-  const [offersArray, setOffers] = useState([]);
 
+  const [vendor, setVendor] = useState([]);
+  const [offersArray, setOffers] = useState(null);
+
+  const [loading, setLoading] = useState(true);
   const [snackbarState, setSnackbarState] = useState(false);
 
   const phsm = {
-    from: 1,
-    to: 5,
-    price: 8.5,
-    carrier: "FedEx",
-    name: "Premium Shit",
-    tracking: true,
+    from: props.shipping.method.from,
+    to: props.shipping.method.to,
+    price: props.shipping.method.price,
+    carrier: props.shipping.method.carrier,
+    name: props.shipping.method.name,
+    tracking: props.shipping.method.tracking,
   };
 
   const fillPhotosArray = (array) => {
@@ -50,38 +54,31 @@ export default function TransactionDetails() {
   useEffect(() => {
     const resolvePromises = async () => {
       if (offersArray.length === 0) {
-        const doc = await db
-          .collection("users")
-          .doc("982ys5WQ8uYqADiUFtmLzNwiqzn1")
-          .get();
-
-        doc.data().cart.forEach(async (item) => {
+        let outArray = [];
+        props.offers.forEach(async (item, index) => {
           const cardPhotos = await fetchPhotos(item);
-
-          // setPhotosArray((prevState) => [
-          //   ...prevState,
-          //   ...fillPhotosArray(cardPhotos),
-          // ]);
-
-          db.collection("cards")
-            .doc(item)
-            .get()
-            .then(async (offer) => {
-              let outOffer = offer.data();
-              const name = await fetchCardsName(offer.data().cardId);
-
-              outOffer.name = name;
-              outOffer.cardPhotos = cardPhotos;
-
-              setOffers((prevState) => [...prevState, outOffer]);
-              // setPokemonName((prevState) => [...prevState, name]);
-            });
+          outArray.push({
+            data: item,
+            cardPhotos: fillPhotosArray(cardPhotos),
+          });
         });
+        setOffers(outArray);
       }
+      //! fetch vendro
+      await db
+        .collection("users")
+        .doc(props.seller === auth.currentUser.uid ? props.buyer : props.seller)
+        .get()
+        .then((doc) => {
+          setVendor(doc.data());
+        });
+
+      setLoading(false);
     };
 
     resolvePromises();
   }, []);
+
   return (
     <ScrollView
       style={{
@@ -129,7 +126,7 @@ export default function TransactionDetails() {
                 fontSize: 15,
               }}
             >
-              Rig_
+              {vendor.nick}
             </Text>
           </View>
 
@@ -195,7 +192,7 @@ export default function TransactionDetails() {
                 marginRight: 12,
               }}
             >
-              0
+              {loading ? 0 : vendor.sellerProfile.statistics.visits}
             </Text>
             <IconMCI
               name="cards-outline"
@@ -209,7 +206,7 @@ export default function TransactionDetails() {
                 fontWeight: "700",
               }}
             >
-              1
+              {loading ? 0 : vendor.sellerProfile.statistics.numberOfOffers}
             </Text>
           </View>
           <View style={{ flexDirection: "row" }}>
@@ -230,7 +227,7 @@ export default function TransactionDetails() {
                 marginRight: 12,
               }}
             >
-              0
+              {loading ? 0 : vendor.sellerProfile.statistics.sales}
             </Text>
             <Image
               source={cart_down_icon}
@@ -248,7 +245,7 @@ export default function TransactionDetails() {
                 fontWeight: "700",
               }}
             >
-              0
+              {loading ? 0 : vendor.sellerProfile.statistics.purchases}
             </Text>
           </View>
         </View>
@@ -500,7 +497,6 @@ export default function TransactionDetails() {
         }
         keyExtractor={(item, index) => index.toString()}
       />
-      {/* <SafeAreaView style={{ flex: 1 }}></SafeAreaView> */}
       <Text
         style={{
           color: "#f4f4f4",

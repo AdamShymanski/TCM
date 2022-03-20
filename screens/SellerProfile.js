@@ -26,6 +26,8 @@ import { db, auth, functions } from "../authContext";
 
 import clipboard_text_clock from "./../assets/clipboard_text_clock.png";
 
+import { useIsFocused } from "@react-navigation/native";
+
 export default function SellerProfile() {
   const navigation = useNavigation();
 
@@ -35,7 +37,7 @@ export default function SellerProfile() {
   const [accountData, setAccountData] = useState(null);
   const [userData, setUserData] = useState(null);
 
-  const [rating, setRating] = useState(null);
+  const [rating, setRating] = useState([]);
   const [shippingMethods, setShippingMethods] = useState(null);
   const [statistics, setStatistics] = useState(null);
 
@@ -43,66 +45,69 @@ export default function SellerProfile() {
   const [pending, setPending] = useState(false);
   const [requirements, setRequirements] = useState(false);
 
+  const isFocused = useIsFocused();
+
   const renderShippingMethods = () => {
-    if (
-      shippingMethods.domestic.lenght === 0 &&
-      shippingMethods.international.lenght === 0
-    ) {
+    if (shippingMethods?.domestic?.length > 0) {
       return true;
+    } else if (shippingMethods?.international?.length > 0) {
+      return true;
+    } else {
+      return false;
     }
-    return false;
   };
 
-  useEffect(() => {
-    const resolvePromise = async () => {
-      const doc = await db.collection("users").doc(auth.currentUser.uid).get();
-      setUserData(doc.data());
+  useEffect(async () => {
+    if (!isFocused) {
+      setLoadingState(true);
+      setShippingMethods(null);
+    }
+    if (isFocused) {
+      db.collection("users")
+        .doc(auth.currentUser.uid)
+        .onSnapshot((doc) => {
+          setUserData(doc.data());
 
-      setRating(doc.data().sellerProfile.rating);
-      setStatistics(doc.data().sellerProfile.statistics);
-      setShippingMethods(doc.data().sellerProfile.shippingMethods);
+          setRating(doc.data().sellerProfile.rating);
+          setStatistics(doc.data().sellerProfile.statistics);
+          setShippingMethods(doc.data().sellerProfile.shippingMethods);
 
-      const requirementsCheck = (props) => {
-        if (props.requirements !== undefined) {
-          if (props.requirements.currently_due.length > 0) {
-            setRequirements(true);
-            return true;
-          }
-        }
-
-        // else if (props.verification.status === "pending") {
-        //   setPending(true);
-        //   return true;
-        // }
-        return false;
-      };
-
-      if (doc.data().stripe.vendorId === null || undefined) {
-        setNoStripe(true);
-      } else {
-        const query = functions.httpsCallable("fetchStripeAccount");
-
-        query()
-          .then((result) => {
-            if (!requirementsCheck(result.data)) {
-              setAccountData(result.data);
+          const requirementsCheck = (props) => {
+            if (props.requirements !== undefined) {
+              if (props.requirements.currently_due.length > 0) {
+                setRequirements(true);
+                return true;
+              }
             }
-          })
-          .catch((e) => {
-            console.log(e);
+
+            // else if (props.verification.status === "pending") {
+            //   setPending(true);
+            //   return true;
+            // }
+            return false;
+          };
+
+          if (doc.data().stripe.vendorId === null || undefined) {
             setNoStripe(true);
-          });
-      }
+          } else {
+            const query = functions.httpsCallable("fetchStripeAccount");
 
-      setLoadingState(false);
-    };
+            query()
+              .then((result) => {
+                if (!requirementsCheck(result.data)) {
+                  setAccountData(result.data);
+                }
+              })
+              .catch((e) => {
+                console.log(e);
+                setNoStripe(true);
+              });
+          }
 
-    resolvePromise();
-  }, []);
-
-  useEffect(() => {
-    console.log(accountData);
-  }, [accountData]);
+          setLoadingState(false);
+        });
+    }
+  }, [isFocused]);
 
   if (loadingState) {
     return (
@@ -186,7 +191,7 @@ export default function SellerProfile() {
 
               query()
                 .then((result) => {
-                  console.error(result);
+                  // console.error(result);
                   // Linking.openURL(result.data);
                 })
                 .catch((err) => console.log(err));
@@ -240,7 +245,7 @@ export default function SellerProfile() {
       );
     } else {
       return (
-        <SafeAreaView
+        <ScrollView
           style={{
             flex: 1,
             backgroundColor: "#1b1b1b",
@@ -520,44 +525,47 @@ export default function SellerProfile() {
                     }
                   }
 
-                  return (
-                    <View style={{ marginLeft: 12 }}>
-                      <View
-                        style={{ flexDirection: "row", alignItems: "center" }}
-                      >
-                        <Image
-                          source={clipboard_text_clock}
-                          style={{
-                            aspectRatio: 42 / 46,
-                            height: undefined,
-                            width: 28,
+                  if (accountData) {
+                    return (
+                      <View style={{ marginLeft: 12 }}>
+                        <View
+                          style={{ flexDirection: "row", alignItems: "center" }}
+                        >
+                          <Image
+                            source={clipboard_text_clock}
+                            style={{
+                              aspectRatio: 42 / 46,
+                              height: undefined,
+                              width: 28,
 
-                            marginRight: 16,
-                          }}
-                        />
+                              marginRight: 16,
+                            }}
+                          />
+                          <Text
+                            style={{
+                              fontSize: 15,
+                              color: "#f4f4f4",
+                              fontWeight: "700",
+                            }}
+                          >
+                            Track your funds
+                          </Text>
+                        </View>
                         <Text
                           style={{
-                            fontSize: 15,
-                            color: "#f4f4f4",
-                            fontWeight: "700",
+                            fontSize: 12,
+                            color: "#5c5c5c",
+                            paddingTop: 8,
+                            paddingRight: 7,
                           }}
                         >
-                          Track your funds
+                          - Make payout or sell your card to see any actions in
+                          History tab
                         </Text>
                       </View>
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          color: "#5c5c5c",
-                          paddingTop: 8,
-                          paddingRight: 7,
-                        }}
-                      >
-                        - Make payout or sell your card to see any actions in
-                        History tab
-                      </Text>
-                    </View>
-                  );
+                    );
+                  }
+                  return null;
                 }}
                 ListEmptyComponent={() => {
                   if (!accountData) {
@@ -620,28 +628,6 @@ export default function SellerProfile() {
             </TouchableOpacity>
           </View>
           {renderShippingMethods() ? (
-            <View
-              style={{
-                alignItems: "center",
-                flexDirection: "row",
-                marginTop: 20,
-                width: "90%",
-              }}
-            >
-              <IconI name={"warning"} color={"yellow"} size={50} />
-              <View style={{ marginLeft: 12 }}>
-                <Text
-                  style={{ fontSize: 20, fontWeight: "bold", color: "#888" }}
-                >
-                  No shipping methods available
-                </Text>
-                <Text style={{ fontSize: 12, color: "#888", marginRight: 28 }}>
-                  Any buyer cannot purchase your products without shipping
-                  method. Required immediate modification.
-                </Text>
-              </View>
-            </View>
-          ) : (
             <View>
               <Text
                 style={{
@@ -710,13 +696,13 @@ export default function SellerProfile() {
                           fontWeight: "700",
                         }}
                       >
-                        {item.price} USD
+                        {item.price.toFixed(2)} USD
                       </Text>
                       <TouchableOpacity
                         onPress={() => {
                           navigation.navigate("EditShippingMethod", {
-                            shippingMethods: shippingMethods,
-                            index: index,
+                            shippingMethod: shippingMethods.domestic[index],
+                            shippingRange: "domestic",
                           });
                         }}
                       >
@@ -753,8 +739,8 @@ export default function SellerProfile() {
                 INTERNATIONAL
               </Text>
               <FlatList
-                data={shippingMethods.international}
-                renderItem={({ item }) => {
+                data={shippingMethods?.international}
+                renderItem={({ item, index }) => {
                   return (
                     <View
                       style={{
@@ -808,9 +794,19 @@ export default function SellerProfile() {
                           fontWeight: "700",
                         }}
                       >
-                        {item.price} USD
+                        {item.price.toFixed(2)} USD
                       </Text>
-                      <IconMI name={"edit"} color={"#0082ff"} size={17} />
+                      <TouchableOpacity
+                        onPress={() => {
+                          navigation.navigate("EditShippingMethod", {
+                            shippingMethod:
+                              shippingMethods.international[index],
+                            shippingRange: "international",
+                          });
+                        }}
+                      >
+                        <IconMI name={"edit"} color={"#0082ff"} size={17} />
+                      </TouchableOpacity>
                     </View>
                   );
                 }}
@@ -831,61 +827,29 @@ export default function SellerProfile() {
                 keyExtractor={(item, index) => index.toString()}
               />
             </View>
+          ) : (
+            <View
+              style={{
+                alignItems: "center",
+                flexDirection: "row",
+                marginTop: 20,
+                width: "90%",
+              }}
+            >
+              <IconI name={"warning"} color={"yellow"} size={50} />
+              <View style={{ marginLeft: 12 }}>
+                <Text
+                  style={{ fontSize: 20, fontWeight: "bold", color: "#888" }}
+                >
+                  No shipping methods available
+                </Text>
+                <Text style={{ fontSize: 12, color: "#888", marginRight: 28 }}>
+                  Any buyer cannot purchase your products without shipping
+                  method. Required immediate modification.
+                </Text>
+              </View>
+            </View>
           )}
-
-          {/* <View
-            style={{
-              width: "90%",
-
-              marginTop: 6,
-              marginLeft: 12,
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-
-              borderRadius: 3,
-              backgroundColor: "#121212",
-
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 14,
-                color: "#f4f4f4",
-                fontWeight: "700",
-              }}
-            >
-              USPS
-            </Text>
-            <Text
-              style={{
-                fontSize: 14,
-                color: "#939393",
-              }}
-            >
-              First-Class
-            </Text>
-            <Text
-              style={{
-                fontSize: 14,
-                color: "#f4f4f4",
-              }}
-            >
-              3 - 8 days
-            </Text>
-            <Text
-              style={{
-                fontSize: 14,
-                color: "#f4f4f4",
-                fontWeight: "700",
-              }}
-            >
-              16.99 USD
-            </Text>
-            <IconMI name={"edit"} color={"#0082ff"} size={17} />
-          </View> */}
 
           <View
             style={{
@@ -904,29 +868,8 @@ export default function SellerProfile() {
             >
               Rating
             </Text>
-            {/* {rating.lenght > 1 ? (
-              <TouchableOpacity
-                style={{
-                  backgroundColor: "#0082ff",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  paddingHorizontal: 14,
-                  paddingVertical: 4,
 
-                  borderRadius: 3,
-                }}
-              >
-                <Text
-                  style={{
-                    fontWeight: "700",
-                    color: "#121212",
-                  }}
-                >
-                  See all
-                </Text>
-              </TouchableOpacity>
-            ) : null} */}
-            {rating.lenght > 1 ? (
+            {rating?.lenght > 1 ? (
               <TouchableOpacity
                 style={{
                   backgroundColor: "#0082ff",
@@ -949,7 +892,7 @@ export default function SellerProfile() {
               </TouchableOpacity>
             ) : null}
           </View>
-          {rating.lenght > 1 ? (
+          {rating?.lenght > 1 ? (
             <View>
               <Text
                 style={{
@@ -961,7 +904,7 @@ export default function SellerProfile() {
                   marginLeft: 12,
                 }}
               >
-                AVERAGE FROM {rating.lenght} BUYERS
+                AVERAGE FROM {rating?.lenght} BUYERS
               </Text>
               <View
                 style={{
@@ -990,7 +933,7 @@ export default function SellerProfile() {
             </View>
           ) : null}
 
-          {rating.lenght > 1 ? (
+          {rating?.lenght > 1 ? (
             <Text
               style={{
                 fontSize: 12,
@@ -1004,7 +947,7 @@ export default function SellerProfile() {
               MOST RECENT
             </Text>
           ) : null}
-          {rating.lenght > 0 ? (
+          {rating?.lenght > 0 ? (
             <Text
               style={{
                 fontSize: 12,
@@ -1019,7 +962,7 @@ export default function SellerProfile() {
             </Text>
           ) : null}
 
-          {rating.lenght > 0 ? (
+          {rating?.lenght > 0 ? (
             <View
               style={{
                 width: "90%",
@@ -1078,7 +1021,7 @@ export default function SellerProfile() {
             </View>
           ) : null}
 
-          {!rating.lenght ? (
+          {!rating?.lenght ? (
             <View
               style={{
                 alignItems: "center",
@@ -1269,7 +1212,7 @@ export default function SellerProfile() {
           </View>
 
           <View style={{ marginBottom: 38 }} />
-        </SafeAreaView>
+        </ScrollView>
       );
     }
   }
