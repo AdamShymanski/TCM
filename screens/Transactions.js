@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
 
-import { db, auth } from "../authContext";
+import { db, auth, fetchCardsName } from "../authContext";
 
-import { View, Text, FlatList } from "react-native";
+import { View, Text, FlatList, ActivityIndicator } from "react-native";
 import TransactionObject from "./../shared/Objects/TransactionObject";
 
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { useNavigation } from "@react-navigation/native";
 
 export default function Transactions() {
   const [transcations, setTranscations] = useState([]);
+
   useEffect(() => {
-    //fetch transactions
     const resolvePromises = async () => {
       let outArray = [];
 
@@ -25,23 +26,44 @@ export default function Transactions() {
             outArray.push(obj);
           });
         });
-
       await db
         .collection("transactions")
         .where("seller", "==", auth.currentUser.uid)
         .get()
         .then((snapshot) => {
           snapshot.forEach((doc) => {
-            outArray.push(doc.data());
+            let obj = doc.data();
+            obj.id = doc.id;
+            outArray.push(obj);
           });
         });
 
-      if (outArray.length > 0) {
-        setTranscations(outArray);
-      }
+      //sort objects in array by timestamp
+      outArray.sort((a, b) => {
+        return b.timestamp - a.timestamp;
+      });
+
+      setTranscations(outArray);
     };
+
     resolvePromises();
   }, []);
+
+  // if (navigateOnStart) {
+  //   return (
+  //     <View
+  //       style={{
+  //         flex: 1,
+  //         backgroundColor: "1b1b1b",
+  //         alignItems: "center",
+  //         justifyContent: "center",
+  //       }}
+  //     >
+  //       <ActivityIndicator size={"large"} color={"#0082ff"} />
+  //     </View>
+  //   );
+  // }
+
   if (transcations.lenght === 0) {
     return (
       <View
@@ -97,7 +119,7 @@ export default function Transactions() {
       <FlatList
         data={transcations}
         style={{ flex: 1, width: "100%" }}
-        renderItem={({ item, index }) => {
+        renderItem={({ item, index, array }) => {
           return <TransactionObject props={item} />;
         }}
         keyExtractor={(item, index) => index.toString()}

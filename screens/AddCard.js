@@ -271,7 +271,7 @@ export default function AddCard() {
   const [modalState, setModal] = useState(false);
   const [scError, setScError] = useState(false);
 
-  const [cardId, setId] = useState("swsh1-190");
+  const [cardId, setId] = useState(null);
 
   const [inputPlaceholderState, setInputPlaceholder] = useState(
     "Number or Name of Card"
@@ -340,6 +340,7 @@ export default function AddCard() {
             >
               <TextInputNative
                 mode="outlined"
+                autoCapitalize="none"
                 placeholderTextColor={"#5c5c5c"}
                 outlineColor={"#121212"}
                 onEndEditing={() => {
@@ -643,6 +644,7 @@ export default function AddCard() {
               ) : null}
 
               <TextInput
+                autoCapitalize="none"
                 mode={"outlined"}
                 value={formikProps.values.price}
                 onChangeText={formikProps.handleChange("price")}
@@ -753,6 +755,7 @@ export default function AddCard() {
                 )}
               </ErrorMessage>
               <TextInput
+                autoCapitalize="none"
                 mode={"outlined"}
                 value={formikProps.values.description}
                 onChangeText={formikProps.handleChange("description")}
@@ -797,6 +800,7 @@ export default function AddCard() {
                 )}
               </ErrorMessage>
               <TextInput
+                autoCapitalize="none"
                 mode={"outlined"}
                 value={formikProps.values.condition}
                 onChangeText={formikProps.handleChange("condition")}

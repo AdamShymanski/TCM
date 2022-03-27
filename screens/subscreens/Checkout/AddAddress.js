@@ -137,7 +137,7 @@ export default function AddAddress({ setPage, setShippingAddress }) {
             }
           };
 
-          navigation.navigate("Checkout", {screen:"Ch"});
+          navigation.navigate("Checkout", { screen: "Ch" });
         }}
         style={{
           flex: 1,
@@ -283,6 +283,7 @@ export default function AddAddress({ setPage, setShippingAddress }) {
             >
               <View style={{ width: "45%" }}>
                 <TextInput
+                  autoCapitalize="none"
                   mode={"outlined"}
                   value={props.values.zipCode}
                   onChangeText={props.handleChange("zipCode")}
@@ -586,6 +587,7 @@ export default function AddAddress({ setPage, setShippingAddress }) {
             </ErrorMessage>
 
             <TextInput
+              autoCapitalize="none"
               mode={"outlined"}
               value={props.values.phoneNumber}
               onChangeText={props.handleChange("phoneNumber")}

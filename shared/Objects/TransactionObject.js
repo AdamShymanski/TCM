@@ -1,18 +1,101 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
 
 import red_arrow from "../../assets/red_arrow.png";
 import green_arrow from "../../assets/green_arrow.png";
 
 import IconMI from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
+import { db, fetchCardsName } from "../../authContext";
+
+import pokemon from "pokemontcgsdk";
 
 export default function TransactionObject({ props }) {
   const [cardReceived, setCardReceived] = useState(false);
+  const [offersArray, setOffersArray] = useState(false);
+
+  const [totalAmount, setTotalAmount] = useState(0);
   const [disputeButtonState, setDisputeButtonState] = useState(true);
   const type = "bought";
 
-  console.log(props);
+  const handleShippingTrackingNumberField = () => {
+    if (!props.shipping.sent) {
+      return {
+        top: "Awaiting shipment",
+        bottom: "Seller has 3 days to sent parcel, from date of purchase.",
+      };
+    } else if (props.shipping.delivered) {
+      return {
+        top: "Delivered",
+        bottom: "",
+      };
+    } else {
+      if (props.shipping.sent && props.shipping.method.tracking) {
+        return {
+          top: props.shipping.trackingNumber,
+          bottom: "Tap on the tracking number to copy it to clipboard.",
+        };
+      }
+      if (props.shipping.sent && !props.shipping.method.tracking) {
+        return {
+          top: "Parcel sent",
+          bottom: `Package should arrive within ${props.shipping.method.from} to ${props.shipping.method.to} days.`,
+        };
+      }
+      return;
+
+      // if (props.shipping.method.tracking) {
+      //   if (props.shipping.trackingNumber) {
+      //   }
+      // } else {
+      //   return `Average delivery time: ${props.shipping.method.from} - ${props.shipping.method.t}`;
+      // }
+    }
+  };
+
+  useEffect(() => {
+    const resolvePromises = async () => {
+      const promise = new Promise((resolve, reject) => {
+        const outArray = [];
+
+        props.offers.forEach(async (offerID, index) => {
+          db.collection("offers")
+            .doc(offerID)
+            .get()
+            .then((doc) => {
+              const obj = doc.data();
+
+              fetchCardsName(obj.cardId).then((res) => {
+                obj.name = res;
+                obj.id = doc.id;
+                outArray.push(obj);
+                if (index + 1 === props.offers.length) {
+                  resolve(outArray);
+                }
+              });
+            });
+        });
+      });
+
+      promise.then((res) => {
+        setOffersArray(res);
+
+        let total = 0;
+        res.forEach((item) => {
+          total += item.price;
+        });
+        setTotalAmount(total);
+      });
+    };
+    resolvePromises();
+  }, []);
 
   const navigation = useNavigation();
 
@@ -345,7 +428,9 @@ export default function TransactionObject({ props }) {
                 backgroundColor: "#302c2c",
               }}
             >
-              <Text style={{ color: "#f4f4f4", fontWeight: "700" }}>DHL</Text>
+              <Text style={{ color: "#f4f4f4", fontWeight: "700" }}>
+                {props.shipping.method.carrier}
+              </Text>
             </View>
             <View
               style={{
@@ -361,7 +446,7 @@ export default function TransactionObject({ props }) {
                   color: "#fff",
                 }}
               >
-                1285723851
+                {handleShippingTrackingNumberField().top}
               </Text>
             </View>
           </View>
@@ -386,10 +471,59 @@ export default function TransactionObject({ props }) {
                 marginLeft: 10,
               }}
             >
-              165.23 USD
+              {`${totalAmount.toFixed(2)} USD`}
             </Text>
           </View>
-          <View style={{ marginBottom: 8 }}>
+          <FlatList
+            data={offersArray}
+            renderItem={({ item, index }) => {
+              return (
+                <View style={{ marginBottom: 8 }}>
+                  <View
+                    style={{ flexDirection: "row", alignItems: "flex-end" }}
+                  >
+                    <Text
+                      style={{
+                        color: "#f4f4f4",
+                        fontWeight: "700",
+                        fontSize: 15,
+                      }}
+                    >
+                      {item.name}
+                    </Text>
+                    <Text
+                      style={{
+                        color: "#5c5c5c",
+                        fontFamily: "Roboto_Medium",
+                        fontSize: 10,
+                        marginLeft: 10,
+                      }}
+                    >
+                      X1
+                    </Text>
+                  </View>
+                  <Text
+                    style={{
+                      color: "#5c5c5c",
+                      fontFamily: "Roboto_Medium",
+                      fontSize: 12,
+                      marginLeft: 10,
+                      marginTop: 2,
+                    }}
+                  >
+                    {item.price.toFixed(2)} USD
+                  </Text>
+                </View>
+              );
+            }}
+            keyExtractor={(item, index) => index.toString()}
+            ListEmptyComponent={
+              <View style={{ marginVertical: 20, marginTop: 14 }}>
+                <ActivityIndicator color={"#0082ff"} size={"large"} />
+              </View>
+            }
+          />
+          {/* <View style={{ marginBottom: 8 }}>
             <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
               <Text
                 style={{
@@ -456,11 +590,15 @@ export default function TransactionObject({ props }) {
             >
               115 USD
             </Text>
-          </View>
+          </View> */}
           <TouchableOpacity
             style={{ flexDirection: "row", alignItems: "center" }}
             onPress={() => {
-              navigation.navigate("TransactionDetails", { props: props });
+              navigation.navigate("TransactionDetails", {
+                props: props,
+                offersArray: offersArray,
+                totalAmount: totalAmount,
+              });
             }}
           >
             <Text
@@ -482,7 +620,7 @@ export default function TransactionObject({ props }) {
         </View>
       </View>
       <Text style={{ color: "#5c5c5c", fontSize: 11, marginTop: 10 }}>
-        Package sent, you should receive it in about 5 days
+        {handleShippingTrackingNumberField().bottom}
       </Text>
       <TouchableOpacity
         style={{
@@ -491,7 +629,7 @@ export default function TransactionObject({ props }) {
           alignItems: "center",
           paddingVertical: 5,
 
-          marginTop: 10,
+          marginTop: 16,
         }}
       >
         <Text style={{ color: "#121212", fontWeight: "700" }}>

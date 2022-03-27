@@ -200,6 +200,7 @@ export default function Register() {
               )}
             </ErrorMessage>
             <TextInput
+                autoCapitalize="none"
               mode={"outlined"}
               value={props.values.email}
               onChangeText={props.handleChange("email")}
@@ -240,6 +241,7 @@ export default function Register() {
               )}
             </ErrorMessage>
             <TextInput
+                autoCapitalize="none"
               mode={"outlined"}
               value={props.values.password}
               secureTextEntry={true}
@@ -283,6 +285,7 @@ export default function Register() {
               )}
             </ErrorMessage>
             <TextInput
+                autoCapitalize="none"
               mode={"outlined"}
               value={props.values.confirmPassword}
               secureTextEntry={true}
@@ -397,6 +400,7 @@ export default function Register() {
             </View>
 
             <TextInput
+                autoCapitalize="none"
               mode={"outlined"}
               value={props.values.referralCode}
               onChangeText={props.handleChange("referralCode")}

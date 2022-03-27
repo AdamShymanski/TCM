@@ -38,6 +38,7 @@ const ReauthenticationModal = ({ setReauthenticationResult, setModal }) => {
             Reauthentication
           </Text>
           <TextInput
+            autoCapitalize="none"
             mode={"outlined"}
             value={passwordState}
             secureTextEntry={true}

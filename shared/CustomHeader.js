@@ -596,6 +596,7 @@ export default function CustomHeader({ version, props, setProps }) {
         />
         <View style={styles.headerTitle}>
           <TextInput
+            autoCapitalize="none"
             mode="outlined"
             placeholderTextColor={"#5c5c5c"}
             outlineColor={"#121212"}

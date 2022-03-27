@@ -91,7 +91,7 @@ export default function SummaryObject({ props, last }) {
           >
             {pokemonName}
           </Text>
-          <View style={{ flexDirection: "row", marginTop: 8 }}>
+          <View style={{ flexDirection: "row", marginTop: 6 }}>
             <Text
               style={{
                 color: "#585858",

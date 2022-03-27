@@ -393,6 +393,7 @@ const PickerModal = ({ props, setProps, mode, visible, setVisible }) => {
                         }}
                       >
                         <TextInput
+                          autoCapitalize="none"
                           mode={"outlined"}
                           value={props.values.from}
                           onChangeText={props.handleChange("from")}
@@ -427,6 +428,7 @@ const PickerModal = ({ props, setProps, mode, visible, setVisible }) => {
                           }}
                         />
                         <TextInput
+                          autoCapitalize="none"
                           mode={"outlined"}
                           value={props.values.to}
                           onChangeText={props.handleChange("to")}
@@ -480,6 +482,7 @@ const PickerModal = ({ props, setProps, mode, visible, setVisible }) => {
                         Condition
                       </Text>
                       <TextInput
+                        autoCapitalize="none"
                         mode={"outlined"}
                         value={props.values.condition}
                         onChangeText={props.handleChange("condition")}

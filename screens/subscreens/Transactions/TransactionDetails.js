@@ -17,17 +17,23 @@ import Icon from "react-native-vector-icons/Octicons";
 import cart_down_icon from "../../../assets/cart_down.png";
 import cart_up_icon from "../../../assets/cart_up.png";
 
-import { auth, db, fetchPhotos, fetchCardsName } from "../../../authContext";
+import { auth, db, fetchPhotos } from "../../../authContext";
 import { Snackbar } from "react-native-paper";
 
 export default function TransactionDetails({ route }) {
-  const { props } = route.params;
+  const { props, offersArray, totalAmount } = route.params;
 
-  const [photosArray, setPhotosArray] = useState([]);
-  const [pokemonName, setPokemonName] = useState([]);
-
-  const [vendor, setVendor] = useState([]);
-  const [offersArray, setOffers] = useState(null);
+  const [vendor, setVendor] = useState({
+    nick: "",
+    sellerProfile: {
+      statistics: {
+        sales: 0,
+        visits: 0,
+        purchases: 0,
+        numberOfOffers: 0,
+      },
+    },
+  });
 
   const [loading, setLoading] = useState(true);
   const [snackbarState, setSnackbarState] = useState(false);
@@ -53,18 +59,6 @@ export default function TransactionDetails({ route }) {
 
   useEffect(() => {
     const resolvePromises = async () => {
-      if (offersArray.length === 0) {
-        let outArray = [];
-        props.offers.forEach(async (item, index) => {
-          const cardPhotos = await fetchPhotos(item);
-          outArray.push({
-            data: item,
-            cardPhotos: fillPhotosArray(cardPhotos),
-          });
-        });
-        setOffers(outArray);
-      }
-      //! fetch vendro
       await db
         .collection("users")
         .doc(props.seller === auth.currentUser.uid ? props.buyer : props.seller)
@@ -73,7 +67,18 @@ export default function TransactionDetails({ route }) {
           setVendor(doc.data());
         });
 
-      setLoading(false);
+      const promise = new Promise((resolve, reject) => {
+        offersArray.forEach(async (item, index) => {
+          const cardPhotos = await fetchPhotos(item.id);
+          offersArray[index].cardPhotos = [...fillPhotosArray(cardPhotos)];
+
+          if (index === offersArray.length - 1) resolve();
+        });
+      });
+
+      promise.then(() => {
+        setLoading(false);
+      });
     };
 
     resolvePromises();
@@ -331,7 +336,7 @@ export default function TransactionDetails({ route }) {
         Cards
       </Text>
       <FlatList
-        data={offersArray}
+        data={loading ? [] : offersArray}
         style={{ flex: 1 }}
         renderItem={({ item, index }) => {
           return (
@@ -353,7 +358,7 @@ export default function TransactionDetails({ route }) {
               <View style={{ alignItems: "center", flexDirection: "row" }}>
                 <Image
                   source={{
-                    uri: item.cardPhotos[0],
+                    uri: item?.cardPhotos[0] ? item.cardPhotos[0].url : "",
                   }}
                   style={{
                     aspectRatio: 105 / 140,
@@ -384,7 +389,7 @@ export default function TransactionDetails({ route }) {
                     >
                       {item.name}
                     </Text>
-                    <View style={{ flexDirection: "row" }}>
+                    <View style={{ flexDirection: "row", marginTop: 6 }}>
                       <Text
                         style={{
                           color: "#585858",
@@ -531,17 +536,25 @@ export default function TransactionDetails({ route }) {
               ADDRESS
             </Text>
             <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
-              Adam Szymański
+              {props.shipping.address.firstName}{" "}
+              {props.shipping.address.lastName}
             </Text>
             <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
-              Wacława Wojewódzkiego 1 m2
+              {props.shipping.address.streetAddress1}
+            </Text>
+            {props.shipping.address.streetAddress2 ? (
+              <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
+                {props.shipping.address.streetAddress2}
+              </Text>
+            ) : null}
+            <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
+              {props.shipping.address.city}, {props.shipping.address.zipCode}
             </Text>
             <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
-              Łódź, 92-446
+              {props.shipping.address.country}
             </Text>
-            <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>Poland</Text>
             <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
-              +48 606417902
+              {props.shipping.address.phoneNumber}
             </Text>
           </View>
           <View style={{ width: "50%", marginLeft: "6%" }}>
@@ -557,7 +570,9 @@ export default function TransactionDetails({ route }) {
               TRACKING NUMBER
             </Text>
             <Text style={{ color: "#f4f4f4", marginLeft: 6, marginBottom: 6 }}>
-              13V7M9Y05SC8
+              {props.shipping.trackingNumber
+                ? props.shipping.trackingNumber
+                : "-"}
             </Text>
             <Text
               style={{
@@ -571,7 +586,7 @@ export default function TransactionDetails({ route }) {
               SENT
             </Text>
             <Text style={{ color: "#f4f4f4", marginLeft: 6, marginBottom: 6 }}>
-              21.03.2022 6:20 AM
+              {props.shipping.sent ? props.shipping.sent : "-"}
             </Text>
           </View>
         </View>
@@ -651,7 +666,7 @@ export default function TransactionDetails({ route }) {
           backgroundColor: "#121212",
         }}
       >
-        <View
+        {/* <View
           style={{
             flexDirection: "row",
             marginBottom: 12,
@@ -704,14 +719,61 @@ export default function TransactionDetails({ route }) {
           >
             + 8.50 <Text style={{ color: "#0082ff" }}>USD</Text>
           </Text>
+        </View> */}
+
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Text
+            style={{
+              color: "#565656",
+              fontFamily: "Roboto_Medium",
+              fontSize: 12,
+            }}
+          >
+            CARDS
+          </Text>
+          <Text
+            style={{
+              fontFamily: "Roboto_Medium",
+              color: "#0bb31b",
+              fontSize: 12,
+              marginLeft: 8,
+            }}
+          >
+            {`+ ${totalAmount.toFixed(2)} USD`}
+          </Text>
         </View>
+
+        <View
+          style={{ flexDirection: "row", alignItems: "center", marginTop: 3 }}
+        >
+          <Text
+            style={{
+              color: "#565656",
+              fontFamily: "Roboto_Medium",
+              fontSize: 12,
+            }}
+          >
+            SHIPPING
+          </Text>
+          <Text
+            style={{
+              fontFamily: "Roboto_Medium",
+              color: "#0bb31b",
+              fontSize: 12,
+              marginLeft: 8,
+            }}
+          >
+            {`+ ${props.shipping.method.price.toFixed(2)} USD`}
+          </Text>
+        </View>
+
         <View
           style={{
             backgroundColor: "#fff",
             width: "10%",
             height: 3,
             borderRadius: 3,
-            marginTop: 12,
+            marginTop: 20,
             marginBottom: 8,
           }}
         />
@@ -723,7 +785,8 @@ export default function TransactionDetails({ route }) {
             fontSize: 19,
           }}
         >
-          129.50 <Text style={{ color: "#05FD00" }}>USD</Text>
+          {(props.shipping.method.price + totalAmount).toFixed(2)}{" "}
+          <Text style={{ color: "#05FD00" }}>USD</Text>
         </Text>
       </View>
 

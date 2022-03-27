@@ -7,52 +7,117 @@ const stripe = require("stripe")(
 admin.initializeApp();
 //Stripe Account
 
-exports.createTransaction = functions.https.onCall(async (data, context) => {
-  // console.log(data);
-  await admin
+exports.createTransactions = functions.https.onCall(async (data, context) => {
+  //get shipping methods - from client side
+  //get offers - only ids of them from client side, price and other info from db
+
+  let customer = null;
+  let finalAmount,
+    finalFee,
+    finalDiscount = 0;
+  const transactionsIds = [];
+
+  const userDoc = await admin
     .firestore()
-    .collection("transactions")
-    .add({
-      timeStamp: admin.firestore.FieldValue.serverTimestamp(),
-      buyer: context.auth.uid,
-      seller: data.seller,
-      offers: [...data.offers],
-      shipping: {
-        method: data.shipping.method,
-        address: data.shipping.address,
-        trackingNumber: null,
-        sent: null,
-      },
-      paymentId: data.paymentId,
-    })
-    .then((result) => {
-      return result;
-    })
-    .catch((err) => {
-      return err;
+    .collection("users")
+    .doc(context.auth.uid)
+    .get();
+
+  if (userDoc.data()?.stripe?.merchentID) {
+    customer = { id: userDoc.data().stripe.merchentID };
+  } else {
+    customer = await stripe.customers.create();
+    await admin
+      .firestore()
+      .collection("users")
+      .doc(context.auth.uid)
+      .update({ stripe: { merchentID: customer.id } });
+  }
+
+  const ephemeralKey = await stripe.ephemeralKeys.create(
+    { customer: customer.id },
+    { apiVersion: "2020-08-27" }
+  );
+
+  data.offersState.forEach(async (item) => {
+    //create doc for each transaction
+    //seperate transaction has to be made for each seller
+
+    console.log(item.data);
+
+    // await admin
+    //   .firestore()
+    //   .collection("transactions")
+    //   .add({
+    //     timeStamp: admin.firestore.FieldValue.serverTimestamp(),
+    //     buyer: context.auth.uid,
+    //     seller: data.seller,
+    //     offers: [...data.offers],
+    //     shipping: {
+    //       method: data.shipping.method,
+    //       address: data.shipping.address,
+    //       trackingNumber: null,
+    //       sent: false,
+    //       delivered: false,
+    //     },
+    //     paymentId: null,
+    //   })
+    //   .then((result) => {
+    //     transactionsIds.push(result.id);
+    //   })
+    //   .catch((err) => {
+    //     console.log(err);
+    //   });
+
+    //calulate final amount
+    //calulate final fee
+  });
+
+  //apply discount
+
+  //create paymentItent
+  //split into multiple transfers if necessary
+
+  if (transactionsIds.length > 1) {
+    transactionsIds.forEach(async (id) => {
+      await stripe.transfers.create({
+        amount: 7000,
+        currency: "pln",
+        destination: "{{CONNECTED_STRIPE_ACCOUNT_ID}}",
+        transfer_group: "{ORDER10}",
+      });
     });
-  // await admin
-  //   .firestore()
-  //   .collection("transactions")
-  //   .set({
-  //     timeStamp: admin.firestore.FieldValue.serverTimestamp(),
-  //     buyer: context.auth.uid,
-  //     seller: data.seller,
-  //     offers: [...data.offers],
-  //     shipping: {
-  //       method: data.shipping.method,
-  //       address: data.shipping.address,
-  //       trackingNumber: null,
-  //       sent: null,
-  //     },
-  //     paymentId: data.paymentId,
-  //   })
-  //   .then((result) => {
-  //     return result;
-  //   })
-  //   .catch((err) => {
-  //     return err;
-  //   });
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: finalAmount,
+      currency: "usd",
+      customer: customer.id,
+      payment_method_types: ["card"],
+      application_fee_amount: finalFee,
+      transfer_data: {
+        destination: "acct_1KaRdI2Q2GDOQWR5",
+      },
+      transfer_group: "{ORDER10}",
+    });
+  }
+
+  // Create a Transfer to the connected account (later):
+
+  // Create a second Transfer to another connected account (later):
+  const secondTransfer = await stripe.transfers.create({
+    amount: 2000,
+    currency: "pln",
+    destination: "{{OTHER_CONNECTED_STRIPE_ACCOUNT_ID}}",
+    transfer_group: "{ORDER10}",
+  });
+
+  return {
+    paymentIntent: paymentIntent.client_secret,
+    ephemeralKey: ephemeralKey.secret,
+    customer: customer.id,
+    publishableKey:
+      "pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX",
+  };
 });
 
 exports.createStripeAccount = functions.https.onCall(async (data, context) => {
@@ -198,24 +263,65 @@ exports.paymentSheet = functions.https.onCall(async (data, context) => {
     { customer: customer.id },
     { apiVersion: "2020-08-27" }
   );
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: 2137,
-    currency: "usd",
-    customer: customer.id,
-    payment_method_types: ["card"],
-    application_fee_amount: 100,
-    transfer_data: {
-      destination: "acct_1KP8Kr2SDMBrF0m7",
-    },
+
+  let { offersState, shippingMethod } = data;
+
+  let finalFee = 0;
+  let finalAmount = 0;
+  let paymentIntent = {};
+
+  const promise = new Promise((resolve, reject) => {
+    offersState.forEach((section, masterIndex) => {
+      section.data.forEach(async (offer, index) => {
+        await admin
+          .firestore()
+          .collection("offers")
+          .doc(offer.id)
+          .get()
+          .then((doc) => {
+            const offer = doc.data();
+            finalAmount += Math.round(offer.price * 100);
+
+            finalFee += Math.round(offer.price * 100 * 0.085);
+
+            if (shippingMethod[doc.data().owner]) {
+              finalAmount += Math.round(
+                shippingMethod[doc.data().owner].price * 100
+              );
+            }
+          });
+
+        if (
+          offersState.length === index + 1 &&
+          section.data.length === masterIndex + 1
+        ) {
+          paymentIntent = await stripe.paymentIntents.create({
+            amount: finalAmount,
+            currency: "usd",
+            customer: customer.id,
+            payment_method_types: ["card"],
+            application_fee_amount: finalFee,
+            transfer_data: {
+              destination: "acct_1KaRdI2Q2GDOQWR5",
+            },
+          });
+          resolve();
+        }
+      });
+    });
   });
 
-  return {
-    paymentIntent: paymentIntent.client_secret,
-    ephemeralKey: ephemeralKey.secret,
-    customer: customer.id,
-    publishableKey:
-      "pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX",
-  };
+  //if offersId.lenght > 1 => split payment inoto multiple transfers (lenght === offersId.lenght)
+
+  return promise.then(async () => {
+    return {
+      paymentIntent: paymentIntent.client_secret,
+      ephemeralKey: ephemeralKey.secret,
+      customer: customer.id,
+      publishableKey:
+        "pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX",
+    };
+  });
 });
 exports.purchaseSheet = functions.https.onCall(async (data, context) => {
   //check for any discount

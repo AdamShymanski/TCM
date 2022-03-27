@@ -80,6 +80,7 @@ export default function FinishGoogleRegister({ callback, name }) {
                 referralProgram: [],
                 compensation: [],
               },
+              addresses: [],
               sellerProfile: {
                 status: "unset",
                 firstSell: null,
@@ -207,6 +208,7 @@ export default function FinishGoogleRegister({ callback, name }) {
             </View>
 
             <TextInput
+              autoCapitalize="none"
               mode={"outlined"}
               value={props.values.referralCode}
               onChangeText={props.handleChange("referralCode")}

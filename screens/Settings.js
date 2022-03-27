@@ -491,7 +491,7 @@ export default function Settings() {
                 style={{
                   width: "90%",
 
-                  paddingVertical: 4,
+                  paddingVertical: 6,
 
                   flexDirection: "row",
                   alignItems: "center",
@@ -522,7 +522,7 @@ export default function Settings() {
                   width: "90%",
                   marginTop: 20,
 
-                  paddingVertical: 4,
+                  paddingVertical: 6,
 
                   flexDirection: "row",
                   alignItems: "center",
@@ -567,7 +567,7 @@ export default function Settings() {
                     backgroundColor: "#0082FF",
                     borderRadius: 3,
                     paddingHorizontal: 12,
-                    paddingVertical: 4,
+                    paddingVertical: 6,
                   }}
                   onPress={() => {
                     setChangePasswordModal(true);
