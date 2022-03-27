@@ -25,8 +25,8 @@ export const auth = firebase.auth();
 export const storage = firebase.storage();
 
 if (__DEV__) {
-  firebase.functions().useEmulator("192.168.0.103", 5001);
-  firebase.firestore().useEmulator("192.168.0.103", 5000);
+  firebase.functions().useEmulator("192.168.0.105", 5001);
+  firebase.firestore().useEmulator("192.168.0.105", 5004);
 }
 export const functions = firebase.functions();
 
@@ -153,7 +153,7 @@ export async function fetchCards(props, setProps) {
 }
 export async function fetchMoreCards(props, setProps) {
   try {
-    pokemon.configure({ apiKey: "6aa1ef65-fa80-4ea4-b35f-9466d2add1a6" });
+    pokemon.configure({ apiKey: "3c362cd9-2286-48d4-989a-0d2a65b9d5a8" });
 
     let initArray = [...props.cardsData];
 
@@ -1202,6 +1202,7 @@ export async function register(email, password, nick, country, setError) {
             referralProgram: [],
             compensation: [],
           },
+          addresses: [],
           sellerProfile: {
             status: "unset",
             firstSell: null,

@@ -115,6 +115,7 @@ export default function Login() {
                 >
                   <View style={{ flexDirection: "row" }}>
                     <TextInput
+                      autoCapitalize="none"
                       mode={"outlined"}
                       value={props.values.email}
                       onChangeText={props.handleChange("email")}
@@ -310,7 +311,8 @@ export default function Login() {
               height: '100%',
             }}>
             <TextInput
-              mode={'outlined'}
+              autoCapitalize="none"
+              mode={"outlined"}
               value={props.values.email}
               onChangeText={props.handleChange('email')}
               label='Email'
@@ -350,7 +352,8 @@ export default function Login() {
               )}
             </ErrorMessage>
             <TextInput
-              mode={'outlined'}
+              autoCapitalize="none"
+              mode={"outlined"}
               value={props.values.password}
               secureTextEntry={true}
               onChangeText={props.handleChange('password')}

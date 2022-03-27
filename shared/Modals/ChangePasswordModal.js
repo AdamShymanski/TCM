@@ -97,6 +97,7 @@ const ChangePasswordModal = ({ setModal }) => {
             {(props) => (
               <View>
                 <TextInput
+                autoCapitalize="none"
                   mode={"outlined"}
                   value={props.values.recentPassword}
                   secureTextEntry={true}
@@ -146,6 +147,7 @@ const ChangePasswordModal = ({ setModal }) => {
                   )}
                 </ErrorMessage>
                 <TextInput
+                autoCapitalize="none"
                   mode={"outlined"}
                   value={props.values.newPassowrd}
                   secureTextEntry={true}
@@ -195,6 +197,7 @@ const ChangePasswordModal = ({ setModal }) => {
                   )}
                 </ErrorMessage>
                 <TextInput
+                autoCapitalize="none"
                   mode={"outlined"}
                   value={props.values.confirmPassword}
                   secureTextEntry={true}

@@ -448,6 +448,7 @@ export default function AddShippingMethod() {
             >
               <View style={{ width: "38%" }}>
                 <TextInput
+                autoCapitalize="none"
                   mode={"outlined"}
                   value={props.values.from}
                   onChangeText={props.handleChange("from")}
@@ -516,6 +517,7 @@ export default function AddShippingMethod() {
 
               <View style={{ width: "38%" }}>
                 <TextInput
+                autoCapitalize="none"
                   mode={"outlined"}
                   value={props.values.to}
                   keyboardType="numeric"
@@ -578,6 +580,7 @@ export default function AddShippingMethod() {
               </View>
             </View>
             <TextInput
+                autoCapitalize="none"
               mode={"outlined"}
               value={props.values.price}
               onChangeText={props.handleChange("price")}

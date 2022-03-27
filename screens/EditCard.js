@@ -624,6 +624,7 @@ export default function EditCard({ route }) {
               ) : null}
 
               <TextInput
+                autoCapitalize="none"
                 mode={"outlined"}
                 value={props.values.price.toString()}
                 onChangeText={props.handleChange("price")}
@@ -750,6 +751,7 @@ export default function EditCard({ route }) {
                 )}
               </ErrorMessage>
               <TextInput
+                autoCapitalize="none"
                 mode={"outlined"}
                 value={props.values.condition}
                 onChangeText={props.handleChange("condition")}

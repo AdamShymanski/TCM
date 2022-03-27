@@ -1292,11 +1292,12 @@ export default function App() {
                 <CustomDrawer navigation={navigation} />
               )}
             >
+              <Drawer.Screen name="Cart" component={CartStack} />
               <Drawer.Screen
                 name="Transactions"
                 component={TransactionsStack}
               />
-              <Drawer.Screen name="Cart" component={CartStack} />
+
               <Drawer.Screen name="YourOffers" component={YourOffersStack} />
               <Drawer.Screen name="Seller" component={SellerStack} />
               <Drawer.Screen name="Settings" component={SettingsStack} />
