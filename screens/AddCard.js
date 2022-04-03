@@ -33,7 +33,7 @@ export default function AddCard() {
   const navigation = useNavigation();
 
   const priceRegEx = /^\d+([.,]\d{1,2})?$/g;
-  const conditionRegEx = /^[1-9]|10*$/g;
+  const conditionRegEx = /^\b([1-9]|10)\b$/g;
 
   const reviewSchema = yup.object({
     price: yup
@@ -457,6 +457,7 @@ export default function AddCard() {
               style={{ paddingHorizontal: 8 }}
               data={props.cardsData}
               numColumns={2}
+              scrollEventThrottle={2000}
               renderItem={({ item }) => {
                 return (
                   <SelectingCard
@@ -541,7 +542,7 @@ export default function AddCard() {
         style={{ flex: 1 }}
         initialValues={{
           price: "",
-          condition: "",
+          condition: 0,
           description: "",
           languageVersion: "",
         }}

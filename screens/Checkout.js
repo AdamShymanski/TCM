@@ -33,6 +33,7 @@ import UPS_logo from "../assets/UPS_logo.png";
 import USPS_logo from "../assets/USPS_logo.png";
 import Stripe_logo from "../assets/Stripe_logo.png";
 import bottom_arrow from "../assets/arrow_right_bottom.png";
+import signature from "../assets/signature_x.png";
 
 import IconMI from "react-native-vector-icons/MaterialIcons";
 import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
@@ -124,8 +125,6 @@ export default function Checkout({ pageState, setPage, instantBuy }) {
       const promise = new Promise((resolve, reject) => {
         offersState.forEach(async (obj, index) => {
           const owner = await db.collection("users").doc(obj.uid).get();
-
-          console.log(offersState);
 
           if (shippingAddress.country !== owner.data().country) {
             shippingMethodsArray.push({
@@ -399,7 +398,7 @@ const ShippingPage = ({
                       color: "#5c5c5c",
                     }}
                   >
-                    {"  - Shipping method with parcel tracking"}
+                    {"  - Package tracking available"}
                   </Text>
                 </View>
                 <SectionList
@@ -764,120 +763,175 @@ const EndPage = () => {
         paddingBottom: 20,
       }}
     >
-      <IconMCI name={"flag-checkered"} color={"#0082ff"} size={220} />
-      <Text
+      <View
         style={{
-          color: "#f4f4f4",
-          fontWeight: "700",
-          fontSize: 38,
-          marginTop: 10,
-        }}
-      >
-        Congratulations!
-      </Text>
-      <Text
-        style={{
-          color: "#5c5c5c",
-          textAlign: "center",
-          fontSize: 14,
-          marginTop: 10,
-          width: "90%",
-        }}
-      >
-        The order has been successfully placed. The vendor has 48 hours to ship
-        your cards. You can track your shipment in the Transactions Tab.
-      </Text>
-      <TouchableOpacity
-        style={{
-          flexDirection: "row",
+          flex: 1,
           alignItems: "center",
           justifyContent: "center",
-          width: "90%",
-          backgroundColor: "#0082ff",
-          paddingVertical: 8,
-          marginLeft: "2%",
-          marginTop: 80,
-          marginBottom: 6,
-          borderRadius: 4,
+          width: "100%",
         }}
-        onPress={async () => {
-          let outArray = [];
+      >
+        <IconMCI name={"flag-checkered"} color={"#0082ff"} size={220} />
+        <Text
+          style={{
+            color: "#f4f4f4",
+            fontWeight: "700",
+            fontSize: 38,
+            marginTop: 10,
+          }}
+        >
+          Congratulations!
+        </Text>
+        <Text
+          style={{
+            color: "#5c5c5c",
+            textAlign: "center",
+            fontSize: 14,
+            marginTop: 10,
+            width: "90%",
+          }}
+        >
+          The order has been successfully placed. The vendor has 48 hours to
+          ship your cards. You can track your shipment in the Transactions Tab.
+        </Text>
+        <TouchableOpacity
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "90%",
+            backgroundColor: "#0082ff",
+            paddingVertical: 8,
 
-          await db
-            .collection("transactions")
-            .where("buyer", "==", auth.currentUser.uid)
-            .get()
-            .then((snapshot) => {
-              snapshot.forEach((doc) => {
-                let obj = doc.data();
-                obj.id = doc.id;
-                outArray.push(obj);
-              });
-            });
-          await db
-            .collection("transactions")
-            .where("seller", "==", auth.currentUser.uid)
-            .get()
-            .then((snapshot) => {
-              snapshot.forEach((doc) => {
-                outArray.push(doc.data());
-              });
-            });
+            marginTop: 80,
+            marginBottom: 6,
+            borderRadius: 4,
+          }}
+          onPress={async () => {
+            let outArray = [];
 
-          const promise = new Promise((resolve, reject) => {
-            const finalArray = [];
-
-            outArray[0].offers.forEach(async (offerID, index) => {
-              db.collection("offers")
-                .doc(offerID)
-                .get()
-                .then((doc) => {
-                  const obj = doc.data();
-
-                  fetchCardsName(obj.cardId).then((res) => {
-                    obj.name = res;
-                    obj.id = doc.id;
-                    finalArray.push(obj);
-                    if (index + 1 === outArray[0].offers.length) {
-                      resolve(finalArray);
-                    }
-                  });
+            await db
+              .collection("transactions")
+              .where("buyer", "==", auth.currentUser.uid)
+              .get()
+              .then((snapshot) => {
+                snapshot.forEach((doc) => {
+                  let obj = doc.data();
+                  obj.id = doc.id;
+                  outArray.push(obj);
                 });
-            });
-          });
-          promise.then((res) => {
-            let total = 0;
-            res.forEach((item) => {
-              total += item.price;
-            });
+              });
 
-            navigation.reset({
-              index: 0,
-              routes: [
-                {
-                  name: "Transactions",
-                  params: {
-                    props: outArray[0],
-                    offersArray: res,
-                    totalAmount: total,
-                  },
-                },
-              ],
+            await db
+              .collection("transactions")
+              .where("seller", "==", auth.currentUser.uid)
+              .get()
+              .then((snapshot) => {
+                snapshot.forEach((doc) => {
+                  outArray.push(doc.data());
+                });
+              });
+
+            const promise = new Promise((resolve, reject) => {
+              const finalArray = [];
+
+              outArray[0].offers.forEach(async (offerID, index) => {
+                db.collection("offers")
+                  .doc(offerID)
+                  .get()
+                  .then((doc) => {
+                    const obj = doc.data();
+
+                    fetchCardsName(obj.cardId).then((res) => {
+                      obj.name = res;
+                      obj.id = doc.id;
+                      finalArray.push(obj);
+                      if (index + 1 === outArray[0].offers.length) {
+                        resolve(finalArray);
+                      }
+                    });
+                  });
+              });
             });
-          });
+            promise.then((res) => {
+              let total = 0;
+              res.forEach((item) => {
+                total += item.price;
+              });
+
+              navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: "Transactions",
+                    params: {
+                      props: outArray[0],
+                      offersArray: res,
+                      totalAmount: total,
+                    },
+                  },
+                ],
+              });
+            });
+          }}
+        >
+          <Text
+            style={{
+              color: "#121212",
+              fontWeight: "700",
+              fontSize: 17,
+              marginRight: 8,
+            }}
+          >
+            {"Go to Transactions"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View
+        style={{
+          width: "88%",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          justifyContent: "flex-end",
+          marginTop: 60,
+          marginBottom: 10,
         }}
       >
         <Text
           style={{
-            color: "#121212",
-            fontWeight: "700",
-            fontSize: 17,
-            marginRight: 8,
+            color: "#f4f4f4",
+            marginBottom: 12,
+            width: "90%",
+            fontFamily: "Roboto_Medium",
           }}
         >
-          {"Go to Transactions"}
+          <Text style={{ color: "#a6a6a6" }}>„</Text>Thank you for using my
+          application. I will be watching over the transaction from start to
+          finish.
+          <Text style={{ color: "#a6a6a6" }}>“</Text>
         </Text>
-      </TouchableOpacity>
+        <Image
+          source={signature}
+          style={{
+            aspectRatio: 416 / 86,
+            width: "40%",
+            height: undefined,
+            marginTop: 20,
+          }}
+        />
+        <Text
+          style={{
+            color: "#f4f4f4",
+            marginTop: 12,
+            color: "#e3e3e3",
+            fontFamily: "Roboto_Medium",
+            fontSize: 12,
+          }}
+        >
+          Founder of PTCGM - Adam Szymański
+        </Text>
+      </View>
     </View>
   );
 };
@@ -908,7 +962,7 @@ const getHeader = () => {
             marginBottom: 20,
           }}
         >
-          {"Take one last look at what you will pay for."}
+          {"Check your order and proceed to payment."}
         </Text>
       </View>
     </View>
@@ -934,17 +988,9 @@ const getFooter = (
   useEffect(() => {
     const resolvePromise = async () => {
       const query = functions.httpsCallable("paymentSheet");
-      const query1 = functions.httpsCallable("createTransactions");
-
-      query({ offersState, shippingMethod })
+      query({ offersState, shippingMethod, shippingAddress })
         .then((result) => {
           initializePaymentSheet(result.data);
-        })
-        .catch((err) => console.log(err));
-
-      query1({ offersState, shippingMethod })
-        .then((result) => {
-          console.log(result);
         })
         .catch((err) => console.log(err));
     };
@@ -967,10 +1013,6 @@ const getFooter = (
       const doc = await db.collection("users").doc(auth.currentUser.uid).get();
 
       doc.data()?.discounts.referralProgram.forEach((item) => {
-        // discount += 2;
-
-        //? check if user already has made a purchase
-
         db.collection("users")
           .doc(item.uid)
           .get()
@@ -979,7 +1021,7 @@ const getFooter = (
               doc.data()?.sellerProfile?.statistics?.purchases > 0 &&
               item.used === false
             ) {
-              discount += 2;
+              discount += 1.5;
             }
           });
       });
@@ -1266,7 +1308,7 @@ const getFooter = (
             //     transactionId = result.data.id;
             //     setPage("endPage");
             //   })
-            //   .catch((err) => console.log(err));
+            //   .catch((err) => expo.log(err));
 
             // setPage("endPage");
           }}
