@@ -41,7 +41,6 @@ export default function YourOffers() {
 
       if (vendorId) {
         setCardsData(await fetchUsersCards());
-        console.log("veid", vendorId);
       }
     };
 
@@ -143,7 +142,6 @@ export default function YourOffers() {
 
                   query()
                     .then((result) => {
-                      console.log(result.data);
                       Linking.openURL(result.data);
                     })
                     .catch((err) => console.log(err));

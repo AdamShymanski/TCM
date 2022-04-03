@@ -25,8 +25,8 @@ export const auth = firebase.auth();
 export const storage = firebase.storage();
 
 if (__DEV__) {
-  firebase.functions().useEmulator("192.168.0.105", 5001);
-  firebase.firestore().useEmulator("192.168.0.105", 5004);
+  firebase.functions().useEmulator("192.168.0.1", 5001);
+  firebase.firestore().useEmulator("192.168.0.1", 8080);
 }
 export const functions = firebase.functions();
 
@@ -1358,6 +1358,7 @@ export async function fetchUsersCards() {
       .get();
 
     docArr.forEach((doc) => {
+      console.log(doc.data());
       let cardObj = doc.data();
       cardObj.id = doc.id;
       arr.push(cardObj);

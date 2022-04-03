@@ -557,7 +557,44 @@ function YourOffersStack() {
           },
         }}
       />
+      <Stack.Screen
+        name="Thanks"
+        component={Thanks}
+        options={({ navigation, route }) => ({
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{
+                borderRadius: 3,
+                marginLeft: 22,
 
+                height: 30,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                borderWidth: 2,
+                borderColor: "#777777",
+                paddingHorizontal: 12,
+              }}
+              onPress={() => navigation.navigate("AddCard")}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: "#777777",
+                }}
+              >
+                {"Go back"}
+              </Text>
+            </TouchableOpacity>
+          ),
+          headerTintColor: "#121212",
+          headerTitle: "",
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        })}
+      />
       <Stack.Screen
         name="ImageBrowser"
         component={ImageBrowser}
@@ -664,44 +701,6 @@ function YourOffersStack() {
                   routes: [{ name: "YourOffers" }],
                 })
               }
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#777777",
-                }}
-              >
-                {"Go back"}
-              </Text>
-            </TouchableOpacity>
-          ),
-          headerTintColor: "#121212",
-          headerTitle: "",
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        })}
-      />
-      <Stack.Screen
-        name="Thanks"
-        component={Thanks}
-        options={({ navigation, route }) => ({
-          headerLeft: () => (
-            <TouchableOpacity
-              style={{
-                borderRadius: 3,
-                marginLeft: 22,
-
-                height: 30,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 2,
-                borderColor: "#777777",
-                paddingHorizontal: 12,
-              }}
-              onPress={() => navigation.navigate("AddCard")}
             >
               <Text
                 style={{
@@ -1297,8 +1296,8 @@ export default function App() {
                 name="Transactions"
                 component={TransactionsStack}
               />
-
               <Drawer.Screen name="YourOffers" component={YourOffersStack} />
+
               <Drawer.Screen name="Seller" component={SellerStack} />
               <Drawer.Screen name="Settings" component={SettingsStack} />
               <Drawer.Screen name="Search" component={SearchStack} />
@@ -1308,8 +1307,8 @@ export default function App() {
                 component={ReferralProgramStack}
               />
               <Drawer.Screen name="StripeCheckout" component={StripeCheckout} />
-              <Drawer.Screen name="Chat" component={ChatStack} />
               <Drawer.Screen name="SavedOffers" component={SavedOffersStack} />
+              <Drawer.Screen name="Chat" component={ChatStack} />
               <Drawer.Screen
                 name="DeletingAccount"
                 component={DeletingAccount}

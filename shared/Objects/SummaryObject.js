@@ -109,7 +109,7 @@ export default function SummaryObject({ props, last }) {
                 marginLeft: 4,
               }}
             >
-              {`${props.price} USD`}
+              {`${props.price.toFixed(2)} USD`}
             </Text>
           </View>
           <View style={{ flexDirection: "row" }}>
