@@ -35,7 +35,6 @@ function uuidv4() {
 exports.events = functions.https.onRequest((request, response) => {
   response.send("Endpoint for Stripe Webhooks!");
 });
-
 exports.createStripeAccount = functions.https.onCall(async (data, context) => {
   const account = await stripe.accounts.create({
     type: "standard",
@@ -103,7 +102,6 @@ exports.fetchStripeAccount = functions.https.onCall(async (data, context) => {
     transactions.data.lenght > 0 ? transactions.data : null;
   return account;
 });
-
 exports.useReferralCode = functions.https.onCall(async (data, context) => {
   let result = false;
   try {
@@ -154,7 +152,6 @@ exports.calculateDiscount = functions.https.onCall(async (data, context) => {
     console.log(e);
   }
 });
-
 exports.createTransactions = functions.https.onCall(async (data, context) => {
   //get shipping methods - from client side
   //get offers - only ids of them from client side, price and other info from db
@@ -253,7 +250,6 @@ exports.createTransactions = functions.https.onCall(async (data, context) => {
       "pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX",
   };
 });
-
 exports.paymentSheet = functions.https.onCall(async (data, context) => {
   const docsArray = [];
 
@@ -370,7 +366,6 @@ exports.paymentSheet = functions.https.onCall(async (data, context) => {
     };
   });
 });
-
 exports.purchaseSheet = functions.https.onCall(async (data, context) => {
   //check for any discount
 
@@ -440,7 +435,7 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
 
   if (event.type === "payment_intent.succeeded") {
     const paymentIntent = event.data.object;
-    
+
     console.log(event.data.object.id);
 
     await admin
@@ -452,4 +447,4 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
         console.log(res[0].data());
       });
   }
-});
+}); 
