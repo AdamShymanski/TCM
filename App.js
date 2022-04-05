@@ -58,7 +58,9 @@ import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 
 import * as Font from "expo-font";
 import * as Sentry from "sentry-expo";
+
 import * as Linking from "expo-linking";
+import * as Notifications from "expo-notifications";
 
 import clipboard_text_clock from "./assets/clipboard_text_clock.png";
 import opened_box from "./assets/opened_box.png";
@@ -1145,6 +1147,11 @@ export default function App() {
   const [adBanerState, setAdBannerState] = useState(true);
   const [deepLinkData, setDeepLinkData] = useState(true);
 
+  const [expoPushToken, setExpoPushToken] = useState("");
+  const [notification, setNotification] = useState(false);
+  const notificationListener = useRef();
+  const responseListener = useRef();
+
   LogBox.ignoreLogs(["INTERNAL"]);
   LogBox.ignoreLogs([
     "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing and other functionality - use another VirtualizedList-backed container instead.",
@@ -1220,6 +1227,10 @@ export default function App() {
     resolvePromises();
     return () => {
       Linking.removeEventListener("url");
+      Notifications.removeNotificationSubscription(
+        notificationListener.current
+      );
+      Notifications.removeNotificationSubscription(responseListener.current);
       unsubscribe();
     };
   }, []);

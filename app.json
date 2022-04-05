@@ -4,7 +4,7 @@
     "name": "PTCG Marketplace",
     "scheme": "ptcgm",
     "slug": "ptcg_marketplace",
-    "version": "20",
+    "version": "22",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -25,8 +25,9 @@
     "android": {
       "package": "app.ptcg.marketplace",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 20,
+      "versionCode": 22,
       "userInterfaceStyle": "dark",
+      "permissions": [],
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-2637485113454186~8246765572"
       }
