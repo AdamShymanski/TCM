@@ -8,9 +8,6 @@ import pokemon from "pokemontcgsdk";
 
 import * as GoogleSignIn from "expo-google-sign-in";
 
-import * as Notifications from "expo-notifications";
-import * as Permissions from "expo-permissions";
-
 if (firebase.apps.length === 0) {
   firebase.initializeApp({
     apiKey: "AIzaSyA0rTGml4Zi9yozBmgQ5k74jUMmWCxEE2I",
@@ -29,36 +26,11 @@ export const auth = firebase.auth();
 export const db = firebase.firestore();
 export const storage = firebase.storage();
 export const functions = firebase.functions();
-export const messaging = firebase.messaging();
 
 if (__DEV__) {
   firebase.functions().useEmulator("192.168.0.104", 5001);
   firebase.firestore().useEmulator("192.168.0.104", 8080);
 }
-
-export const getDevicePushToken = () => {
-  return Permissions.getAsync(Permissions.NOTIFICATIONS)
-    .then((response) =>
-      response.status === "granted"
-        ? response
-        : Permissions.askAsync(Permissions.NOTIFICATIONS)
-    )
-    .then((response) => {
-      if (response.status !== "granted") {
-        return Promise.reject(
-          new Error("Push notifications permission was rejected")
-        );
-      }
-
-      return Notifications.getDevicePushTokenAsync();
-    })
-    .then((token) => {
-      firebase.database().ref("...").update({ pushToken: token.data });
-    })
-    .catch((error) => {
-      console.log("Error while registering device push token", error);
-    });
-};
 
 //! CARDS
 export async function fetchCards(props, setProps) {

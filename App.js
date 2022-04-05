@@ -1,5 +1,5 @@
 // @refresh reset
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import * as Updates from "expo-updates";
 
 import { Link, NavigationContainer } from "@react-navigation/native";
@@ -59,8 +59,10 @@ import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 import * as Font from "expo-font";
 import * as Sentry from "sentry-expo";
 
+import * as Device from "expo-device";
 import * as Linking from "expo-linking";
 import * as Notifications from "expo-notifications";
+import * as Permissions from "expo-permissions";
 
 import clipboard_text_clock from "./assets/clipboard_text_clock.png";
 import opened_box from "./assets/opened_box.png";
@@ -68,6 +70,46 @@ import opened_box from "./assets/opened_box.png";
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 const prefix = Linking.makeUrl("/");
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
+
+async function registerForPushNotificationsAsync() {
+  let token;
+  if (Device.isDevice) {
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== "granted") {
+      alert("Failed to get push token for push notification!");
+      return;
+    }
+    token = (await Notifications.getExpoPushTokenAsync()).data;
+    console.log(token);
+  } else {
+    alert("Must use physical device for Push Notifications");
+  }
+
+  if (Platform.OS === "android") {
+    Notifications.setNotificationChannelAsync("default", {
+      name: "default",
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: "#FF231F7C",
+    });
+  }
+
+  return token;
+}
 
 function SearchStack() {
   const [headerProps, setHeaderProps] = useState({
@@ -1156,10 +1198,32 @@ export default function App() {
   const notificationListener = useRef();
   const responseListener = useRef();
 
-  LogBox.ignoreLogs(["INTERNAL"]);
+  LogBox.ignoreLogs([
+    "Setting a timer for a long period of time, i.e. multiple minutes, is a performance and correctness issue on Android as it keeps the timer module awake, and timers can only be called when the app is in the foreground. See https://github.com/facebook/react-native/issues/12981 for more info.",
+  ]);
   LogBox.ignoreLogs([
     "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing and other functionality - use another VirtualizedList-backed container instead.",
   ]);
+
+  async function sendPushNotification(expoPushToken) {
+    const message = {
+      to: expoPushToken,
+      sound: "default",
+      title: "Original Title",
+      body: "And here is the body!",
+      data: { someData: "goes here" },
+    };
+
+    await fetch("https://exp.host/--/api/v2/push/send", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Accept-encoding": "gzip, deflate",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(message),
+    });
+  }
 
   const handleDeepLink = async (event) => {
     let data = Linking.parse(event.url);
@@ -1197,7 +1261,24 @@ export default function App() {
 
     const resolvePromises = async () => {
       try {
+        registerForPushNotificationsAsync().then((token) =>
+          setExpoPushToken(token)
+        );
+
+        // This listener is fired whenever a notification is received while the app is foregrounded
+        notificationListener.current =
+          Notifications.addNotificationReceivedListener((notification) => {
+            setNotification(notification);
+          });
+
+        // This listener is fired whenever a user taps on or interacts with a notification (works when app is foregrounded, backgrounded, or killed)
+        responseListener.current =
+          Notifications.addNotificationResponseReceivedListener((response) => {
+            console.log(response);
+          });
+
         Linking.addEventListener("url", handleDeepLink);
+
         await Font.loadAsync({
           Roboto_Thin: require("./assets/fonts/Roboto-Thin.ttf"),
           Roboto_Light: require("./assets/fonts/Roboto-Light.ttf"),
