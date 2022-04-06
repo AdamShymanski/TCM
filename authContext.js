@@ -19,16 +19,17 @@ if (firebase.apps.length === 0) {
     measurementId: "G-1HB5T78SQS",
   });
 }
+
 export const firebaseObj = firebase;
 export const db = firebase.firestore();
 export const auth = firebase.auth();
 export const storage = firebase.storage();
 export const functions = firebase.functions();
 
-// if (__DEV__) {
-//   firebase.functions().useEmulator("192.168.0.1", 5001);
-//   firebase.firestore().useEmulator("192.168.0.1", 8080);
-// }
+if (__DEV__) {
+  firebase.functions().useEmulator("192.168.0.104", 5001);
+  firebase.firestore().useEmulator("192.168.0.104", 8080);
+}
 
 //! CARDS
 export async function fetchCards(props, setProps) {
