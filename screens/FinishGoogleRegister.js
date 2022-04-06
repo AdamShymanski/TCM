@@ -99,6 +99,7 @@ export default function FinishGoogleRegister({ callback, name }) {
                 vendorId: null,
                 merchantId: null,
               },
+              notificationToken: null,
               savedOffers: [],
               createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             });
