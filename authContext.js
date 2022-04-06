@@ -1225,6 +1225,7 @@ export async function register(email, password, nick, country, setError) {
             vendorId: null,
             merchantId: null,
           },
+          notificationToken: null,
           savedOffers: [],
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
