@@ -77,7 +77,7 @@ export default function Home() {
         <Image
           source={referral_background}
           style={{
-            aspectRatio: 288 / 220,
+            aspectRatio: 292 / 220,
             width: undefined,
             height: "100%",
           }}
@@ -219,7 +219,7 @@ export default function Home() {
         <Image
           source={search_card}
           style={{
-            aspectRatio: 133 / 110,
+            aspectRatio: 397 / 330,
             width: undefined,
             height: "100%",
           }}

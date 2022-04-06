@@ -188,6 +188,16 @@ function CartStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
+        name="Cart"
+        component={Cart}
+        options={{
+          headerTitle: () => <CustomHeader version={"cart"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
+      <Stack.Screen
         name="Checkout"
         children={() => (
           <Checkout
@@ -337,16 +347,6 @@ function CartStack() {
             backgroundColor: "#121212",
           },
         })}
-      />
-      <Stack.Screen
-        name="Cart"
-        component={Cart}
-        options={{
-          headerTitle: () => <CustomHeader version={"cart"} />,
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        }}
       />
       <Stack.Screen
         name="AddAddress"
@@ -1176,7 +1176,7 @@ export default function App() {
         if (!usersDoc.exists) {
           setFinishRegisterProcess(true);
         } else {
-          //setListenerOnUsersDoc
+          setFinishRegisterProcess(false);
         }
       }
 
@@ -1287,6 +1287,7 @@ export default function App() {
                 <CustomDrawer navigation={navigation} />
               )}
             >
+              <Drawer.Screen name="Home" component={HomeStack} />
               <Drawer.Screen name="Cart" component={CartStack} />
               <Drawer.Screen
                 name="Transactions"
@@ -1297,7 +1298,6 @@ export default function App() {
               <Drawer.Screen name="Seller" component={SellerStack} />
               <Drawer.Screen name="Settings" component={SettingsStack} />
               <Drawer.Screen name="Search" component={SearchStack} />
-              <Drawer.Screen name="Home" component={HomeStack} />
               <Drawer.Screen
                 name="ReferralProgram"
                 component={ReferralProgramStack}

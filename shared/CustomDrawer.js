@@ -132,7 +132,7 @@ export default function CustomDrawer({ navigation }) {
                 navigation.navigate("SavedOffers");
               }}
             />
-            <DrawerItem
+            {/* <DrawerItem
               icon={({ color, size }) => {
                 if (notificationState) {
                   return (
@@ -176,7 +176,7 @@ export default function CustomDrawer({ navigation }) {
 
                 navigation.navigate("Chat", { screen: "ChatConversations" });
               }}
-            />
+            /> */}
             <DrawerItem
               icon={({ color, size }) => (
                 <Icon name="swap-vertical" color={"#f4f4f4"} size={size} />

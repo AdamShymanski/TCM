@@ -23,12 +23,12 @@ export const firebaseObj = firebase;
 export const db = firebase.firestore();
 export const auth = firebase.auth();
 export const storage = firebase.storage();
-
-if (__DEV__) {
-  firebase.functions().useEmulator("192.168.0.1", 5001);
-  firebase.firestore().useEmulator("192.168.0.1", 8080);
-}
 export const functions = firebase.functions();
+
+// if (__DEV__) {
+//   firebase.functions().useEmulator("192.168.0.1", 5001);
+//   firebase.firestore().useEmulator("192.168.0.1", 8080);
+// }
 
 //! CARDS
 export async function fetchCards(props, setProps) {
@@ -1224,6 +1224,7 @@ export async function register(email, password, nick, country, setError) {
             merchantId: null,
           },
           savedOffers: [],
+          notificationToken: null,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
 
@@ -1399,6 +1400,7 @@ export async function fetchCart(setOffers, setLoading) {
         doc.data().cart.forEach(async (item, index) => {
           const card = await db.collection("offers").doc(item).get();
           const owner = await fetchOwnerData(card.data().owner);
+
           if (checkSeller(owner.nick)) {
             pushOfferToArray(owner.nick, { ...card.data(), id: card.id });
           } else {
