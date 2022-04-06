@@ -90,13 +90,13 @@ async function registerForPushNotificationsAsync() {
       finalStatus = status;
     }
     if (finalStatus !== "granted") {
-      alert("Failed to get push token for push notification!");
+      // alert("Failed to get push token for push notification!");
       return;
     }
     token = (await Notifications.getExpoPushTokenAsync()).data;
     console.log(token);
   } else {
-    alert("Must use physical device for Push Notifications");
+    // alert("Must use physical device for Push Notifications");
   }
 
   if (Platform.OS === "android") {
@@ -1246,6 +1246,7 @@ export default function App() {
 
         if (!usersDoc.exists) {
           setFinishRegisterProcess(true);
+          console.log(auth.currentUser.uid);
         } else {
           //setListenerOnUsersDoc
         }
@@ -1379,6 +1380,7 @@ export default function App() {
                 <CustomDrawer navigation={navigation} />
               )}
             >
+              <Drawer.Screen name="Home" component={HomeStack} />
               <Drawer.Screen name="Cart" component={CartStack} />
               <Drawer.Screen
                 name="Transactions"
@@ -1389,7 +1391,6 @@ export default function App() {
               <Drawer.Screen name="Seller" component={SellerStack} />
               <Drawer.Screen name="Settings" component={SettingsStack} />
               <Drawer.Screen name="Search" component={SearchStack} />
-              <Drawer.Screen name="Home" component={HomeStack} />
               <Drawer.Screen
                 name="ReferralProgram"
                 component={ReferralProgramStack}
