@@ -135,12 +135,12 @@ android {
     }
 
     defaultConfig {
-        manifestPlaceholders = [appAuthRedirectScheme: 'dev.expo.app']
+        manifestPlaceholders = [appAuthRedirectScheme: 'ptcgm']
         applicationId 'app.ptcg.marketplace'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 20
-        versionName "20"
+        versionCode 22
+        versionName "22"
     }
     splits {
         abi {

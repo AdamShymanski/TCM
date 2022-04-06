@@ -14,16 +14,12 @@
       },
       "oauth_client": [
         {
-          "client_id": "442180761659-tdhp7kcqs3dmqvam9b7ef2m60cn6cjv4.apps.googleusercontent.com",
+          "client_id": "442180761659-mj78ubq2nv08in17htdtdt348il3vpb2.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "app.ptcg.marketplace",
-            "certificate_hash": "5dbe00c60847b52146d4a8b9e5db92f86388459a"
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
           }
-        },
-        {
-          "client_id": "442180761659-d8gpds50nqm1464ftuqufa972ppl2iti.apps.googleusercontent.com",
-          "client_type": 3
         }
       ],
       "api_key": [

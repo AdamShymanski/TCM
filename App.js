@@ -90,13 +90,13 @@ async function registerForPushNotificationsAsync() {
       finalStatus = status;
     }
     if (finalStatus !== "granted") {
-      alert("Failed to get push token for push notification!");
+      // alert("Failed to get push token for push notification!");
       return;
     }
     token = (await Notifications.getExpoPushTokenAsync()).data;
     console.log(token);
   } else {
-    alert("Must use physical device for Push Notifications");
+    // alert("Must use physical device for Push Notifications");
   }
 
   if (Platform.OS === "android") {
@@ -1250,6 +1250,7 @@ export default function App() {
 
         if (!usersDoc.exists) {
           setFinishRegisterProcess(true);
+          console.log(auth.currentUser.uid);
         } else {
           setFinishRegisterProcess(false);
         }
