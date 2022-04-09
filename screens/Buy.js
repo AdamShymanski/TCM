@@ -72,7 +72,6 @@ export default function Buy({ route, setCartList }) {
             });
 
             if (chatExists) {
-              console.log("navigation to chatScreen");
               console.log(chatExists);
               navigation.navigate("Chat", {
                 screen: "ChatScreen",

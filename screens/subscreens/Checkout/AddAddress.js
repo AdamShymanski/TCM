@@ -10,6 +10,8 @@ import * as yup from "yup";
 
 import { db, auth, firebaseObj } from "../../../authContext";
 
+import { useNavigation } from "@react-navigation/native";
+
 // import {
 //   getFunctions,
 //   httpsCallable,
@@ -56,6 +58,8 @@ export default function AddAddress({ setPage, setShippingAddress }) {
     streetAddress2: yup.string("Required!").max(30),
     phoneNumber: yup.string("Wrong format!").required("Required!").max(13),
   });
+
+  const navigation = useNavigation();
 
   return (
     <ScrollView style={{ backgroundColor: "#1b1b1b", flex: 1 }}>
@@ -137,7 +141,7 @@ export default function AddAddress({ setPage, setShippingAddress }) {
             }
           };
 
-          navigation.navigate("Checkout", { screen: "Ch" });
+          navigation.goBack();
         }}
         style={{
           flex: 1,

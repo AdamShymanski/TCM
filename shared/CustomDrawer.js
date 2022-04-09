@@ -109,7 +109,7 @@ export default function CustomDrawer({ navigation }) {
               labelStyle={{ color: "#f4f4f4" }}
               label="Home"
               onPress={() => {
-                navigation.navigate("Home");
+                navigation.navigate("HomeStack");
               }}
             />
             <DrawerItem
@@ -119,7 +119,7 @@ export default function CustomDrawer({ navigation }) {
               labelStyle={{ color: "#f4f4f4" }}
               label="Cart"
               onPress={() => {
-                navigation.navigate("Cart");
+                navigation.navigate("CartStack");
               }}
             />
             <DrawerItem
@@ -129,7 +129,7 @@ export default function CustomDrawer({ navigation }) {
               labelStyle={{ color: "#f4f4f4" }}
               label="Saved Offers"
               onPress={() => {
-                navigation.navigate("SavedOffers");
+                navigation.navigate("SavedOffersStack");
               }}
             />
             {/* <DrawerItem
@@ -179,7 +179,7 @@ export default function CustomDrawer({ navigation }) {
               labelStyle={{ color: "#f4f4f4" }}
               label="Transactions"
               onPress={() => {
-                navigation.navigate("Transactions");
+                navigation.navigate("TransactionsStack");
               }}
             />
             {/* <DrawerItem
@@ -218,7 +218,7 @@ export default function CustomDrawer({ navigation }) {
             labelStyle={{ color: "#f4f4f4" }}
             label="Seller Profile"
             onPress={() => {
-              navigation.navigate("Seller", { screen: "SellerProfile" });
+              navigation.navigate("SellerStack", { screen: "WorkInProgress" });
             }}
           />
 
@@ -229,7 +229,7 @@ export default function CustomDrawer({ navigation }) {
             labelStyle={{ color: "#f4f4f4" }}
             label="Your Offers"
             onPress={() => {
-              navigation.navigate("YourOffers");
+              navigation.navigate("YourOffersStack");
             }}
           />
         </Drawer.Section>
@@ -253,7 +253,7 @@ export default function CustomDrawer({ navigation }) {
             labelStyle={{ color: "#f4f4f4" }}
             label="Settings"
             onPress={() => {
-              navigation.navigate("Settings");
+              navigation.navigate("SettingsStack");
             }}
           />
           <DrawerItem
@@ -267,28 +267,11 @@ export default function CustomDrawer({ navigation }) {
             labelStyle={{ color: "#f4f4f4" }}
             label="Terms & Conditions"
             onPress={() => {
-              navigation.navigate("Settings");
+              navigation.navigate("TermsConditionsStack");
             }}
           />
         </Drawer.Section>
       </DrawerContentScrollView>
-      {/* <Drawer.Section style={styles.bottomDrawerSection}>
-        <DrawerItem
-          // icon={({ color, size }) => (
-          //   <Icon name="exit-to-app" color={"#f4f4f4"} size={size} />
-          // )}
-          labelStyle={{
-            color: "#121212",
-            textAlign: "center",
-            justifyContent: "center",
-          }}
-          label="Terms & Conditions"
-          labelStyle={{ color: "#7c7c7c" }}
-          // onPress={() => {
-          //   auth.signOut();
-          // }}
-        />
-      </Drawer.Section> */}
     </View>
   );
 }
