@@ -70,7 +70,7 @@ const Thanks = () => {
               index: 0,
               routes: [{ name: "YourOffers" }],
             });
-            navigator.navigate("Home", { screen: "Home" });
+            navigator.navigate("Home");
           }}
         >
           <Text

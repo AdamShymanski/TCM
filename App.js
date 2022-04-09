@@ -44,6 +44,8 @@ import History from "./screens/subscreens/Seller/History";
 import ReferralProgram from "./screens/ReferralProgram";
 import StripeCheckout from "./screens/StripeCheckout";
 
+import WorkInProgress from "./screens/WorkInProgress";
+
 import CustomHeader from "./shared/CustomHeader";
 import CustomDrawer from "./shared/CustomDrawer";
 
@@ -232,6 +234,16 @@ function CartStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
+        name="Cart"
+        component={Cart}
+        options={{
+          headerTitle: () => <CustomHeader version={"cart"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
+      <Stack.Screen
         name="Checkout"
         children={() => (
           <Checkout
@@ -382,16 +394,7 @@ function CartStack() {
           },
         })}
       />
-      <Stack.Screen
-        name="Cart"
-        component={Cart}
-        options={{
-          headerTitle: () => <CustomHeader version={"cart"} />,
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        }}
-      />
+
       <Stack.Screen
         name="AddAddress"
         component={AddAddress}
@@ -588,6 +591,16 @@ function YourOffersStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
+        name="WorkInProgress"
+        component={WorkInProgress}
+        options={{
+          headerTitle: () => <CustomHeader version={"workInProgress"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
+      <Stack.Screen
         name="YourOffers"
         component={YourOffers}
         options={{
@@ -766,6 +779,16 @@ function YourOffersStack() {
 function SellerStack() {
   return (
     <Stack.Navigator>
+      <Stack.Screen
+        name="WorkInProgress"
+        component={WorkInProgress}
+        options={{
+          headerTitle: () => <CustomHeader version={"workInProgress"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
       <Stack.Screen
         name="SellerProfile"
         component={SellerProfile}
@@ -1246,9 +1269,12 @@ export default function App() {
 
         if (!usersDoc.exists) {
           setFinishRegisterProcess(true);
-          console.log(auth.currentUser.uid);
         } else {
-          //setListenerOnUsersDoc
+          if (
+            usersDoc.data().notificationToken === null ||
+            usersDoc.data().notificationToken !== expoPushToken
+          )
+            setFinishRegisterProcess(false);
         }
       }
 
@@ -1317,6 +1343,19 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (currentUser) {
+      if (
+        currentUser.notificationToken === null ||
+        currentUser.notificationToken !== expoPushToken
+      ) {
+        db.collection("users").doc(currentUser.uid).update({
+          notificationToken: expoPushToken,
+        });
+      }
+    }
+  }, [currentUser]);
+
   if (loading) {
     return <View />;
   } else if (currentUser) {
@@ -1380,43 +1419,38 @@ export default function App() {
                 <CustomDrawer navigation={navigation} />
               )}
             >
-              <Drawer.Screen name="Home" component={HomeStack} />
-              <Drawer.Screen name="Cart" component={CartStack} />
+              <Drawer.Screen name="HomeStack" component={HomeStack} />
+              <Drawer.Screen name="CartStack" component={CartStack} />
               <Drawer.Screen
-                name="Transactions"
+                name="TransactionsStack"
                 component={TransactionsStack}
               />
-              <Drawer.Screen name="YourOffers" component={YourOffersStack} />
-
-              <Drawer.Screen name="Seller" component={SellerStack} />
-              <Drawer.Screen name="Settings" component={SettingsStack} />
-              <Drawer.Screen name="Search" component={SearchStack} />
               <Drawer.Screen
-                name="ReferralProgram"
+                name="YourOffersStack"
+                component={YourOffersStack}
+              />
+
+              <Drawer.Screen name="SellerStack" component={SellerStack} />
+              <Drawer.Screen name="SettingsStack" component={SettingsStack} />
+              <Drawer.Screen name="SearchStack" component={SearchStack} />
+              <Drawer.Screen
+                name="ReferralProgramStack"
                 component={ReferralProgramStack}
               />
-              <Drawer.Screen name="StripeCheckout" component={StripeCheckout} />
-              <Drawer.Screen name="SavedOffers" component={SavedOffersStack} />
-              <Drawer.Screen name="Chat" component={ChatStack} />
+              <Drawer.Screen
+                name="StripeCheckoutStack"
+                component={StripeCheckout}
+              />
+              <Drawer.Screen
+                name="SavedOffersStack"
+                component={SavedOffersStack}
+              />
+              <Drawer.Screen name="ChatStack" component={ChatStack} />
               <Drawer.Screen
                 name="DeletingAccount"
                 component={DeletingAccount}
               />
             </Drawer.Navigator>
-            {/* {adBanerState ? (
-              <AdMobBanner
-                bannerSize="smartBannerPortrait"
-                adUnitID="ca-app-pub-2637485113454186/2096785031"
-                servePersonalizedAds // true or false
-                onAdViewDidReceiveAd={() => {
-                  setAdBannerState(true);
-                }}
-                onDidFailToReceiveAdWithError={(error) => {
-                  setAdBannerState(false);
-                }}
-                //detect when add is loaded
-              />
-            ) : null} */}
           </NavigationContainer>
         </StripeProvider>
       );
@@ -1551,4 +1585,21 @@ export default function App() {
       </NavigationContainer>
     );
   }
+}
+
+{
+  /* {adBanerState ? (
+              <AdMobBanner
+                bannerSize="smartBannerPortrait"
+                adUnitID="ca-app-pub-2637485113454186/2096785031"
+                servePersonalizedAds // true or false
+                onAdViewDidReceiveAd={() => {
+                  setAdBannerState(true);
+                }}
+                onDidFailToReceiveAdWithError={(error) => {
+                  setAdBannerState(false);
+                }}
+                //detect when add is loaded
+              />
+            ) : null} */
 }

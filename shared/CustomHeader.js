@@ -36,6 +36,51 @@ export default function CustomHeader({ version, props, setProps }) {
     "Search for a card by name"
   );
 
+  if (version == "workInProgress") {
+    return (
+      <View
+        style={{
+          width: "100%",
+          height: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <MaterialIcons
+          name="menu"
+          size={28}
+          color={"#f4f4f4"}
+          onPress={() => {
+            openMenu();
+          }}
+          style={{
+            color: "#f4f4f4",
+            marginLeft: 16,
+          }}
+        />
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              color: "#f4f4f4",
+              fontWeight: "700",
+              fontSize: 21,
+              marginRight: 10,
+            }}
+          >
+            {"Work In Progress"}
+          </Text>
+          <Icon name={"hammer-wrench"} size={28} color={"#0082ff"} />
+        </View>
+      </View>
+    );
+  }
+
   if (version == "referralProgram") {
     return (
       <View

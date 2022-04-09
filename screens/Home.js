@@ -170,7 +170,7 @@ export default function Home() {
           justifyContent: "space-between",
         }}
         onPress={() => {
-          navigation.navigate("Search");
+          navigation.navigate("SearchStack");
         }}
       >
         <View>

@@ -55,8 +55,6 @@ export default function Checkout({ pageState, setPage, instantBuy }) {
   const [noAvailableShippingMethods, setNoAvailableShippingMethods] =
     useState(false);
 
-  const navigation = useNavigation();
-
   const addEmptyObj = (array) => {
     if (array.length === 0) {
       return [{ empty: true }];
@@ -988,6 +986,7 @@ const getFooter = (
   useEffect(() => {
     const resolvePromise = async () => {
       const query = functions.httpsCallable("paymentSheet");
+
       query({ offersState, shippingMethod, shippingAddress })
         .then((result) => {
           initializePaymentSheet(result.data);

@@ -35,7 +35,6 @@ function uuidv4() {
 exports.events = functions.https.onRequest((request, response) => {
   response.send("Endpoint for Stripe Webhooks!");
 });
-
 exports.createStripeAccount = functions.https.onCall(async (data, context) => {
   const account = await stripe.accounts.create({
     type: "standard",
@@ -103,7 +102,6 @@ exports.fetchStripeAccount = functions.https.onCall(async (data, context) => {
     transactions.data.lenght > 0 ? transactions.data : null;
   return account;
 });
-
 exports.useReferralCode = functions.https.onCall(async (data, context) => {
   let result = false;
   try {
@@ -131,6 +129,63 @@ exports.useReferralCode = functions.https.onCall(async (data, context) => {
     console.log(e);
   }
 });
+exports.overWriteUserDocs = functions.https.onCall(async (data, context) => {
+  try {
+    await admin
+      .firestore()
+      .collection("users")
+      .get()
+      .then((snapshot) => {
+        snapshot.forEach(async (doc) => {
+          let nick, country;
+
+          nick = doc.data().nick;
+          country = doc.data().country;
+
+          doc.ref.delete();
+
+          await admin
+            .firestore()
+            .collection("users")
+            .doc(doc.id)
+            .set({
+              nick: nick,
+              country: country,
+              discounts: {
+                referralProgram: [],
+                compensation: [],
+              },
+              addresses: [],
+              sellerProfile: {
+                status: "unset",
+                firstSell: null,
+                rating: [],
+                shippingMethods: {
+                  domestic: [],
+                  international: [],
+                },
+                statistics: {
+                  purchases: 0,
+                  sales: 0,
+                  views: 0,
+                  numberOfOffers: 0,
+                },
+              },
+              cart: [],
+              stripe: {
+                vendorId: null,
+                merchantId: null,
+              },
+              notificationToken: null,
+              savedOffers: [],
+              createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+        });
+      });
+  } catch (e) {
+    console.log(e);
+  }
+});
 exports.calculateDiscount = functions.https.onCall(async (data, context) => {
   let result = false;
   try {
@@ -154,7 +209,6 @@ exports.calculateDiscount = functions.https.onCall(async (data, context) => {
     console.log(e);
   }
 });
-
 exports.createTransactions = functions.https.onCall(async (data, context) => {
   //get shipping methods - from client side
   //get offers - only ids of them from client side, price and other info from db
@@ -253,7 +307,6 @@ exports.createTransactions = functions.https.onCall(async (data, context) => {
       "pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX",
   };
 });
-
 exports.paymentSheet = functions.https.onCall(async (data, context) => {
   const docsArray = [];
 
@@ -313,7 +366,7 @@ exports.paymentSheet = functions.https.onCall(async (data, context) => {
 
         if (section.data.length === index + 1) {
           docsArray.push({
-            timeStamp: admin.firestore.FieldValue.serverTimestamp(),
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
             seller: section.uid,
             buyer: context.auth.uid,
             offers: section.data,
@@ -370,7 +423,6 @@ exports.paymentSheet = functions.https.onCall(async (data, context) => {
     };
   });
 });
-
 exports.purchaseSheet = functions.https.onCall(async (data, context) => {
   //check for any discount
 
@@ -387,7 +439,6 @@ exports.purchaseSheet = functions.https.onCall(async (data, context) => {
 
     if (doc.data().discounts.referralProgram.lenght > 0) {
       const newArray = doc.data().discounts.referralProgram;
-
       doc.data().discounts.referralProgram.forEach((element, index) => {
         if (element.used === false && element.activated === true) {
           newArray[index].used = true;
@@ -426,7 +477,6 @@ exports.purchaseSheet = functions.https.onCall(async (data, context) => {
     console.log(e);
   }
 });
-
 exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
   let event;
   const sig = req.headers["stripe-signature"];
@@ -457,6 +507,24 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
 exports.scheduledFunction = functions.pubsub
   .schedule("every 5 minutes")
   .onRun((context) => {
-    console.log("This will be run every 2 minutes!");
+    const date = new Date();
+    date.setDate(date.getDate() - 1);
+    const expirationDate = admin.firestore.Timestamp.fromDate(date);
+
+    console.log(expirationDate);
+
+    admin
+      .firestore()
+      .collection("transactions")
+      .where("timestamps", "<", expirationDate)
+      .where("status", "==", "unpaid")
+      .get()
+      .then((snapshot) => {
+        if (snapshot.lenght > 0) {
+          snapshot.forEach((doc) => {
+            doc.ref.delete();
+          });
+        }
+      });
     return null;
   });
