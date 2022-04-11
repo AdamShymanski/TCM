@@ -73,6 +73,12 @@ const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 const prefix = Linking.makeUrl("/");
 
+Sentry.init({
+  dsn: "https://6131440690cd436b8802bd5b1318e1a6@o1133377.ingest.sentry.io/6179878",
+  enableInExpoDevelopment: true,
+  debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
+});
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -686,7 +692,6 @@ function YourOffersStack() {
           },
         })}
       />
-
       <Stack.Screen
         name="AddCard"
         component={AddCard}
@@ -1270,11 +1275,7 @@ export default function App() {
         if (!usersDoc.exists) {
           setFinishRegisterProcess(true);
         } else {
-          if (
-            usersDoc.data().notificationToken === null ||
-            usersDoc.data().notificationToken !== expoPushToken
-          )
-            setFinishRegisterProcess(false);
+          setFinishRegisterProcess(false);
         }
       }
 
@@ -1355,6 +1356,20 @@ export default function App() {
       }
     }
   }, [currentUser]);
+
+  useEffect(async () => {
+    if (expoPushToken) {
+      const doc = await db.collection("users").doc(currentUser.uid).get();
+      if (
+        !doc.data().notificationToken ||
+        doc.data().notificationToken !== expoPushToken
+      ) {
+        db.collection("users").doc(currentUser.uid).update({
+          notificationToken: expoPushToken,
+        });
+      }
+    }
+  }, [expoPushToken]);
 
   if (loading) {
     return <View />;
