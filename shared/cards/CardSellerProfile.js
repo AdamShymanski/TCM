@@ -439,26 +439,32 @@ export function CardSellerProfile({ props, isSavedState, cartArray }) {
             paddingBottom: 9,
           }}
         >
-          <Text
+          <View
             style={{
-              paddingHorizontal: 10,
               paddingVertical: 6,
-              backgroundColor: "#121212",
+              paddingHorizontal: 10,
+
               borderRadius: 4,
-              color: "#f4f4f4",
-              fontWeight: "700",
-              fontSize: 18,
+              backgroundColor: "#121212",
+
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Text style={{ color: "#0082ff", fontSize: 14 }}>
-              {"Price    "}
+            <View style={{ marginRight: 6 }}>
+              <IconMI name={"tag"} color={"#0082ff"} size={22} />
+            </View>
+            <Text style={{ fontSize: 18, fontWeight: "700", color: "#f4f4f4" }}>
+              {price.toFixed(2)}
             </Text>
-            {price}
-            <Text style={{ color: "#CDCDCD", fontSize: 14 }}>{"  USD"}</Text>
-          </Text>
+
+            <Text
+                style={{ color: "#CDCDCD", fontSize: 14, fontWeight: "700" }}
+              >
+                {"  USD"}
+              </Text>
+          </View>
 
           <View
             style={{
