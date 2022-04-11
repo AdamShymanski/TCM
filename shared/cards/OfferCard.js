@@ -27,6 +27,7 @@ import { useNavigation } from "@react-navigation/native";
 
 import SellerDetailsBar from "../SellerDetailsBar";
 // import { LinearGradient } from "expo-linear-gradient";
+import SellerProfile from "./../../screens/SellerProfile";
 
 export default function OfferCard({
   props,
@@ -104,25 +105,21 @@ export default function OfferCard({
           .get()
           .then((doc) => {
             if (doc.data().country !== userCountry) {
-              if ("international" in doc.data()) {
-                if (
-                  doc.data().sellerProfile.shippingMethods.international
-                    .lenght < 1
-                ) {
-                  setShippingImposible(true);
-                }
+              if (
+                doc.data().sellerProfile.shippingMethods.international.length >
+                0
+              ) {
+                setShippingImposible(false);
               } else {
                 setShippingImposible(true);
               }
-            } else {
-              if (!("domestic" in doc.data())) {
-                setShippingImposible(true);
+            } else if (doc.data().country === userCountry) {
+              if (
+                doc.data().sellerProfile.shippingMethods.domestic.length > 0
+              ) {
+                setShippingImposible(false);
               } else {
-                if (
-                  doc.data().sellerProfile.shippingMethods.domestic.lenght < 1
-                ) {
-                  setShippingImposible(true);
-                }
+                setShippingImposible(true);
               }
             }
           });
@@ -368,7 +365,7 @@ export default function OfferCard({
             <TouchableOpacity
               onPress={() => {
                 if (ownerId !== auth.currentUser.uid) {
-                  navigation.navigate("Seller", {
+                  navigation.navigate("SellerStack", {
                     screen: "OtherSellersOffers",
                     params: { sellerId: ownerId },
                   });
@@ -589,26 +586,34 @@ export default function OfferCard({
               paddingBottom: 9,
             }}
           >
-            <Text
+            <View
               style={{
-                paddingHorizontal: 10,
                 paddingVertical: 6,
-                backgroundColor: "#121212",
+                paddingHorizontal: 10,
+
                 borderRadius: 4,
-                color: "#f4f4f4",
-                fontWeight: "700",
-                fontSize: 18,
+                backgroundColor: "#121212",
+
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Text style={{ color: "#0082ff", fontSize: 14 }}>
-                {"Price    "}
+              <View style={{ marginRight: 6 }}>
+                <IconMI name={"tag"} color={"#0082ff"} size={22} />
+              </View>
+              <Text
+                style={{ fontSize: 18, fontWeight: "700", color: "#f4f4f4" }}
+              >
+                {price}
               </Text>
-              {price}
-              <Text style={{ color: "#CDCDCD", fontSize: 14 }}>{"  USD"}</Text>
-            </Text>
+
+              <Text
+                style={{ color: "#CDCDCD", fontSize: 14, fontWeight: "700" }}
+              >
+                {"  USD"}
+              </Text>
+            </View>
 
             <View
               style={{
@@ -761,8 +766,8 @@ export default function OfferCard({
             <TouchableOpacity
               onPress={() => {
                 if (ownerId !== auth.currentUser.uid) {
-                  navigation.navigate("Sellers", {
-                    screen: "SellerProfile",
+                  navigation.navigate("SellerStack", {
+                    screen: "OtherSellersOffers",
                     params: { sellerId: ownerId },
                   });
                 }
@@ -958,26 +963,34 @@ export default function OfferCard({
               paddingBottom: 9,
             }}
           >
-            <Text
+            <View
               style={{
-                paddingHorizontal: 10,
                 paddingVertical: 6,
-                backgroundColor: "#121212",
+                paddingHorizontal: 10,
+
                 borderRadius: 4,
-                color: "#f4f4f4",
-                fontWeight: "700",
-                fontSize: 18,
+                backgroundColor: "#121212",
+
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Text style={{ color: "#0082ff", fontSize: 14 }}>
-                {"Price    "}
+              <View style={{ marginRight: 6 }}>
+                <IconMI name={"tag"} color={"#0082ff"} size={22} />
+              </View>
+              <Text
+                style={{ fontSize: 18, fontWeight: "700", color: "#f4f4f4" }}
+              >
+                {price}
               </Text>
-              {price}
-              <Text style={{ color: "#CDCDCD", fontSize: 14 }}>{"  USD"}</Text>
-            </Text>
+
+              <Text
+                style={{ color: "#CDCDCD", fontSize: 14, fontWeight: "700" }}
+              >
+                {"  USD"}
+              </Text>
+            </View>
 
             <View
               style={{
@@ -1004,7 +1017,7 @@ export default function OfferCard({
                   justifyContent: "center",
                 }}
                 onPress={() => {
-                  navigation.navigate("Cart", { screen: "Checkout" });
+                  navigation.navigate("CartStack", { screen: "Checkout" });
                 }}
               >
                 <Text
