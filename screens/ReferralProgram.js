@@ -150,7 +150,7 @@ export default function ReferralProgram() {
             >
               <Text style={{ fontWeight: "700" }}>Referral Code</Text>
             </TouchableOpacity>
-            <Text
+            {/* <Text
               style={{
                 color: "#5c5c5c",
                 fontFamily: "Roboto_Medium",
@@ -172,7 +172,7 @@ export default function ReferralProgram() {
               }}
             >
               <Text style={{ fontWeight: "700" }}>Referral Deeplink</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
         <View
