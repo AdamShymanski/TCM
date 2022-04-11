@@ -11,6 +11,7 @@ import {
 } from "react-native";
 
 import { useStripe } from "@stripe/stripe-react-native";
+import { StackActions, NavigationActions } from "react-navigation";
 import { useNavigation } from "@react-navigation/native";
 
 import {
@@ -26,18 +27,19 @@ import { ActivityIndicator, TextInput, RadioButton } from "react-native-paper";
 
 import { LogBox } from "react-native";
 import SummaryObject from "./../shared/Objects/SummaryObject";
-import DHL_logo from "../assets/DHL_logo.png";
-import FedExExpress_logo from "../assets/FedEx_Express_logo.png";
-import FedEx_logo from "../assets/FedEx_logo.png";
-import UPS_logo from "../assets/UPS_logo.png";
-import USPS_logo from "../assets/USPS_logo.png";
 import Stripe_logo from "../assets/Stripe_logo.png";
 import bottom_arrow from "../assets/arrow_right_bottom.png";
 import signature from "../assets/signature_x.png";
 
-import IconMI from "react-native-vector-icons/MaterialIcons";
 import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
-import AddShippingMethod from "./subscreens/Seller/AddShippingMethod";
+
+// import IconMI from "react-native-vector-icons/MaterialIcons";
+// import AddShippingMethod from "./subscreens/Seller/AddShippingMethod";
+// import DHL_logo from "../assets/DHL_logo.png";
+// import FedExExpress_logo from "../assets/FedEx_Express_logo.png";
+// import FedEx_logo from "../assets/FedEx_logo.png";
+// import UPS_logo from "../assets/UPS_logo.png";
+// import USPS_logo from "../assets/USPS_logo.png";
 
 export default function Checkout({ pageState, setPage, instantBuy }) {
   LogBox.ignoreLogs([
@@ -273,7 +275,7 @@ const ShippingPage = ({
                 aspectRatio: addressesArray.length > 1 ? undefined : 1 / 1,
               }}
               onPress={() => {
-                navigation.navigate("AddAddress");
+                navigation.navigate("CartStack", { screen: "AddAddress" });
               }}
             >
               <Text
@@ -857,19 +859,25 @@ const EndPage = () => {
                 total += item.price;
               });
 
-              navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: "Transactions",
-                    params: {
-                      props: outArray[0],
-                      offersArray: res,
-                      totalAmount: total,
-                    },
-                  },
-                ],
-              });
+              // navigation.reset({
+              //   index: 1,
+              //   routes: [
+              //     {
+              //       name: "TransactionsStack",
+              //       screen: "Transactions",
+              //       params: {
+              //         props: outArray[0],
+              //         offersArray: res,
+              //         totalAmount: total,
+              //       },
+              //     },
+              //   ],
+              // });
+            });
+
+            navigation.dispatch(StackActions.popToTop());
+            navigation.navigate("TransactionsStack", {
+              screen: "Transactions",
             });
           }}
         >
@@ -1299,17 +1307,6 @@ const getFooter = (
             });
 
             //! ONLY FOR DEMO PURPOSE || 1 SELLER ONLY
-
-            // const query = functions.httpsCallable("createTransaction");
-
-            // query(outObj)
-            //   .then((result) => {
-            //     transactionId = result.data.id;
-            //     setPage("endPage");
-            //   })
-            //   .catch((err) => expo.log(err));
-
-            // setPage("endPage");
           }}
         >
           <Text style={{ fontWeight: "700", color: "#121212", fontSize: 18 }}>
