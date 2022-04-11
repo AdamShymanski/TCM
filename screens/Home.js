@@ -2,9 +2,9 @@ import React, { useState } from "react";
 
 import { View, Image, Text, TouchableOpacity } from "react-native";
 
-import referral_background from "../assets/images/referral_background.png";
-import add_an_offer_background from "../assets/images/add_an_offer_background.png";
-import search_card from "../assets/images/search_card.png";
+import referral_background from "../assets/images/referral.png";
+import add_an_offer_background from "../assets/images/add.png";
+import search_card from "../assets/images/search.png";
 
 import { useNavigation } from "@react-navigation/native";
 
@@ -21,15 +21,19 @@ export default function Home() {
     >
       <TouchableOpacity
         style={{
-          backgroundColor: "#121212",
           width: "94%",
-          height: "20%",
           borderRadius: 6,
+          backgroundColor: "#121212",
+
+          flexShrink: 1,
           flexDirection: "row",
           justifyContent: "space-between",
+          paddingVertical: 8,
         }}
         onPress={() => {
-          navigation.navigate("ReferralProgram");
+          navigation.navigate("ReferralProgramStack", {
+            screen: "ReferralProgram",
+          });
         }}
       >
         <View>
@@ -77,29 +81,30 @@ export default function Home() {
         <Image
           source={referral_background}
           style={{
-            aspectRatio: 288 / 220,
-            width: undefined,
-            height: "100%",
+            aspectRatio: 260 / 198,
+            width: "48%",
+            height: undefined,
           }}
         />
       </TouchableOpacity>
       <TouchableOpacity
         style={{
-          backgroundColor: "#121212",
           width: "94%",
-          height: "22%",
           borderRadius: 6,
+          backgroundColor: "#121212",
+
+          flexShrink: 1,
           flexDirection: "row",
           justifyContent: "space-between",
+          paddingVertical: 8,
         }}
         onPress={() => {
-          navigation.navigate("YourOffers");
+          navigation.navigate("YourOffersStack", { screen: "WorkInProgress" });
         }}
       >
         <View>
           <Text
             style={{
-              marginTop: 8,
               marginLeft: 12,
               flexDirection: "column",
 
@@ -154,20 +159,22 @@ export default function Home() {
         <Image
           source={add_an_offer_background}
           style={{
-            aspectRatio: 471 / 330,
-            width: undefined,
-            height: "100%",
+            aspectRatio: 257 / 203,
+            width: "40%",
+            height: undefined,
           }}
         />
       </TouchableOpacity>
       <TouchableOpacity
         style={{
-          backgroundColor: "#121212",
           width: "94%",
-          height: "22%",
           borderRadius: 6,
+          backgroundColor: "#121212",
+
+          flexShrink: 1,
           flexDirection: "row",
           justifyContent: "space-between",
+          paddingVertical: 8,
         }}
         onPress={() => {
           navigation.navigate("SearchStack");
@@ -219,12 +226,56 @@ export default function Home() {
         <Image
           source={search_card}
           style={{
-            aspectRatio: 133 / 110,
-            width: undefined,
-            height: "100%",
+            aspectRatio: 234 / 218,
+            width: "38%",
+            height: undefined,
           }}
         />
       </TouchableOpacity>
+      <View style={{ height: "30%", width: "94%" }}>
+        <Text
+          style={{
+            fontWeight: "700",
+            color: "#747474",
+            fontSize: 14,
+            marginTop: 10,
+          }}
+        >
+          WHAT'S NEW?
+        </Text>
+        <View style={{ marginLeft: 12, marginTop: 8 }}>
+          <Text
+            style={{
+              color: "#ADADAD",
+              fontFamily: "Roboto_Medium",
+              marginTop: 6,
+            }}
+          >
+            <Text style={{ color: "#05FD00", fontWeight: "700" }}>+{"  "}</Text>
+            Improved design of the offer cards
+          </Text>
+          <Text
+            style={{
+              color: "#ADADAD",
+              fontFamily: "Roboto_Medium",
+              marginTop: 6,
+            }}
+          >
+            <Text style={{ color: "#05FD00", fontWeight: "700" }}>+{"  "}</Text>
+            Improved shipping method selecting
+          </Text>
+          <Text
+            style={{
+              color: "#ADADAD",
+              fontFamily: "Roboto_Medium",
+              marginTop: 6,
+            }}
+          >
+            <Text style={{ color: "#05FD00", fontWeight: "700" }}>+{"  "}</Text>
+            Notifications on purchase/sale of your cards
+          </Text>
+        </View>
+      </View>
     </View>
   );
 }
