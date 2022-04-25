@@ -802,40 +802,75 @@ export default function EditCard({ route }) {
                 )}
               </ErrorMessage>
             </View>
-            <View
+            <Text
               style={{
-                flex: 1,
-                flexDirection: "column",
-                alignItems: "flex-start",
-                width: "100%",
+                fontSize: 12,
+                color: "#5C5C5C",
+                fontFamily: "Roboto_Medium",
+                marginTop: 20,
               }}
             >
-              <View
+              IS THE CARD GRADED?
+            </Text>
+
+            <View style={{ flexDirection: "row", marginTop: 12 }}>
+              <TouchableOpacity
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginTop: 40,
+                  borderWidth: 1,
+                  borderColor: gradingSwitch ? "#0082ff" : "#5c5c5c",
+
+                  backgroundColor: gradingSwitch ? "#0082ff" : "#1b1b1b",
+
+                  paddingHorizontal: 12,
+                  paddingVertical: 5,
+
+                  borderRadius: 3,
+                  borderTopRightRadius: 0,
+                  borderBottomRightRadius: 0,
+                }}
+                onPress={() => {
+                  setGrading((prevState) => !prevState);
                 }}
               >
                 <Text
                   style={{
-                    flexDirection: "row",
-
-                    color: "#f4f4f4",
                     fontWeight: "700",
-                    fontSize: 20,
-                    marginRight: 10,
+                    color: gradingSwitch ? "#121212" : "#5c5c5c",
+                    fontSize: 16,
                   }}
                 >
-                  Is the card graded?
+                  Yes
                 </Text>
-                <Checkbox
-                  status={gradingSwitch ? "checked" : "unchecked"}
-                  color={"#0082ff"}
-                  uncheckedColor={"#5c5c5c"}
-                  onPress={() => setGrading(!gradingSwitch)}
-                />
-              </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  borderColor: !gradingSwitch ? "#0082ff" : "#5c5c5c",
+                  borderWidth: 1,
+
+                  backgroundColor: !gradingSwitch ? "#0082ff" : "#1b1b1b",
+
+                  paddingVertical: 5,
+                  paddingHorizontal: 12,
+
+                  borderRadius: 3,
+                  borderTopLeftRadius: 0,
+                  borderBottomLeftRadius: 0,
+                }}
+                onPress={() => {
+                  setGrading((prevState) => !prevState);
+                }}
+              >
+                <Text
+                  style={{
+                    fontWeight: "700",
+                    color: !gradingSwitch ? "#121212" : "#5c5c5c",
+                    fontSize: 16,
+                  }}
+                >
+                  No
+                </Text>
+              </TouchableOpacity>
             </View>
             <View
               style={{

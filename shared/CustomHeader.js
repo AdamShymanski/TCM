@@ -32,6 +32,8 @@ export default function CustomHeader({ version, props, setProps }) {
   };
 
   const navigation = useNavigation();
+  const [inputPlaceholder, setInputPlaceholder] =
+    useState("ID or Name of Card");
 
   if (version == "workInProgress") {
     return (
@@ -157,6 +159,7 @@ export default function CustomHeader({ version, props, setProps }) {
         <View
           style={{
             flexDirection: "row",
+            alignItems: "center",
           }}
         >
           <Text
@@ -205,6 +208,7 @@ export default function CustomHeader({ version, props, setProps }) {
         <View
           style={{
             flexDirection: "row",
+            alignItems: "center",
           }}
         >
           <Text
@@ -254,6 +258,7 @@ export default function CustomHeader({ version, props, setProps }) {
         <View
           style={{
             flexDirection: "row",
+            alignItems: "center",
           }}
         >
           <Text
@@ -302,6 +307,7 @@ export default function CustomHeader({ version, props, setProps }) {
         <View
           style={{
             flexDirection: "row",
+            alignItems: "center",
           }}
         >
           <Text
@@ -351,6 +357,7 @@ export default function CustomHeader({ version, props, setProps }) {
         <View
           style={{
             flexDirection: "row",
+            alignItems: "center",
           }}
         >
           <Text
@@ -400,6 +407,7 @@ export default function CustomHeader({ version, props, setProps }) {
         <View
           style={{
             flexDirection: "row",
+            alignItems: "center",
           }}
         >
           <Text
@@ -449,6 +457,7 @@ export default function CustomHeader({ version, props, setProps }) {
         <View
           style={{
             flexDirection: "row",
+            alignItems: "center",
           }}
         >
           <Text
@@ -493,6 +502,7 @@ export default function CustomHeader({ version, props, setProps }) {
         <View
           style={{
             flexDirection: "row",
+            alignItems: "center",
           }}
         >
           <Text
@@ -536,6 +546,7 @@ export default function CustomHeader({ version, props, setProps }) {
         <View
           style={{
             flexDirection: "row",
+            alignItems: "center",
           }}
         >
           <Text
@@ -608,14 +619,14 @@ export default function CustomHeader({ version, props, setProps }) {
         >
           <Text
             style={{
-              color: "#f4f4f4",
-              fontFamily: "Roboto_Medium",
-              fontSize: 14,
+              color: "#5C5C5C",
+              fontWeight: "700",
+              fontSize: 12,
               marginRight: 12,
               marginBottom: 7,
             }}
           >
-            {"Welcome to"}
+            {"WELCOME TO"}
           </Text>
           <Image
             source={ptcgm_logo}
@@ -663,7 +674,7 @@ export default function CustomHeader({ version, props, setProps }) {
               }));
             }}
             onBlur={() => {
-              setInputPlaceholder("Seach for a card by name");
+              setInputPlaceholder("ID or Name of Card");
               setProps((prevState) => ({
                 ...prevState,
                 inputFocusState: false,

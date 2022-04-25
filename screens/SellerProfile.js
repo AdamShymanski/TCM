@@ -13,6 +13,7 @@ import {
 } from "react-native";
 
 import Stripe_logo from "../assets/Stripe_logo.png";
+import stripe_black_logo from "../assets/stripe_black_logo.png";
 
 import IconI from "react-native-vector-icons/Ionicons";
 import IconMI from "react-native-vector-icons/MaterialIcons";
@@ -32,18 +33,18 @@ export default function SellerProfile() {
   const navigation = useNavigation();
 
   const [loadingState, setLoadingState] = useState(true);
-  const [vendorId, setVendorId] = useState(undefined);
+  const [activityIndicator, setActivityIndicator] = useState(false);
+
+  const [UADLoading, setUADLoading] = useState(false);
 
   const [accountData, setAccountData] = useState(null);
-  const [userData, setUserData] = useState(null);
 
   const [rating, setRating] = useState([]);
   const [shippingMethods, setShippingMethods] = useState(null);
   const [statistics, setStatistics] = useState(null);
 
-  const [noStripe, setNoStripe] = useState(false);
-  const [pending, setPending] = useState(false);
-  const [requirements, setRequirements] = useState(false);
+  const [noStripe, setNoStripe] = useState(true);
+  const [requirements, setRequirements] = useState(true);
 
   const isFocused = useIsFocused();
 
@@ -57,54 +58,535 @@ export default function SellerProfile() {
     }
   };
 
+  const renderVendorStatus = () => {
+    let topElement = null;
+    if (accountData === null || undefined) {
+      //! PENDING
+      topElement = (
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+
+              borderTopLeftRadius: 6,
+              borderBottomLeftRadius: 6,
+
+              backgroundColor: "#102e4a",
+
+              flexDirection: "row",
+              alignItems: "center",
+              alignSelf: "flex-start",
+              justifyContent: "space-between",
+            }}
+          >
+            <Text style={{ color: "#096DCA", marginRight: 12 }}>Pending</Text>
+            <IconMCI name={"sync"} size={16} color={"#096DCA"} />
+          </View>
+          <View
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+
+              borderTopRightRadius: 6,
+              borderBottomRightRadius: 6,
+
+              backgroundColor: "#101f2d",
+
+              flexDirection: "row",
+              alignSelf: "flex-start",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: "#f4f4f4",
+
+                fontFamily: "Roboto_Medium",
+              }}
+            >
+              Account is now being verified.
+            </Text>
+          </View>
+        </View>
+      );
+    }
+    if (accountData.requirements.pending_verification.length > 0) {
+      //! PENDING
+      topElement = (
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+
+              borderTopLeftRadius: 6,
+              borderBottomLeftRadius: 6,
+
+              backgroundColor: "#102e4a",
+
+              flexDirection: "row",
+              alignItems: "center",
+              alignSelf: "flex-start",
+              justifyContent: "space-between",
+            }}
+          >
+            <Text style={{ color: "#096DCA", marginRight: 12 }}>Pending</Text>
+            <IconMCI name={"sync"} size={16} color={"#096DCA"} />
+          </View>
+          <View
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+
+              borderTopRightRadius: 6,
+              borderBottomRightRadius: 6,
+
+              backgroundColor: "#101f2d",
+
+              flexDirection: "row",
+              alignSelf: "flex-start",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: "#f4f4f4",
+
+                fontFamily: "Roboto_Medium",
+              }}
+            >
+              Account is now being verified.
+            </Text>
+          </View>
+        </View>
+      );
+    } else if (!(accountData.charges_enabled || accountData.payouts_enabled)) {
+      //! RESTRICTED
+      topElement = (
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+
+              borderTopLeftRadius: 6,
+              borderBottomLeftRadius: 6,
+
+              backgroundColor: "#4a1010",
+
+              flexDirection: "row",
+              alignItems: "center",
+              alignSelf: "flex-start",
+              justifyContent: "space-between",
+            }}
+          >
+            <Text style={{ color: "#C31313", marginRight: 12 }}>
+              Restricted
+            </Text>
+            <IconMCI name={"cancel"} size={16} color={"#C31313"} />
+          </View>
+          <TouchableOpacity
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+
+              borderTopRightRadius: 6,
+              borderBottomRightRadius: 6,
+
+              backgroundColor: "#2d1010",
+
+              flexDirection: "row",
+              alignItems: "center",
+              alignSelf: "flex-start",
+              justifyContent: "space-between",
+            }}
+            onPress={() => {
+              setUADLoading(true);
+              const query = functions.httpsCallable("linkStripeAccount");
+
+              query()
+                .then((result) => {
+                  Linking.openURL(result.data);
+                  setUADLoading(false);
+                })
+                .catch((err) => {
+                  console.log(err);
+                  setUADLoading(false);
+                });
+            }}
+          >
+            {UADLoading ? (
+              <ActivityIndicator size="small" color="#f4f4f4" />
+            ) : (
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Text
+                  style={{
+                    color: "#f4f4f4",
+                    marginRight: 8,
+                    fontFamily: "Roboto_Medium",
+                  }}
+                >
+                  {accountData.details_submitted
+                    ? "Update account details"
+                    : "Finish account setup"}
+                </Text>
+                <IconMI name="double-arrow" size={14} color="#f4f4f4" />
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      );
+    } else if (
+      accountData.requirements.eventually_due.length > 0 &&
+      accountData.requirements.current_deadline.length === 0
+    ) {
+      //! ENABLED
+      topElement = (
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+
+              borderTopLeftRadius: 6,
+              borderBottomLeftRadius: 6,
+
+              backgroundColor: "#102e4a",
+
+              flexDirection: "row",
+              alignItems: "center",
+              alignSelf: "flex-start",
+              justifyContent: "space-between",
+            }}
+          >
+            <Text style={{ color: "#096DCA", marginRight: 12 }}>Enabled</Text>
+            <IconMCI name={"check"} size={16} color={"#096DCA"} />
+          </View>
+          <View
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+
+              borderTopRightRadius: 6,
+              borderBottomRightRadius: 6,
+
+              backgroundColor: "#101f2d",
+
+              flexDirection: "row",
+              alignSelf: "flex-start",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: "#f4f4f4",
+
+                fontFamily: "Roboto_Medium",
+              }}
+            >
+              Account successfully set up.
+            </Text>
+          </View>
+        </View>
+      );
+    } else if (accountData.requirements.eventually_due.length === 0) {
+      //! COMPLETED
+      topElement = (
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+
+              borderTopLeftRadius: 6,
+              borderBottomLeftRadius: 6,
+
+              backgroundColor: "#114a10",
+
+              flexDirection: "row",
+              alignItems: "center",
+              alignSelf: "flex-start",
+              justifyContent: "space-between",
+            }}
+          >
+            <Text style={{ color: "#0DCA09", marginRight: 12 }}>Completed</Text>
+            <IconMCI name={"check"} size={16} color={"#0DCA09"} />
+          </View>
+          <View
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+
+              borderTopRightRadius: 6,
+              borderBottomRightRadius: 6,
+
+              backgroundColor: "#112d10",
+
+              flexDirection: "row",
+              alignSelf: "flex-start",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: "#f4f4f4",
+
+                fontFamily: "Roboto_Medium",
+              }}
+            >
+              Account successfully set up.
+            </Text>
+          </View>
+        </View>
+      );
+    } else if (false) {
+      // ! RESTRICTED SOON
+      topElement = (
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+
+              borderTopLeftRadius: 6,
+              borderBottomLeftRadius: 6,
+
+              backgroundColor: "#59520d",
+
+              flexDirection: "row",
+              alignItems: "center",
+              alignSelf: "flex-start",
+              justifyContent: "space-between",
+            }}
+          >
+            <Text style={{ color: "#FFE600", marginRight: 12 }}>
+              Restricted Soon
+            </Text>
+            <IconMCI name={"clock"} size={16} color={"#FFE600"} />
+          </View>
+          <View
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+
+              borderTopRightRadius: 6,
+              borderBottomRightRadius: 6,
+
+              backgroundColor: "#35310f",
+
+              flexDirection: "row",
+              alignSelf: "flex-start",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: "#f4f4f4",
+
+                fontFamily: "Roboto_Medium",
+              }}
+            >
+              Account lacks some information.
+            </Text>
+          </View>
+        </View>
+      );
+    } else if (false) {
+      // ! REJECTED
+      return (
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+
+              borderTopLeftRadius: 6,
+              borderBottomLeftRadius: 6,
+
+              backgroundColor: "#2c2c2c",
+
+              flexDirection: "row",
+              alignItems: "center",
+              alignSelf: "flex-start",
+              justifyContent: "space-between",
+            }}
+          >
+            <Text style={{ color: "#676767", marginRight: 12 }}>Rejected</Text>
+            <IconMCI name={"cancel"} size={16} color={"#676767"} />
+          </View>
+          <View
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+
+              borderTopRightRadius: 6,
+              borderBottomRightRadius: 6,
+
+              backgroundColor: "#1e1e1e",
+
+              flexDirection: "row",
+              alignSelf: "flex-start",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: "#f4f4f4",
+
+                fontFamily: "Roboto_Medium",
+              }}
+            >
+              Account permanently blocked.
+            </Text>
+          </View>
+        </View>
+      );
+    }
+
+    return (
+      <View
+        style={{
+          width: "96%",
+
+          paddingVertical: 14,
+          paddingHorizontal: 16,
+
+          backgroundColor: "#121212",
+          borderRadius: 6,
+
+          flexDirection: "row",
+          justifyContent: "flex-start",
+          marginTop: 12,
+        }}
+      >
+        <View>
+          <Text
+            style={{
+              color: "#5c5c5c",
+              fontFamily: "Roboto_Medium",
+              fontSize: 12,
+              marginBottom: 12,
+            }}
+          >
+            VENDOR STATUS
+          </Text>
+          {topElement}
+          <TouchableOpacity
+            disabled={!accountData.details_submitted}
+            style={{
+              alignItems: "center",
+              flexDirection: "row",
+              alignSelf: "flex-start",
+
+              marginTop: 10,
+
+              paddingHorizontal: 14,
+              paddingVertical: 6,
+
+              borderRadius: 4,
+              backgroundColor: accountData.details_submitted
+                ? "#0082ff"
+                : "#003466",
+            }}
+            onPress={() => {
+              let query = functions.httpsCallable("loginStripeLink");
+
+              query()
+                .then((result) => {
+                  Linking.openURL(result.data);
+                })
+                .catch((err) => console.log(err));
+            }}
+          >
+            <Image
+              source={stripe_black_logo}
+              style={{
+                height: 16,
+                width: undefined,
+                aspectRatio: 282 / 117,
+
+                marginRight: 8,
+              }}
+            />
+            <Text
+              style={{
+                color: accountData.details_submitted ? "#121212" : "#001427",
+                fontWeight: "700",
+              }}
+            >
+              Dashboard
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
   useEffect(async () => {
     if (!isFocused) {
       setLoadingState(true);
       setShippingMethods(null);
     }
+
     if (isFocused) {
       db.collection("users")
         .doc(auth.currentUser.uid)
         .onSnapshot((doc) => {
-          setUserData(doc.data());
-
           setRating(doc.data().sellerProfile.rating);
           setStatistics(doc.data().sellerProfile.statistics);
           setShippingMethods(doc.data().sellerProfile.shippingMethods);
 
-          const requirementsCheck = (props) => {
-            if (props.requirements !== undefined) {
-              if (props.requirements.currently_due.length > 0) {
-                setRequirements(true);
-                return true;
-              }
-            }
-
-            // else if (props.verification.status === "pending") {
-            //   setPending(true);
-            //   return true;
-            // }
-            return false;
-          };
-
-          if (doc.data().stripe.vendorId === null || undefined) {
-            setNoStripe(true);
-          } else {
+          if (doc.data().stripe.vendorId) {
             const query = functions.httpsCallable("fetchStripeAccount");
+
+            //pending
+            // - under_review in requirements.disabled_reason
+
+            //completed
+            // - eventualy_due is empty
+
+            //enabled
+            // - currentl_deadline is empty
+            // - eventualy_due is not empty
+
+            //rejected
+            // - disabled_reason
+
+            //restriced
+            // - currently_due
+            // - currentl_deadline
+
+            //restriced soon
+            //
 
             query()
               .then((result) => {
-                if (!requirementsCheck(result.data)) {
+                if (result.data) {
+                  setNoStripe(false);
                   setAccountData(result.data);
+                  setLoadingState(false);
+
+                  if (result.data.payouts_enabled) {
+                    setRequirements(true);
+                  } else {
+                    setRequirements(false);
+                  }
                 }
               })
               .catch((e) => {
-                console.log(e);
                 setNoStripe(true);
               });
+          } else {
+            setLoadingState(false);
+            setNoStripe(true);
           }
-
-          setLoadingState(false);
         });
     }
   }, [isFocused]);
@@ -123,7 +605,7 @@ export default function SellerProfile() {
       </View>
     );
   } else {
-    if (noStripe || requirements) {
+    if (noStripe) {
       return (
         <View
           style={{
@@ -167,78 +649,68 @@ export default function SellerProfile() {
             up.
           </Text>
 
-          <TouchableOpacity
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "90%",
-              backgroundColor: "#0082ff",
-              paddingVertical: 8,
-              marginLeft: "2%",
-              marginTop: 10,
-              marginBottom: 6,
-              borderRadius: 4,
-            }}
-            onPress={() => {
-              let query;
-
-              if (userData.stripe.vendorId === null || undefined) {
-                query = functions.httpsCallable("createStripeAccount");
-              } else {
-                query = functions.httpsCallable("linkStripeAccount");
-              }
-
-              query()
-                .then((result) => {
-                  // console.error(result);
-                  // Linking.openURL(result.data);
-                })
-                .catch((err) => console.log(err));
-            }}
-          >
-            <Text
-              style={{
-                color: "#121212",
-                fontWeight: "700",
-                fontSize: 15,
-              }}
-            >
-              {"Add Vendor Details"}
-            </Text>
-          </TouchableOpacity>
-          {pending ? (
+          {activityIndicator ? (
+            <ActivityIndicator size={"large"} color={"#0082ff"} />
+          ) : (
             <View
               style={{
-                flexDirection: "row",
-                marginTop: 40,
+                width: "90%",
+                flexDirection: "column",
                 alignItems: "center",
               }}
             >
-              <Text
+              <TouchableOpacity
                 style={{
-                  fontFamily: "Roboto_Medium",
-                  color: "#f4f4f4",
-                  marginRight: 12,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "90%",
+                  backgroundColor: "#0082ff",
+                  paddingVertical: 8,
+                  marginLeft: "2%",
+                  marginTop: 10,
+                  marginBottom: 6,
+                  borderRadius: 4,
+                }}
+                onPress={() => {
+                  const query = functions.httpsCallable("createStripeAccount");
+
+                  setActivityIndicator(true);
+
+                  query()
+                    .then((result) => {
+                      Linking.openURL(result.data);
+                      setActivityIndicator(false);
+                    })
+                    .catch((err) => {
+                      console.log(err);
+                      setActivityIndicator(false);
+                    });
                 }}
               >
-                The request is verified
-              </Text>
-              <ActivityIndicator size={"large"} color={"#0082ff"} />
-            </View>
-          ) : (
-            <View style={{ flexDirection: "row", marginTop: 12 }}>
-              <Text style={{ fontFamily: "Roboto_Medium", color: "#555555" }}>
-                Powered by{"  "}
-              </Text>
-              <Image
-                source={Stripe_logo}
-                style={{
-                  aspectRatio: 282 / 117,
-                  width: undefined,
-                  height: 20,
-                }}
-              />
+                <Text
+                  style={{
+                    color: "#121212",
+                    fontWeight: "700",
+                    fontSize: 15,
+                  }}
+                >
+                  {"Add Vendor Details"}
+                </Text>
+              </TouchableOpacity>
+              <View style={{ flexDirection: "row", marginTop: 12 }}>
+                <Text style={{ fontFamily: "Roboto_Medium", color: "#555555" }}>
+                  Powered by{"  "}
+                </Text>
+                <Image
+                  source={Stripe_logo}
+                  style={{
+                    aspectRatio: 282 / 117,
+                    width: undefined,
+                    height: 20,
+                  }}
+                />
+              </View>
             </View>
           )}
         </View>
@@ -258,15 +730,16 @@ export default function SellerProfile() {
               width: "96%",
 
               paddingVertical: 14,
+              paddingHorizontal: 16,
 
               backgroundColor: "#121212",
               borderRadius: 6,
 
               flexDirection: "row",
-              justifyContent: "space-around",
+              justifyContent: "space-between",
             }}
           >
-            <View style={{ width: "50%", paddingLeft: 12 }}>
+            <View style={{ marginRight: 32 }}>
               <Text
                 style={{
                   color: "#5c5c5c",
@@ -287,11 +760,31 @@ export default function SellerProfile() {
                 }}
               >
                 {accountData
-                  ? parseFloat(accountData.balance.available[0].amount / 100)
-                  : 0}{" "}
-                USD
+                  ? accountData.balance.available[0].amount.toFixed(2)
+                  : "0.00"}{" "}
+                <Text style={{ color: "#5c5c5c" }}>USD</Text>
               </Text>
               <TouchableOpacity
+                disabled={true}
+                style={{
+                  alignItems: "center",
+
+                  marginTop: 10,
+                  marginLeft: 12,
+                  paddingHorizontal: 14,
+                  paddingVertical: 6,
+
+                  borderRadius: 4,
+                  backgroundColor: "#003466",
+                }}
+              >
+                <Text style={{ color: "#001427", fontWeight: "700" }}>
+                  Withdraw
+                </Text>
+              </TouchableOpacity>
+
+              {/* ACTIVE */}
+              {/* <TouchableOpacity
                 style={{
                   alignItems: "center",
 
@@ -307,95 +800,16 @@ export default function SellerProfile() {
                 <Text style={{ color: "#121212", fontWeight: "700" }}>
                   Withdraw
                 </Text>
-              </TouchableOpacity>
-              {/* <Text
-                style={{
-                  color: "#5c5c5c",
-                  fontFamily: "Roboto_Medium",
-                  fontSize: 12,
-                  marginTop: 24,
-                  marginBottom: 10,
-                }}
-              >
-                RECIPIENT'S DETAILS
-              </Text>
-              {accountData ? (
-                <View>
-                  <Text
-                    style={{
-                      marginLeft: 12,
-
-                      fontSize: 12,
-                      color: "#f4f4f4",
-                    }}
-                  >
-                    {accountData ? accountData.individual.first_name : ""}{" "}
-                    {accountData ? accountData.individual.last_name : ""}
-                  </Text>
-                  <Text
-                    style={{
-                      marginTop: 4,
-                      marginLeft: 12,
-
-                      fontSize: 12,
-                      color: "#f4f4f4",
-                    }}
-                  >
-                    {accountData ? accountData.individual.address.city : ""},{" "}
-                    {accountData ? accountData.individual.address.line1 : ""}
-                  </Text>
-                  <Text
-                    style={{
-                      marginTop: 4,
-                      marginLeft: 12,
-                      display: accountData?.individual?.address.line2
-                        ? "flex"
-                        : "none",
-
-                      fontSize: 12,
-                      color: "#f4f4f4",
-                    }}
-                  >
-                    {accountData ? accountData.individual.address.line2 : ""}
-                  </Text>
-                  <Text
-                    style={{
-                      marginTop: 4,
-                      marginLeft: 12,
-
-                      fontSize: 12,
-                      color: "#f4f4f4",
-                    }}
-                  >
-                    {accountData
-                      ? accountData.individual.address.postal_code
-                      : ""}
-                  </Text>
-                  <Text
-                    style={{
-                      marginTop: 10,
-                      marginLeft: 12,
-
-                      fontSize: 12,
-                      color: "#f4f4f4",
-                    }}
-                  >
-                    {accountData ? accountData.individual.phone : ""}
-                  </Text>
-                </View>
-              ) : (
-                <View style={{ height: 60 }}>
-                  <ActivityIndicator size="large" color="#0082ff" />
-                </View>
-              )} */}
+              </TouchableOpacity> */}
             </View>
-            <View style={{ width: "50%" }}>
+            <View>
               <Text
                 style={{
                   color: "#5c5c5c",
                   fontFamily: "Roboto_Medium",
                   fontSize: 12,
                   marginBottom: 10,
+                  paddingRight: 18,
                 }}
               >
                 HISTORY
@@ -527,7 +941,7 @@ export default function SellerProfile() {
 
                   if (accountData) {
                     return (
-                      <View style={{ marginLeft: 12 }}>
+                      <View style={{ marginLeft: 12, width: "80%" }}>
                         <View
                           style={{ flexDirection: "row", alignItems: "center" }}
                         >
@@ -588,6 +1002,9 @@ export default function SellerProfile() {
               />
             </View>
           </View>
+
+          {renderVendorStatus()}
+
           <View
             style={{
               flexDirection: "row",
@@ -605,7 +1022,7 @@ export default function SellerProfile() {
             >
               Shipping
             </Text>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={{
                 backgroundColor: "#0082ff",
                 justifyContent: "center",
@@ -625,6 +1042,30 @@ export default function SellerProfile() {
               >
                 Add New
               </Text>
+            </TouchableOpacity> */}
+            <TouchableOpacity
+              style={{
+                backgroundColor: "transparent",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "row",
+                paddingHorizontal: 14,
+                paddingVertical: 4,
+
+                borderRadius: 3,
+              }}
+              onPress={() => navigation.navigate("AddShippingMethod")}
+            >
+              <Text
+                style={{
+                  fontFamily: "Roboto_Medium",
+                  color: "#0082ff",
+                  marginRight: 6,
+                }}
+              >
+                Add New
+              </Text>
+              <IconMCI name={"plus"} color={"#0082ff"} size={20} />
             </TouchableOpacity>
           </View>
           {renderShippingMethods() ? (
@@ -650,8 +1091,8 @@ export default function SellerProfile() {
 
                         marginTop: 6,
                         marginLeft: 12,
-                        paddingHorizontal: 12,
-                        paddingVertical: 8,
+                        paddingHorizontal: 14,
+                        paddingVertical: 12,
 
                         borderRadius: 3,
                         backgroundColor: "#121212",
@@ -748,8 +1189,9 @@ export default function SellerProfile() {
 
                         marginTop: 6,
                         marginLeft: 12,
-                        paddingHorizontal: 12,
-                        paddingVertical: 8,
+
+                        paddingHorizontal: 14,
+                        paddingVertical: 12,
 
                         borderRadius: 3,
                         backgroundColor: "#121212",
@@ -832,8 +1274,12 @@ export default function SellerProfile() {
               style={{
                 alignItems: "center",
                 flexDirection: "row",
-                marginTop: 20,
-                width: "90%",
+                marginTop: 12,
+                backgroundColor: "#121212",
+                borderRadius: 6,
+                width: "96%",
+                paddingHorizontal: 12,
+                paddingVertical: 12,
               }}
             >
               <IconI name={"warning"} color={"yellow"} size={50} />
@@ -841,11 +1287,11 @@ export default function SellerProfile() {
                 <Text
                   style={{ fontSize: 20, fontWeight: "bold", color: "#888" }}
                 >
-                  No shipping methods available
+                  Add shipping methods
                 </Text>
                 <Text style={{ fontSize: 12, color: "#888", marginRight: 28 }}>
                   Any buyer cannot purchase your products without shipping
-                  method. Required immediate modification.
+                  method. Required immediate action.
                 </Text>
               </View>
             </View>
@@ -1027,6 +1473,11 @@ export default function SellerProfile() {
                 alignItems: "center",
                 flexDirection: "row",
                 marginTop: 12,
+                backgroundColor: "#121212",
+                borderRadius: 6,
+                width: "96%",
+                paddingHorizontal: 12,
+                paddingVertical: 12,
               }}
             >
               <IconMCI name={"timer-sand"} color={"#0082ff"} size={50} />

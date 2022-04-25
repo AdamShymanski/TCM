@@ -11,25 +11,26 @@ import {
   Image,
 } from "react-native";
 
-import { MaterialIcons } from "@expo/vector-icons";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import Stripe_logo from "../assets/Stripe_logo.png";
 
+import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
+
+import AlertModal from "../shared/Modals/AlertModal";
 import DeleteCardModal from "../shared/Modals/DeleteCardModal";
-import { AlertModal } from "../shared/Modals/AlertModal";
+
 import { CardYourOffers } from "../shared/Cards/CardYourOffers";
 
-import { db, fetchUsersCards, functions, auth } from "../authContext";
-
-import Stripe_logo from "../assets/Stripe_logo.png";
+import { db, functions, auth, fetchUsersCards } from "../authContext";
 
 export default function YourOffers() {
   const navigation = useNavigation();
 
   const [cardsData, setCardsData] = useState([]);
-  const [modalState, setModalState] = useState(null);
+  const [deleteModal, setDeleteModal] = useState(null);
   const [alertModal, setAlertModal] = useState(null);
   const [loadingState, setLoadingState] = useState(true);
   const [vendorId, setVendorId] = useState(undefined);
+  const [activityIndicator, setActivityIndicator] = useState(false);
 
   const [id, setId] = useState(null);
 
@@ -39,9 +40,7 @@ export default function YourOffers() {
       const doc = await db.collection("users").doc(auth.currentUser.uid).get();
       setVendorId(doc.data()?.stripe?.vendorId);
 
-      if (vendorId) {
-        setCardsData(await fetchUsersCards());
-      }
+      setCardsData(await fetchUsersCards());
     };
 
     resolvePromises();
@@ -50,16 +49,16 @@ export default function YourOffers() {
 
   useEffect(() => {
     const resolvePromises = async () => {
-      if (modalState === false) {
+      if (deleteModal === false) {
         setLoadingState(true);
-        setModalState(null);
+        setDeleteModal(null);
         setCardsData(await fetchUsersCards());
         setLoadingState(false);
       }
     };
 
     resolvePromises();
-  }, [modalState]);
+  }, [deleteModal]);
 
   return (
     <View
@@ -91,7 +90,7 @@ export default function YourOffers() {
                 alignItems: "center",
               }}
             >
-              <Icon
+              <IconMCI
                 name="shield-check"
                 color={"#0082ff"}
                 size={58}
@@ -124,52 +123,74 @@ export default function YourOffers() {
                 set up.
               </Text>
 
-              <TouchableOpacity
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "90%",
-                  backgroundColor: "#0082ff",
-                  paddingVertical: 8,
-                  marginLeft: "2%",
-                  marginTop: 10,
-                  marginBottom: 6,
-                  borderRadius: 4,
-                }}
-                onPress={() => {
-                  const query = functions.httpsCallable("createStripeAccount");
-
-                  query()
-                    .then((result) => {
-                      Linking.openURL(result.data);
-                    })
-                    .catch((err) => console.log(err));
-                }}
-              >
-                <Text
+              {activityIndicator ? (
+                <ActivityIndicator size={"large"} color={"#0082ff"} />
+              ) : (
+                <View
                   style={{
-                    color: "#121212",
-                    fontWeight: "700",
-                    fontSize: 15,
+                    width: "90%",
+                    flexDirection: "column",
+                    alignItems: "center",
                   }}
                 >
-                  {"Add Vendor Details"}
-                </Text>
-              </TouchableOpacity>
-              <View style={{ flexDirection: "row", marginTop: 12 }}>
-                <Text style={{ fontFamily: "Roboto_Medium", color: "#555555" }}>
-                  Powered by{"  "}
-                </Text>
-                <Image
-                  source={Stripe_logo}
-                  style={{
-                    aspectRatio: 282 / 117,
-                    width: undefined,
-                    height: 20,
-                  }}
-                />
-              </View>
+                  <TouchableOpacity
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "90%",
+                      backgroundColor: "#0082ff",
+                      paddingVertical: 8,
+                      marginLeft: "2%",
+                      marginTop: 10,
+                      marginBottom: 6,
+                      borderRadius: 4,
+                    }}
+                    onPress={() => {
+                      const query = functions.httpsCallable(
+                        "createStripeAccount"
+                      );
+
+                      setActivityIndicator(true);
+
+                      query()
+                        .then((result) => {
+                          Linking.openURL(result.data);
+                          setActivityIndicator(false);
+                        })
+                        .catch((err) => {
+                          console.log(err);
+                          setActivityIndicator(false);
+                        });
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#121212",
+                        fontWeight: "700",
+                        fontSize: 15,
+                      }}
+                    >
+                      {"Add Vendor Details"}
+                    </Text>
+                  </TouchableOpacity>
+                  <View style={{ flexDirection: "row", marginTop: 12 }}>
+                    <Text
+                      style={{ fontFamily: "Roboto_Medium", color: "#555555" }}
+                    >
+                      Powered by{"  "}
+                    </Text>
+                    <Image
+                      source={Stripe_logo}
+                      style={{
+                        aspectRatio: 282 / 117,
+                        width: undefined,
+                        height: 20,
+                      }}
+                    />
+                  </View>
+                </View>
+              )}
             </View>
           ) : (
             <View style={{ flex: 1 }}>
@@ -197,8 +218,8 @@ export default function YourOffers() {
                       navigation.navigate("AddCard");
                     }}
                   >
-                    <MaterialIcons
-                      name="add"
+                    <IconMCI
+                      name="plus"
                       size={24}
                       color="#f4f4f4"
                       style={{ position: "absolute", left: "25%" }}
@@ -211,7 +232,7 @@ export default function YourOffers() {
                         marginRight: 8,
                       }}
                     >
-                      {"Add a new Card"}
+                      {"Add a new card"}
                     </Text>
                   </TouchableOpacity>
                   <FlatList
@@ -220,7 +241,7 @@ export default function YourOffers() {
                       return (
                         <CardYourOffers
                           props={item}
-                          setModal={setModalState}
+                          setModal={setDeleteModal}
                           setId={setId}
                         />
                       );
@@ -237,7 +258,7 @@ export default function YourOffers() {
                     backgroundColor: "#1b1b1b",
                   }}
                 >
-                  <Icon
+                  <IconMCI
                     name="cards"
                     color={"#0082ff"}
                     size={58}
@@ -285,8 +306,8 @@ export default function YourOffers() {
                       navigation.navigate("AddCard");
                     }}
                   >
-                    <MaterialIcons
-                      name="add"
+                    <IconMCI
+                      name="plus"
                       size={24}
                       color="#121212"
                       style={{ position: "absolute", left: "25%" }}
@@ -299,7 +320,7 @@ export default function YourOffers() {
                         marginLeft: 12,
                       }}
                     >
-                      {"Add new Card"}
+                      {"Add a new card"}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -308,7 +329,9 @@ export default function YourOffers() {
           )}
         </View>
       )}
-      {modalState ? <DeleteCardModal setModal={setModalState} id={id} /> : null}
+      {deleteModal ? (
+        <DeleteCardModal setModal={setDeleteModal} id={id} />
+      ) : null}
       {alertModal ? <AlertModal setModal={setAlertModal} /> : null}
     </View>
   );

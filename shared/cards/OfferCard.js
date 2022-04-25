@@ -3,13 +3,12 @@ import React, { useState, useEffect } from "react";
 import ImageViewer from "react-native-image-zoom-viewer";
 import { View, Text, Image, TouchableOpacity, Modal } from "react-native";
 
-import condition_icon from "./../../assets/condition.png";
-
 import IconIO from "react-native-vector-icons/Ionicons";
 import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
 import IconM from "react-native-vector-icons/MaterialIcons";
 
 import cart_check from "./../../assets/cart_check.png";
+import condition_icon from "./../../assets/condition.png";
 
 import {
   auth,
@@ -27,7 +26,6 @@ import { useNavigation } from "@react-navigation/native";
 
 import SellerDetailsBar from "../SellerDetailsBar";
 // import { LinearGradient } from "expo-linear-gradient";
-import SellerProfile from "./../../screens/SellerProfile";
 
 export default function OfferCard({
   props,
@@ -75,9 +73,9 @@ export default function OfferCard({
 
   const [pokemonName, setPokemonName] = useState(false);
 
-  const navigation = useNavigation();
-
   const [shippingImposible, setShippingImposible] = useState(false);
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     let mounted = true;
@@ -145,8 +143,12 @@ export default function OfferCard({
   const clickSave = async () => {
     if (!isSaved) {
       try {
-        setSaveOffer(true);
-        saveOffer(auth.currentUser.uid, props.id);
+        if (props.owner !== auth.currentUser.uid) {
+          setSaveOffer(true);
+          saveOffer(auth.currentUser.uid, props.id);
+        } else {
+          setSnackbar("You can't save your own offer");
+        }
       } catch (err) {
         console.log(err);
       }
@@ -194,7 +196,7 @@ export default function OfferCard({
   const renderCartButton = () => {
     if (cartState) {
       return (
-        <TouchableOpacity
+        <View
           style={{
             width: 100,
             paddingVertical: 4.5,
@@ -219,7 +221,7 @@ export default function OfferCard({
             In Cart
           </Text>
           <Image source={cart_check} style={{ width: 19, height: 19 }} />
-        </TouchableOpacity>
+        </View>
       );
     }
 
@@ -239,11 +241,15 @@ export default function OfferCard({
           justifyContent: "center",
         }}
         onPress={() => {
-          if (shippingImposible) {
-            setSnackbar("Shipping is imposible for this item");
+          if (props.owner !== auth.currentUser.uid) {
+            if (shippingImposible) {
+              setSnackbar("Shipping is imposible for this item");
+            } else {
+              setCartState(true);
+              addToCart(props.id);
+            }
           } else {
-            setCartState(true);
-            addToCart(props.id);
+            setSnackbar("You can't add your own offer to cart");
           }
         }}
       >
@@ -281,6 +287,7 @@ export default function OfferCard({
           marginVertical: 6,
           marginRight: 20,
           marginLeft: 20,
+          marginBottom: 20,
         }}
       >
         <Modal visible={imageViewerState} transparent={true}>
@@ -330,7 +337,7 @@ export default function OfferCard({
           />
         </Modal>
 
-        <View style={{ marginVertical: 20 }}>
+        <View style={{ marginTop: 20 }}>
           <View
             style={{
               position: "relative",
@@ -369,6 +376,8 @@ export default function OfferCard({
                     screen: "OtherSellersOffers",
                     params: { sellerId: ownerId },
                   });
+                } else {
+                  setSnackbar("You can't go to your own profile");
                 }
               }}
             >
@@ -636,8 +645,25 @@ export default function OfferCard({
                   justifyContent: "center",
                 }}
                 onPress={() => {
-                  if (shippingImposible) {
-                    setSnackbar("Shipping is imposible for this item");
+                  if (props.owner !== auth.currentUser.uid) {
+                    if (shippingImposible) {
+                      setSnackbar("Shipping is imposible for this item");
+                    } else {
+                      navigation.navigate("CartStack", {
+                        screen: "Checkout",
+                        params: {
+                          instantBuy: [
+                            {
+                              data: [props],
+                              title: owner.nick,
+                              uid: props.owner,
+                            },
+                          ],
+                        },
+                      });
+                    }
+                  } else {
+                    setSnackbar("You can't buy your own item");
                   }
                 }}
               >
@@ -770,6 +796,8 @@ export default function OfferCard({
                     screen: "OtherSellersOffers",
                     params: { sellerId: ownerId },
                   });
+                } else {
+                  setSnackbar("You can't go to your own profile");
                 }
               }}
             >
@@ -858,8 +886,9 @@ export default function OfferCard({
                     alignItems: "center",
                     marginBottom: 12,
                     marginRight: 6,
+
+                    marginLeft: 12,
                     borderRadius: 3,
-                    paddingHorizontal: 16,
                   }}
                 >
                   <Image
@@ -886,7 +915,6 @@ export default function OfferCard({
                     </Text>
                   </Text>
                 </View>
-
                 <View
                   style={{
                     flexDirection: "row",
@@ -913,6 +941,10 @@ export default function OfferCard({
                   >
                     {languageVersion}
                   </Text>
+                </View>
+
+                <View style={{ marginRight: 12, marginTop: 4, marginLeft: 12 }}>
+                  {renderSaveIndicator()}
                 </View>
               </View>
 
@@ -997,10 +1029,6 @@ export default function OfferCard({
                 flexDirection: "row",
               }}
             >
-              <View style={{ marginRight: 12, marginTop: 4 }}>
-                {renderSaveIndicator()}
-              </View>
-
               {renderCartButton()}
 
               <TouchableOpacity
@@ -1017,7 +1045,18 @@ export default function OfferCard({
                   justifyContent: "center",
                 }}
                 onPress={() => {
-                  navigation.navigate("CartStack", { screen: "Checkout" });
+                  if (props.owner !== auth.currentUser.uid) {
+                    if (shippingImposible) {
+                      setSnackbar("Shipping is imposible for this item");
+                    } else {
+                      navigation.navigate("CartStack", {
+                        screen: "Checkout",
+                        params: { instantBuy: props },
+                      });
+                    }
+                  } else {
+                    setSnackbar("You can't buy your own item");
+                  }
                 }}
               >
                 <Text

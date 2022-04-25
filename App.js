@@ -16,8 +16,8 @@ import Home from "./screens/Home.js";
 import Thanks from "./screens/Thanks";
 import Cart from "./screens/Cart";
 import Login from "./screens/Login.js";
-import Welcome from "./screens/Welcome.js";
 import AddCard from "./screens/AddCard.js";
+import Welcome from "./screens/Welcome.js";
 import StartChat from "./screens/StartChat";
 import EditCard from "./screens/EditCard.js";
 import Settings from "./screens/Settings.js";
@@ -35,10 +35,13 @@ import Search from "./screens/Search";
 import Rating from "./screens/subscreens/Seller/Rating";
 import Checkout from "./screens/Checkout";
 import Transactions from "./screens/Transactions";
+
 import AddShippingMethod from "./screens/subscreens/Seller/AddShippingMethod";
-import TransactionDetails from "./screens/subscreens/Transactions/TransactionDetails";
-import AddAddress from "./screens/subscreens/Checkout/AddAddress";
 import EditShippingMethod from "./screens/subscreens/Seller/EditShippingMethod";
+import TransactionDetails from "./screens/subscreens/Transactions/TransactionDetails";
+import Settings_AddAddress from "./screens/subscreens/Settings/Settings_AddAddress";
+import Settings_EditAddress from "./screens/subscreens/Settings/Settings_EditAddress";
+import Checkout_AddAddress from "./screens/subscreens/Checkout/Checkout_AddAddres";
 
 import History from "./screens/subscreens/Seller/History";
 import ReferralProgram from "./screens/ReferralProgram";
@@ -73,11 +76,13 @@ const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 const prefix = Linking.makeUrl("/");
 
-Sentry.init({
-  dsn: "https://6131440690cd436b8802bd5b1318e1a6@o1133377.ingest.sentry.io/6179878",
-  enableInExpoDevelopment: true,
-  debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
-});
+if (!__DEV__) {
+  Sentry.init({
+    dsn: "https://6131440690cd436b8802bd5b1318e1a6@o1133377.ingest.sentry.io/6179878",
+    enableInExpoDevelopment: true,
+    debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
+  });
+}
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -102,7 +107,6 @@ async function registerForPushNotificationsAsync() {
       return;
     }
     token = (await Notifications.getExpoPushTokenAsync()).data;
-    console.log(token);
   } else {
     // alert("Must use physical device for Push Notifications");
   }
@@ -226,6 +230,92 @@ function SettingsStack() {
             backgroundColor: "#121212",
           },
         }}
+      />
+      <Stack.Screen
+        name="Settings_AddAddress"
+        component={Settings_AddAddress}
+        options={({ navigation, route }) => ({
+          headerLeft: () => {
+            return (
+              <TouchableOpacity
+                style={{
+                  borderRadius: 3,
+                  marginLeft: 12,
+
+                  height: 30,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderWidth: 2,
+                  borderColor: "#777777",
+                  paddingHorizontal: 12,
+                }}
+                onPress={() => {
+                  navigation.goBack();
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#777777",
+                  }}
+                >
+                  Go Back
+                </Text>
+              </TouchableOpacity>
+            );
+          },
+
+          headerTintColor: "#121212",
+          headerTitle: "",
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        })}
+      />
+      <Stack.Screen
+        name="Settings_EditAddress"
+        component={Settings_EditAddress}
+        options={({ navigation, route }) => ({
+          headerLeft: () => {
+            return (
+              <TouchableOpacity
+                style={{
+                  borderRadius: 3,
+                  marginLeft: 12,
+
+                  height: 30,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderWidth: 2,
+                  borderColor: "#777777",
+                  paddingHorizontal: 12,
+                }}
+                onPress={() => {
+                  navigation.goBack();
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#777777",
+                  }}
+                >
+                  Go Back
+                </Text>
+              </TouchableOpacity>
+            );
+          },
+
+          headerTintColor: "#121212",
+          headerTitle: "",
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        })}
       />
     </Stack.Navigator>
   );
@@ -400,10 +490,9 @@ function CartStack() {
           },
         })}
       />
-
       <Stack.Screen
-        name="AddAddress"
-        component={AddAddress}
+        name="Checkout_AddAddress"
+        component={Checkout_AddAddress}
         options={({ navigation, route }) => ({
           headerLeft: () => {
             if (checkoutPageState !== "endPage") {
@@ -601,16 +690,6 @@ function YourOffersStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="WorkInProgress"
-        component={WorkInProgress}
-        options={{
-          headerTitle: () => <CustomHeader version={"workInProgress"} />,
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        }}
-      />
-      <Stack.Screen
         name="YourOffers"
         component={YourOffers}
         options={{
@@ -638,7 +717,9 @@ function YourOffersStack() {
                 borderColor: "#777777",
                 paddingHorizontal: 12,
               }}
-              onPress={() => navigation.navigate("AddCard")}
+              onPress={() =>
+                navigation.navigate("YourOffersStack", { screen: "AddCard" })
+              }
             >
               <Text
                 style={{
@@ -657,6 +738,16 @@ function YourOffersStack() {
             backgroundColor: "#121212",
           },
         })}
+      />
+      <Stack.Screen
+        name="WorkInProgress"
+        component={WorkInProgress}
+        options={{
+          headerTitle: () => <CustomHeader version={"workInProgress"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
       />
       <Stack.Screen
         name="ImageBrowser"
@@ -789,20 +880,20 @@ function SellerStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="WorkInProgress"
-        component={WorkInProgress}
+        name="SellerProfile"
+        component={SellerProfile}
         options={{
-          headerTitle: () => <CustomHeader version={"workInProgress"} />,
+          headerTitle: () => <CustomHeader version={"sellerProfile"} />,
           headerStyle: {
             backgroundColor: "#121212",
           },
         }}
       />
       <Stack.Screen
-        name="SellerProfile"
-        component={SellerProfile}
+        name="WorkInProgress"
+        component={WorkInProgress}
         options={{
-          headerTitle: () => <CustomHeader version={"sellerProfile"} />,
+          headerTitle: () => <CustomHeader version={"workInProgress"} />,
           headerStyle: {
             backgroundColor: "#121212",
           },
@@ -1118,6 +1209,16 @@ function HomeStack() {
 function ReferralProgramStack() {
   return (
     <Stack.Navigator>
+      <Stack.Screen
+        name="WorkInProgress"
+        component={WorkInProgress}
+        options={{
+          headerTitle: () => <CustomHeader version={"workInProgress"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
       <Stack.Screen
         name="ReferralProgram"
         component={ReferralProgram}
@@ -1439,7 +1540,10 @@ export default function App() {
               )}
             >
               <Drawer.Screen name="HomeStack" component={HomeStack} />
+              <Drawer.Screen name="SettingsStack" component={SettingsStack} />
               <Drawer.Screen name="CartStack" component={CartStack} />
+              <Drawer.Screen name="SellerStack" component={SellerStack} />
+              <Drawer.Screen name="SearchStack" component={SearchStack} />
               <Drawer.Screen
                 name="TransactionsStack"
                 component={TransactionsStack}
@@ -1448,10 +1552,6 @@ export default function App() {
                 name="YourOffersStack"
                 component={YourOffersStack}
               />
-
-              <Drawer.Screen name="SellerStack" component={SellerStack} />
-              <Drawer.Screen name="SettingsStack" component={SettingsStack} />
-              <Drawer.Screen name="SearchStack" component={SearchStack} />
               <Drawer.Screen
                 name="ReferralProgramStack"
                 component={ReferralProgramStack}

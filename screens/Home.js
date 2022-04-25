@@ -32,7 +32,7 @@ export default function Home() {
         }}
         onPress={() => {
           navigation.navigate("ReferralProgramStack", {
-            screen: "ReferralProgram",
+            screen: "WorkInProgress",
           });
         }}
       >
@@ -99,7 +99,7 @@ export default function Home() {
           paddingVertical: 8,
         }}
         onPress={() => {
-          navigation.navigate("YourOffersStack", { screen: "WorkInProgress" });
+          navigation.navigate("YourOffersStack", { screen: "YourOffers" });
         }}
       >
         <View>
@@ -177,7 +177,7 @@ export default function Home() {
           paddingVertical: 8,
         }}
         onPress={() => {
-          navigation.navigate("SearchStack");
+          navigation.navigate("SearchStack", { screen: "Search" });
         }}
       >
         <View>

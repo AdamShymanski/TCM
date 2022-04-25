@@ -25,10 +25,17 @@ import {
   fetchCardsName,
 } from "../../authContext";
 
-export function CardSellerProfile({ props, isSavedState, cartArray }) {
+import { Snackbar } from "react-native-paper";
+
+export function CardSellerProfile({
+  props,
+  isSavedState,
+  cartArray,
+  userCountry,
+}) {
   const condition = props.condition;
+  const price = props.price.toFixed(2);
   const description = props.description;
-  const price = props.price;
   const languageVersion = props.languageVersion;
 
   let cardPhotos = [];
@@ -37,7 +44,10 @@ export function CardSellerProfile({ props, isSavedState, cartArray }) {
   const [loadingState, setLoading] = useState(true);
   const [pokemonName, setPokemonName] = useState("");
   const [imageViewerState, setImageViewer] = useState(false);
+
   const [cartState, setCartState] = useState(false);
+  const [snackbarState, setSnackbar] = useState(false);
+  const [shippingImposible, setShippingImposible] = useState(false);
 
   const [photosArray, setPhotosArray] = useState([
     {
@@ -62,6 +72,9 @@ export function CardSellerProfile({ props, isSavedState, cartArray }) {
         });
 
         setPokemonName(await fetchCardsName(props.cardId));
+
+        await fetchOwnerData(props.owner, userCountry, setShippingImposible);
+
         setLoading(false);
       }
     };
@@ -118,7 +131,7 @@ export function CardSellerProfile({ props, isSavedState, cartArray }) {
         color={"#0082ff"}
         size={26}
         onPress={() => {
-          if (ownerId === auth.currentUser.uid) {
+          if (props.owner === auth.currentUser.uid) {
             setSnackbar("You can't save your own offer");
           } else {
             clickSave();
@@ -131,7 +144,7 @@ export function CardSellerProfile({ props, isSavedState, cartArray }) {
   const renderCartButton = () => {
     if (cartState) {
       return (
-        <TouchableOpacity
+        <View
           style={{
             width: 100,
             paddingVertical: 4.5,
@@ -156,7 +169,7 @@ export function CardSellerProfile({ props, isSavedState, cartArray }) {
             In Cart
           </Text>
           <Image source={cart_check} style={{ width: 19, height: 19 }} />
-        </TouchableOpacity>
+        </View>
       );
     }
 
@@ -176,8 +189,16 @@ export function CardSellerProfile({ props, isSavedState, cartArray }) {
           justifyContent: "center",
         }}
         onPress={() => {
-          setCartState(true);
-          addToCart(props.id);
+          if (props.owner !== auth.currentUser.uid) {
+            if (shippingImposible) {
+              setSnackbar("Shipping is imposible for this item");
+            } else {
+              setCartState(true);
+              addToCart(props.id);
+            }
+          } else {
+            setSnackbar("You can't add your own offer to cart");
+          }
         }}
       >
         <Text
@@ -456,14 +477,12 @@ export function CardSellerProfile({ props, isSavedState, cartArray }) {
               <IconMI name={"tag"} color={"#0082ff"} size={22} />
             </View>
             <Text style={{ fontSize: 18, fontWeight: "700", color: "#f4f4f4" }}>
-              {price.toFixed(2)}
+              {price}
             </Text>
 
-            <Text
-                style={{ color: "#CDCDCD", fontSize: 14, fontWeight: "700" }}
-              >
-                {"  USD"}
-              </Text>
+            <Text style={{ color: "#CDCDCD", fontSize: 14, fontWeight: "700" }}>
+              {"  USD"}
+            </Text>
           </View>
 
           <View
@@ -486,6 +505,20 @@ export function CardSellerProfile({ props, isSavedState, cartArray }) {
                 alignItems: "center",
                 justifyContent: "center",
               }}
+              onPress={() => {
+                if (props.owner !== auth.currentUser.uid) {
+                  if (shippingImposible) {
+                    setSnackbar("Shipping is imposible for this item");
+                  } else {
+                    navigation.navigate("CartStack", {
+                      screen: "Checkout",
+                      params: { instantBuy: props },
+                    });
+                  }
+                } else {
+                  setSnackbar("You can't buy your own item");
+                }
+              }}
             >
               <Text
                 style={{
@@ -506,6 +539,17 @@ export function CardSellerProfile({ props, isSavedState, cartArray }) {
             </TouchableOpacity>
           </View>
         </View>
+        <Snackbar
+          visible={snackbarState}
+          duration={2000}
+          onDismiss={() => setSnackbar(false)}
+          action={{
+            label: "",
+            onPress: () => {},
+          }}
+        >
+          {snackbarState}
+        </Snackbar>
       </View>
     );
   } else {

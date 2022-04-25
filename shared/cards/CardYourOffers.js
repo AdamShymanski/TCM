@@ -14,6 +14,7 @@ import language_icon from "./../../assets/language.png";
 import condition_icon from "./../../assets/condition.png";
 
 import IconIO from "react-native-vector-icons/Ionicons";
+import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 
 import { fetchPhotos, fetchCardsName } from "../../authContext";
 
@@ -82,31 +83,24 @@ export function CardYourOffers({ props, setModal, setId }) {
 
             marginTop: 18,
             paddingHorizontal: 12,
-            paddingVertical: 12,
+            paddingVertical: 8,
 
-            backgroundColor: "#121212",
-            borderTopLeftRadius: 6,
-            borderTopRightRadius: 6,
+            backgroundColor: "#59520d",
+            borderTopLeftRadius: 4,
+            borderTopRightRadius: 4,
           }}
         >
-          <View
-            style={{
-              width: 9,
-              height: 9,
-              backgroundColor: "#b09b00",
-              borderRadius: 10,
-            }}
-          />
           <Text
             style={{
-              color: "#ffe100",
+              color: "#FFE600",
               fontFamily: "Roboto_Medium",
-              marginLeft: 6,
+              marginRight: 6,
               fontSize: 10,
             }}
           >
             VERIFICATION PENDING
           </Text>
+          <IconMCI name={"clock"} size={16} color={"#FFE600"} />
         </View>
       );
     }
@@ -122,32 +116,25 @@ export function CardYourOffers({ props, setModal, setId }) {
 
             marginTop: 18,
             paddingHorizontal: 12,
-            paddingVertical: 12,
+            paddingVertical: 8,
 
-            backgroundColor: "#121212",
-            borderTopLeftRadius: 6,
-            borderTopRightRadius: 6,
+            backgroundColor: "#114a10",
+            borderTopLeftRadius: 4,
+            borderTopRightRadius: 4,
           }}
         >
-          <View
-            style={{
-              width: 9,
-              height: 9,
-              backgroundColor: "#0dba1e",
-              borderRadius: 10,
-            }}
-          />
           <Text
             style={{
               color: "#0dff25",
 
-              fontFamily: "Roboto_Medium",
-              marginLeft: 6,
               fontSize: 10,
+              marginRight: 6,
+              fontFamily: "Roboto_Medium",
             }}
           >
             PUBLISHED
           </Text>
+          <IconMCI name={"check"} size={16} color={"#0DCA09"} />
         </View>
       );
     }
@@ -163,31 +150,25 @@ export function CardYourOffers({ props, setModal, setId }) {
 
             marginTop: 18,
             paddingHorizontal: 12,
-            paddingVertical: 12,
+            paddingVertical: 8,
 
-            backgroundColor: "#121212",
-            borderTopLeftRadius: 6,
-            borderTopRightRadius: 6,
+            backgroundColor: "#4a1010",
+            borderTopLeftRadius: 4,
+            borderTopRightRadius: 4,
           }}
         >
-          <View
-            style={{
-              width: 9,
-              height: 9,
-              backgroundColor: "#990000",
-              borderRadius: 10,
-            }}
-          />
           <Text
             style={{
-              color: "#ff0000",
-              fontFamily: "Roboto_Medium",
-              marginLeft: 6,
+              color: "#C31313",
+
               fontSize: 10,
+              marginRight: 6,
+              fontFamily: "Roboto_Medium",
             }}
           >
             REJECTED
           </Text>
+          <IconMCI name={"cancel"} size={16} color={"#C31313"} />
         </View>
       );
     }
@@ -433,7 +414,7 @@ export function CardYourOffers({ props, setModal, setId }) {
               }}
             >
               <View style={{ marginRight: 6 }}>
-                <IconMI name={"tag"} color={"#0082ff"} size={22} />
+                <IconMCI name={"tag"} color={"#0082ff"} size={22} />
               </View>
               <Text
                 style={{ fontSize: 18, fontWeight: "700", color: "#f4f4f4" }}

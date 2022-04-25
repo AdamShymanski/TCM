@@ -119,7 +119,7 @@ export default function CustomDrawer({ navigation }) {
               labelStyle={{ color: "#f4f4f4" }}
               label="Cart"
               onPress={() => {
-                navigation.navigate("CartStack");
+                navigation.navigate("CartStack", { screen: "Cart" });
               }}
             />
             <DrawerItem
@@ -218,7 +218,7 @@ export default function CustomDrawer({ navigation }) {
             labelStyle={{ color: "#f4f4f4" }}
             label="Seller Profile"
             onPress={() => {
-              navigation.navigate("SellerStack", { screen: "WorkInProgress" });
+              navigation.navigate("SellerStack", { screen: "SellerProfile" });
             }}
           />
 

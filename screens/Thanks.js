@@ -3,7 +3,7 @@ import { Image, View, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 import ditto from "../assets/ditto.png";
-import signature from "../assets/signature.png";
+import signature from "../assets/signature_x.png";
 
 const Thanks = () => {
   const navigator = useNavigation();
@@ -51,7 +51,6 @@ const Thanks = () => {
 
         <TouchableOpacity
           style={{
-            height: 30,
             width: "88%",
             alignItems: "center",
             justifyContent: "center",
@@ -59,10 +58,11 @@ const Thanks = () => {
 
             marginBottom: 50,
 
+            paddingVertical: 6,
             paddingHorizontal: 12,
 
-            borderColor: "#0082ff",
             borderRadius: 3,
+            borderColor: "#0082ff",
             backgroundColor: "#0082ff",
           }}
           onPress={() => {
@@ -70,7 +70,7 @@ const Thanks = () => {
               index: 0,
               routes: [{ name: "YourOffers" }],
             });
-            navigator.navigate("Home");
+            navigator.navigate("YourOffersStack", { screen: "YourOffers" });
           }}
         >
           <Text
@@ -109,7 +109,7 @@ const Thanks = () => {
         <Image
           source={signature}
           style={{
-            aspectRatio: 734 / 340,
+            aspectRatio: 416 / 86,
             width: "40%",
             height: undefined,
             marginTop: 20,

@@ -7,7 +7,6 @@ import {
   auth,
   fetchPhotos,
   fetchCardsName,
-  removeFromCart,
 } from "../../authContext";
 
 export default function SummaryObject({ props, last }) {

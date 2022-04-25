@@ -696,8 +696,8 @@ export default function EditShippingMethod({ route }) {
               style={{
                 marginTop: 6,
 
-                paddingHorizontal: 12,
-                paddingVertical: 8,
+                paddingHorizontal: 18,
+                paddingVertical: 16,
 
                 borderRadius: 3,
                 backgroundColor: "#121212",

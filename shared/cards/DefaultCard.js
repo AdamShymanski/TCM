@@ -4,27 +4,36 @@ import ImageViewer from "react-native-image-zoom-viewer";
 import { View, Image, Text, TouchableOpacity, Modal } from "react-native";
 
 import inStock from "../../assets/in_stock.png";
+import tag_arrow_up from "../../assets/tag_arrow_up.png";
+import tag_arrow_down from "../../assets/tag_arrow_down.png";
+
 import bluePricetag from "../../assets/blue_pricetag.png";
 
-import { fetchBigCardsDetails } from "../../authContext";
-import OtherSellersOffers from "./../../screens/OtherSellersOffers";
+import { fetchDefaultCardsDetails } from "../../authContext";
+
+import IconMI from "react-native-vector-icons/MaterialIcons";
 
 export default function DefaultCard({ props, setId, setProps }) {
   const [imageViewerState, setImageViewer] = useState(false);
   const [details, setDetails] = useState([0, 0, 0]);
 
   useEffect(() => {
-    return fetchBigCardsDetails(props.id, setDetails);
+    let mounted = true;
+    const resolvePromises = async () => {
+      await fetchDefaultCardsDetails(props.id, setDetails, mounted);
+    };
+    resolvePromises();
+    return () => (mounted = false);
   }, []);
 
   const returnFontSize = (string) => {
     if (string.length > 20) {
       return 10;
-    }
-    if (string.length > 14) {
+    } else if (string.length > 14) {
       return 13;
+    } else {
+      return 18;
     }
-    return 18;
   };
 
   return (
@@ -110,7 +119,7 @@ export default function DefaultCard({ props, setId, setProps }) {
           style={{
             width: '90%',
             height: undefined,
-            aspectRatio: 1 / 1.22,
+            aspectRatio: 1 / 1.31,
             backgroundColor: "#121212",
             borderRadius: 8,
 
@@ -131,46 +140,56 @@ export default function DefaultCard({ props, setId, setProps }) {
           {details[0] === 0 ? (
             <View
               style={{
-                flex: 1,
+                marginTop: "20%",
                 justifyContent: "center",
                 alignItems: "center",
+                borderRadius: 4,
+
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+                backgroundColor: "#4a1010",
+
+                alignSelf: "center",
               }}
             >
-              <Text
+              {/* <Text
                 style={{
                   fontWeight: "700",
-                  color: "#970000",
+                  color: "#C31313",
                   fontSize: 14,
                 }}
               >
                 OUT OF STOCK
-              </Text>
+              </Text> */}
+
+              <IconMI name="remove-shopping-cart" size={32} color="#C31313" />
             </View>
           ) : (
             <View
               style={{
                 flexDirection: "column",
-                alignItems: "center",
+                alignItems: "flex-start",
+                width: "76%",
               }}
             >
               <View
                 style={{
                   flexDirection: "row",
-                  alignItems: "center",
+                  alignItems: "flex-start",
                   marginTop: 12,
                 }}
               >
                 <Image
                   source={inStock}
                   style={{
-                    width: 21,
+                    width: 16,
                     height: undefined,
                     aspectRatio: 22 / 21.1,
                     marginRight: 8,
                   }}
                 />
                 <Text
-                  style={{ fontWeight: "700", fontSize: 14, color: "#f4f4f4" }}
+                  style={{ fontWeight: "700", fontSize: 12, color: "#f4f4f4" }}
                 >
                   {details[0]}
                 </Text>
@@ -178,63 +197,53 @@ export default function DefaultCard({ props, setId, setProps }) {
 
               <View
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginTop: 12,
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  marginTop: 8,
                 }}
               >
-                <Image
-                  source={bluePricetag}
-                  style={{
-                    width: 18,
-                    height: undefined,
-                    aspectRatio: 1 / 1,
-                    marginRight: 8,
-                  }}
-                />
                 <View
                   style={{
                     flexDirection: "row",
                     alignItems: "center",
-                    width: "60%",
-                    justifyContent: "space-evenly",
+                    marginTop: 6,
                   }}
                 >
-                  <Text
-                    style={{
-                      fontWeight: "600",
-                      fontSize: 10,
-                      color: "#696969",
-                    }}
-                  >
-                    from
-                  </Text>
+                  <Image
+                    source={tag_arrow_down}
+                    style={{ width: 14, height: 14, marginRight: 8 }}
+                  />
                   <Text
                     style={{
                       fontWeight: "700",
-                      color: "#f4f4f4",
                       fontSize: 12,
+                      color: "#f4f4f4",
                     }}
                   >
-                    {details[2]}
+                    {details[2].toFixed(2)}{" "}
+                    <Text style={{ color: "#CDCDCD" }}> USD</Text>
                   </Text>
-                  <Text
-                    style={{
-                      fontWeight: "600",
-                      fontSize: 10,
-                      color: "#696969",
-                    }}
-                  >
-                    to
-                  </Text>
+                </View>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginTop: 3,
+                  }}
+                >
+                  <Image
+                    source={tag_arrow_up}
+                    style={{ width: 14, height: 14, marginRight: 8 }}
+                  />
                   <Text
                     style={{
                       fontWeight: "700",
-                      color: "#f4f4f4",
                       fontSize: 12,
+                      color: "#f4f4f4",
                     }}
                   >
-                    {details[1]} USD
+                    {details[1].toFixed(2)}{" "}
+                    <Text style={{ color: "#CDCDCD" }}> USD</Text>
                   </Text>
                 </View>
               </View>
@@ -262,6 +271,7 @@ export default function DefaultCard({ props, setId, setProps }) {
                   setProps((prevProps) => ({
                     ...prevProps,
                     screen: "offers",
+                    loadingState: true,
                   }));
                 }
               }}

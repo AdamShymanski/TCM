@@ -17,7 +17,7 @@ import Icon from "react-native-vector-icons/Octicons";
 import cart_down_icon from "../../../assets/cart_down.png";
 import cart_up_icon from "../../../assets/cart_up.png";
 
-import { auth, db, fetchPhotos } from "../../../authContext";
+import { auth, fetchOwnerData, fetchPhotos } from "../../../authContext";
 import { Snackbar } from "react-native-paper";
 
 export default function TransactionDetails({ route }) {
@@ -59,13 +59,19 @@ export default function TransactionDetails({ route }) {
 
   useEffect(() => {
     const resolvePromises = async () => {
-      await db
-        .collection("users")
-        .doc(props.seller === auth.currentUser.uid ? props.buyer : props.seller)
-        .get()
-        .then((doc) => {
-          setVendor(doc.data());
-        });
+      // await db
+      //   .collection("users")
+      //   .doc(props.seller === auth.currentUser.uid ? props.buyer : props.seller)
+      //   .get()
+      //   .then((doc) => {
+      //     setVendor(doc.data());
+      //   });
+
+      setVendor(
+        await fetchOwnerData(
+          props.seller === auth.currentUser.uid ? props.buyer : props.seller
+        )
+      );
 
       const promise = new Promise((resolve, reject) => {
         offersArray.forEach(async (item, index) => {
@@ -93,75 +99,77 @@ export default function TransactionDetails({ route }) {
         paddingBottom: 22,
       }}
     >
-      <Text
-        style={{
-          color: "#f4f4f4",
-          fontWeight: "700",
-          fontSize: 24,
-          marginVertical: 12,
-        }}
-      >
-        Vendor
-      </Text>
-      <View
-        style={{
-          height: 100,
-          marginBottom: 18,
-          borderRadius: 3,
-          flexDirection: "row",
-          backgroundColor: "#121212",
+      {props.buyer === auth.currentUser.uid ? (
+        <View>
+          <Text
+            style={{
+              color: "#f4f4f4",
+              fontWeight: "700",
+              fontSize: 24,
+              marginVertical: 12,
+            }}
+          >
+            Vendor
+          </Text>
+          <View
+            style={{
+              height: 100,
+              marginBottom: 18,
+              borderRadius: 3,
+              flexDirection: "row",
+              backgroundColor: "#121212",
 
-          paddingLeft: 12,
-          marginRight: 12,
-        }}
-      >
-        <View style={{ justifyContent: "center" }}>
-          <View style={{ flexDirection: "row", marginBottom: 3 }}>
-            <Image
-              style={{ width: 28, height: 21, marginRight: 12 }}
-              source={{
-                uri: `https://flagcdn.com/160x120/pl.png`,
-              }}
-            />
-            <Text
-              style={{
-                color: "#f4f4f4",
-                marginBottom: 12,
-                fontWeight: "700",
-                fontSize: 15,
-              }}
-            >
-              {vendor.nick}
-            </Text>
-          </View>
+              paddingLeft: 12,
+              marginRight: 12,
+            }}
+          >
+            <View style={{ justifyContent: "center" }}>
+              <View style={{ flexDirection: "row", marginBottom: 3 }}>
+                <Image
+                  style={{ width: 28, height: 21, marginRight: 12 }}
+                  source={{
+                    uri: `https://flagcdn.com/160x120/${vendor.countryCode}.png`,
+                  }}
+                />
+                <Text
+                  style={{
+                    color: "#f4f4f4",
+                    marginBottom: 12,
+                    fontWeight: "700",
+                    fontSize: 15,
+                  }}
+                >
+                  {vendor.nick}
+                </Text>
+              </View>
 
-          <View style={{ flexDirection: "row" }}>
-            <IconMI
-              name={"star-outline"}
-              size={15}
-              style={{ color: "#f4f4f4" }}
-            />
-            <IconMI
-              name={"star-outline"}
-              size={15}
-              style={{ color: "#f4f4f4" }}
-            />
-            <IconMI
-              name={"star-outline"}
-              size={15}
-              style={{ color: "#f4f4f4" }}
-            />
-            <IconMI
-              name={"star-outline"}
-              size={15}
-              style={{ color: "#f4f4f4" }}
-            />
-            <IconMI
-              name={"star-outline"}
-              size={15}
-              style={{ color: "#f4f4f4" }}
-            />
-            {/* <Text
+              <View style={{ flexDirection: "row" }}>
+                <IconMI
+                  name={"star-outline"}
+                  size={15}
+                  style={{ color: "#f4f4f4" }}
+                />
+                <IconMI
+                  name={"star-outline"}
+                  size={15}
+                  style={{ color: "#f4f4f4" }}
+                />
+                <IconMI
+                  name={"star-outline"}
+                  size={15}
+                  style={{ color: "#f4f4f4" }}
+                />
+                <IconMI
+                  name={"star-outline"}
+                  size={15}
+                  style={{ color: "#f4f4f4" }}
+                />
+                <IconMI
+                  name={"star-outline"}
+                  size={15}
+                  style={{ color: "#f4f4f4" }}
+                />
+                {/* <Text
               style={{
                 color: "#f4f4f4",
                 fontSize: 13,
@@ -171,160 +179,165 @@ export default function TransactionDetails({ route }) {
             >
               0
             </Text> */}
+              </View>
+              <Text
+                style={{ color: "#9C9C9C", fontSize: 10, fontWeight: "700" }}
+              >
+                No rating yet
+              </Text>
+            </View>
+            <View
+              style={{
+                justifyContent: "center",
+                marginLeft: 42,
+                marginRight: 54,
+              }}
+            >
+              <View style={{ flexDirection: "row", marginBottom: 22 }}>
+                <IconMCI
+                  name="eye"
+                  size={16}
+                  style={{ color: "#0082ff", marginRight: 4 }}
+                />
+                <Text
+                  style={{
+                    color: "#f4f4f4",
+                    fontSize: 13,
+                    fontWeight: "700",
+                    marginRight: 12,
+                  }}
+                >
+                  {loading ? 0 : vendor.sellerProfile.statistics.visits}
+                </Text>
+                <IconMCI
+                  name="cards-outline"
+                  size={17}
+                  style={{ color: "#0082ff", marginRight: 4 }}
+                />
+                <Text
+                  style={{
+                    color: "#f4f4f4",
+                    fontSize: 13,
+                    fontWeight: "700",
+                  }}
+                >
+                  {loading ? 0 : vendor.sellerProfile.statistics.numberOfOffers}
+                </Text>
+              </View>
+              <View style={{ flexDirection: "row" }}>
+                <Image
+                  source={cart_up_icon}
+                  style={{
+                    height: undefined,
+                    aspectRatio: 23 / 26,
+                    width: 16,
+                    marginRight: 4,
+                  }}
+                />
+                <Text
+                  style={{
+                    color: "#f4f4f4",
+                    fontSize: 13,
+                    fontWeight: "700",
+                    marginRight: 12,
+                  }}
+                >
+                  {loading ? 0 : vendor.sellerProfile.statistics.sales}
+                </Text>
+                <Image
+                  source={cart_down_icon}
+                  style={{
+                    height: undefined,
+                    aspectRatio: 23 / 26,
+                    width: 16,
+                    marginRight: 4,
+                  }}
+                />
+                <Text
+                  style={{
+                    color: "#f4f4f4",
+                    fontSize: 13,
+                    fontWeight: "700",
+                  }}
+                >
+                  {loading ? 0 : vendor.sellerProfile.statistics.purchases}
+                </Text>
+              </View>
+            </View>
+            <View
+              style={{
+                justifyContent: "center",
+              }}
+            >
+              <TouchableOpacity
+                style={{
+                  alignItems: "center",
+                  flexDirection: "row",
+                  justifyContent: "center",
+
+                  borderWidth: 2,
+                  borderRadius: 3,
+                  borderColor: "#5c5c5c",
+                  paddingVertical: 3,
+                  paddingHorizontal: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#5c5c5c",
+
+                    fontSize: 13,
+                    fontWeight: "700",
+
+                    marginRight: 4,
+                  }}
+                >
+                  Report
+                </Text>
+                <IconMCI
+                  name={"flag-plus-outline"}
+                  size={17}
+                  style={{ color: "#5c5c5c" }}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  alignItems: "center",
+                  flexDirection: "row",
+                  justifyContent: "center",
+
+                  borderRadius: 3,
+
+                  marginTop: 12,
+                  paddingVertical: 4.5,
+                  paddingHorizontal: 12,
+
+                  backgroundColor: "#0082ff",
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#121212",
+
+                    fontSize: 13,
+                    fontWeight: "700",
+
+                    marginRight: 4,
+                  }}
+                >
+                  All Offers
+                </Text>
+                <IconMCI
+                  name={"cards-outline"}
+                  size={17}
+                  style={{ color: "#121212" }}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
-          <Text style={{ color: "#9C9C9C", fontSize: 10, fontWeight: "700" }}>
-            No rating yet
-          </Text>
         </View>
-        <View
-          style={{
-            justifyContent: "center",
-            marginLeft: 42,
-            marginRight: 54,
-          }}
-        >
-          <View style={{ flexDirection: "row", marginBottom: 22 }}>
-            <IconMCI
-              name="eye"
-              size={16}
-              style={{ color: "#0082ff", marginRight: 4 }}
-            />
-            <Text
-              style={{
-                color: "#f4f4f4",
-                fontSize: 13,
-                fontWeight: "700",
-                marginRight: 12,
-              }}
-            >
-              {loading ? 0 : vendor.sellerProfile.statistics.visits}
-            </Text>
-            <IconMCI
-              name="cards-outline"
-              size={17}
-              style={{ color: "#0082ff", marginRight: 4 }}
-            />
-            <Text
-              style={{
-                color: "#f4f4f4",
-                fontSize: 13,
-                fontWeight: "700",
-              }}
-            >
-              {loading ? 0 : vendor.sellerProfile.statistics.numberOfOffers}
-            </Text>
-          </View>
-          <View style={{ flexDirection: "row" }}>
-            <Image
-              source={cart_up_icon}
-              style={{
-                height: undefined,
-                aspectRatio: 23 / 26,
-                width: 16,
-                marginRight: 4,
-              }}
-            />
-            <Text
-              style={{
-                color: "#f4f4f4",
-                fontSize: 13,
-                fontWeight: "700",
-                marginRight: 12,
-              }}
-            >
-              {loading ? 0 : vendor.sellerProfile.statistics.sales}
-            </Text>
-            <Image
-              source={cart_down_icon}
-              style={{
-                height: undefined,
-                aspectRatio: 23 / 26,
-                width: 16,
-                marginRight: 4,
-              }}
-            />
-            <Text
-              style={{
-                color: "#f4f4f4",
-                fontSize: 13,
-                fontWeight: "700",
-              }}
-            >
-              {loading ? 0 : vendor.sellerProfile.statistics.purchases}
-            </Text>
-          </View>
-        </View>
-        <View
-          style={{
-            justifyContent: "center",
-          }}
-        >
-          <TouchableOpacity
-            style={{
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "center",
+      ) : null}
 
-              borderWidth: 2,
-              borderRadius: 3,
-              borderColor: "#5c5c5c",
-              paddingVertical: 3,
-              paddingHorizontal: 8,
-            }}
-          >
-            <Text
-              style={{
-                color: "#5c5c5c",
-
-                fontSize: 13,
-                fontWeight: "700",
-
-                marginRight: 4,
-              }}
-            >
-              Report
-            </Text>
-            <IconMCI
-              name={"flag-plus-outline"}
-              size={17}
-              style={{ color: "#5c5c5c" }}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "center",
-
-              borderRadius: 3,
-
-              marginTop: 12,
-              paddingVertical: 4.5,
-              paddingHorizontal: 12,
-
-              backgroundColor: "#0082ff",
-            }}
-          >
-            <Text
-              style={{
-                color: "#121212",
-
-                fontSize: 13,
-                fontWeight: "700",
-
-                marginRight: 4,
-              }}
-            >
-              All Offers
-            </Text>
-            <IconMCI
-              name={"cards-outline"}
-              size={17}
-              style={{ color: "#121212" }}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
       <Text
         style={{
           color: "#f4f4f4",
@@ -387,7 +400,7 @@ export default function TransactionDetails({ route }) {
                         fontSize: 15,
                       }}
                     >
-                      {item.name}
+                      {item.cardName}
                     </Text>
                     <View style={{ flexDirection: "row", marginTop: 6 }}>
                       <Text
@@ -407,7 +420,7 @@ export default function TransactionDetails({ route }) {
                           marginLeft: 4,
                         }}
                       >
-                        {`${item.price} USD`}
+                        {`${item.price.toFixed(2)} USD`}
                       </Text>
                     </View>
                     <View style={{ flexDirection: "row" }}>
@@ -642,7 +655,7 @@ export default function TransactionDetails({ route }) {
             fontWeight: "700",
           }}
         >
-          {phsm.price} USD
+          {phsm.price.toFixed(2)} USD
         </Text>
       </View>
       <Text

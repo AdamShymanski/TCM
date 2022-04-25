@@ -10,7 +10,10 @@ import {
 import * as Google from "expo-google-app-auth";
 import { googleReSignIn } from "../../authContext";
 
-export const AreYouSureModal = ({ setReauthenticationResult, setModal }) => {
+export default function AreYouSureModal({
+  setReauthenticationResult,
+  setModal,
+}) {
   const [loadingIndicator, setLoadingIndicator] = useState(false);
 
   const reSignIn = async () => {
@@ -31,6 +34,7 @@ export const AreYouSureModal = ({ setReauthenticationResult, setModal }) => {
       }
     }
   };
+
   return (
     <Modal
       style={{
@@ -59,7 +63,7 @@ export const AreYouSureModal = ({ setReauthenticationResult, setModal }) => {
           }}
         >
           <Text style={{ color: "#f4f4f4", fontSize: 26, fontWeight: "700" }}>
-            Are You Sure?
+            Fuck?
           </Text>
           <Text
             style={{
@@ -155,4 +159,4 @@ export const AreYouSureModal = ({ setReauthenticationResult, setModal }) => {
       </View>
     </Modal>
   );
-};
+}
