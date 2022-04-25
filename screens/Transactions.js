@@ -7,12 +7,59 @@ import TransactionObject from "./../shared/Objects/TransactionObject";
 
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-export default function Transactions() {
-  const [transcations, setTranscations] = useState([]);
-  const [loading, setLoading] = useState(true);
+import { useIsFocused } from "@react-navigation/native";
 
-  useEffect(() => {
-    const resolvePromises = async () => {
+export default function Transactions() {
+  const [loading, setLoading] = useState(true);
+  const [transcations, setTranscations] = useState([]);
+
+  const isFocused = useIsFocused();
+
+  // useEffect(() => {
+  //   const resolvePromises = async () => {
+  //     let outArray = [];
+
+  //     await db
+  //       .collection("transactions")
+  //       .where("buyer", "==", auth.currentUser.uid)
+  //       .get()
+  //       .then((snapshot) => {
+  //         snapshot.forEach((doc) => {
+  //           let obj = doc.data();
+  //           obj.id = doc.id;
+  //           outArray.push(obj);
+  //         });
+  //       });
+  //     await db
+  //       .collection("transactions")
+  //       .where("seller", "==", auth.currentUser.uid)
+  //       .get()
+  //       .then((snapshot) => {
+  //         snapshot.forEach((doc) => {
+  //           let obj = doc.data();
+  //           obj.id = doc.id;
+  //           outArray.push(obj);
+  //         });
+  //       });
+
+  //     //sort objects in array by timestamp
+  //     outArray.sort((a, b) => {
+  //       return b.timestamp - a.timestamp;
+  //     });
+
+  //     setTranscations(outArray);
+  //     setLoading(false);
+  //   };
+
+  //   resolvePromises();
+  // }, []);
+
+  useEffect(async () => {
+    if (!isFocused) {
+      setTranscations([]);
+      setLoading(true);
+    }
+    if (isFocused) {
       let outArray = [];
 
       await db
@@ -45,10 +92,8 @@ export default function Transactions() {
 
       setTranscations(outArray);
       setLoading(false);
-    };
-
-    resolvePromises();
-  }, []);
+    }
+  }, [isFocused]);
 
   if (loading) {
     return (

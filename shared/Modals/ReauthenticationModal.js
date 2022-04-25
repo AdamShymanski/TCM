@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Modal } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  ActivityIndicator,
+} from "react-native";
 
 import { TextInput } from "react-native-paper";
 import { reauthenticate } from "../../authContext";
@@ -7,6 +13,7 @@ import { reauthenticate } from "../../authContext";
 const ReauthenticationModal = ({ setReauthenticationResult, setModal }) => {
   const [passwordState, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [activityIndicator, setActivityIndicator] = useState("");
 
   return (
     <Modal
@@ -81,73 +88,94 @@ const ReauthenticationModal = ({ setReauthenticationResult, setModal }) => {
               width: "90%",
               flexDirection: "row-reverse",
               marginBottom: 8,
-              paddingTop: error ? 16 : 20,
+              paddingTop: 20,
               alignItems: "center",
             }}
           >
-            <TouchableOpacity
+            <View
               style={{
-                height: 30,
-
-                flexDirection: "row",
+                width: "90%",
+                flexDirection: "row-reverse",
                 alignItems: "center",
-                justifyContent: "center",
-
-                backgroundColor: "#0082FF",
-                borderRadius: 3,
-                paddingHorizontal: 20,
               }}
-              onPress={async () => {
-                try {
-                  if (await reauthenticate(passwordState)) {
-                    setReauthenticationResult(true);
-                  } else {
-                    setError("Wrong password!");
+            >
+              <TouchableOpacity
+                style={{
+                  height: 30,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+
+                  backgroundColor: "#0082FF",
+                  borderRadius: 3,
+                  paddingHorizontal: 20,
+                }}
+                onPress={async () => {
+                  try {
+                    setActivityIndicator(true);
+                    if (await reauthenticate(passwordState)) {
+                      setReauthenticationResult(true);
+                    } else {
+                      setError("Wrong password!");
+                      setActivityIndicator(false);
+                    }
+                  } catch (error) {
+                    console.log(error);
                   }
-                } catch (error) {
-                  console.log(error);
-                }
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#121212",
                 }}
               >
-                Submit
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{
-                height: 30,
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#121212",
+                  }}
+                >
+                  Submit
+                </Text>
+              </TouchableOpacity>
+              {activityIndicator ? (
+                <ActivityIndicator
+                  size={30}
+                  color="#0082ff"
+                  animating={activityIndicator}
+                  style={{
+                    marginRight: 14,
+                  }}
+                />
+              ) : null}
+              {!activityIndicator ? (
+                <TouchableOpacity
+                  style={{
+                    height: 30,
 
-                marginRight: 14,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
+                    marginRight: 14,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
 
-                borderColor: "#5c5c5c",
-                borderWidth: 2,
+                    borderColor: "#5c5c5c",
+                    borderWidth: 2,
 
-                borderRadius: 3,
-                paddingHorizontal: 20,
-              }}
-              onPress={() => {
-                setModal(false);
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#5c5c5c",
-                }}
-              >
-                Cancel
-              </Text>
-            </TouchableOpacity>
+                    borderRadius: 3,
+                    paddingHorizontal: 20,
+                  }}
+                  onPress={() => {
+                    setModal(false);
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "700",
+                      color: "#5c5c5c",
+                    }}
+                  >
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
           </View>
         </View>
       </View>

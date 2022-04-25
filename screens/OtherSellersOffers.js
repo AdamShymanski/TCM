@@ -12,6 +12,7 @@ export default function OtherSellersOffers({ route }) {
   const [sellerData, setSellerData] = useState(null);
   const [savedOffersId, setSavedOffersId] = useState(null);
 
+  const [userCountry, setUserCountry] = useState(null);
   const [cartState, setCartState] = useState(false);
 
   const isFocused = useIsFocused();
@@ -38,6 +39,7 @@ export default function OtherSellersOffers({ route }) {
 
       const doc = await db.collection("users").doc(auth.currentUser.uid).get();
       setCartState(doc.data().cart);
+      setUserCountry(doc.data().country);
 
       setSellerData(await fetchOwnerData(route.params.sellerId));
       setCardsArray(arr);
@@ -100,13 +102,18 @@ export default function OtherSellersOffers({ route }) {
           <FlatList
             data={cardsArray}
             renderItem={({ item, index }) => {
-              return (
-                <CardSellerProfile
-                  props={item}
-                  isSavedState={savedOffersId}
-                  cartArray={cartState}
-                />
-              );
+              if (item.status === "published") {
+                return (
+                  <CardSellerProfile
+                    props={item}
+                    isSavedState={savedOffersId}
+                    cartArray={cartState}
+                    userCountry={userCountry}
+                  />
+                );
+              } else {
+                return null;
+              }
             }}
             keyExtractor={(item, index) => index.toString()}
           />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, FlatList, Text } from "react-native";
+import { View, FlatList, Text, ActivityIndicator } from "react-native";
 
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
@@ -12,6 +12,7 @@ export default function SavedOffers() {
   const [cardsData, setCardsData] = useState([]);
   const [loadingState, setLoading] = useState(true);
   const [cartState, setCartState] = useState([]);
+  const [userCountry, setUserCountry] = useState(null);
 
   const isFocused = useIsFocused();
 
@@ -24,8 +25,24 @@ export default function SavedOffers() {
       fetchSavedCards(setCardsData, setLoading);
       const doc = await db.collection("users").doc(auth.currentUser.uid).get();
       setCartState(doc.data().cart);
+      setUserCountry(doc.data().country);
     }
   }, [isFocused]);
+
+  if (loadingState) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#121212",
+        }}
+      >
+        <ActivityIndicator size="large" color="#0082ff" />
+      </View>
+    );
+  }
 
   return (
     <View
@@ -79,10 +96,14 @@ export default function SavedOffers() {
         <FlatList
           data={cardsData}
           renderItem={({ item, index }) => {
-            return <CardSavedOffers props={item} cartArray={cartState} />;
-
             if (item.status === "published") {
-              return <CardSavedOffers props={item} cartArray={cartState} />;
+              return (
+                <CardSavedOffers
+                  props={item}
+                  cartArray={cartState}
+                  userCountry={userCountry}
+                />
+              );
             }
             return null;
           }}

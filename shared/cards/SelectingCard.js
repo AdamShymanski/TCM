@@ -9,7 +9,7 @@ import {
 } from "react-native";
 
 import ImageViewer from "react-native-image-zoom-viewer";
-import { fetchBigCardsDetails } from "../../authContext";
+import { fetchDefaultCardsDetails } from "../../authContext";
 
 import bluePricetag from "../../assets/blue_pricetag.png";
 import inStock from "../../assets/in_stock.png";
@@ -21,8 +21,9 @@ export default function SelectingCard({ props, setProps, setId, closeModal }) {
 
   useEffect(() => {
     let mounted = true;
+
     const resolvePromises = async () => {
-      await fetchBigCardsDetails(props.id, setDetails, mounted);
+      await fetchDefaultCardsDetails(props.id, setDetails, mounted);
     };
     resolvePromises();
     return () => (mounted = false);
@@ -147,7 +148,7 @@ export default function SelectingCard({ props, setProps, setId, closeModal }) {
           >
             {props.name}
           </Text>
-          <View
+          {/* <View
             style={{
               flexDirection: "column",
               alignItems: "center",
@@ -209,6 +210,11 @@ export default function SelectingCard({ props, setProps, setId, closeModal }) {
                 {details[1]} USD
               </Text>
             </View>
+          </View> */}
+          <View>
+            <Text
+              style={{ color: "#5c5c5c", fontFamily: "Roboto_Medium" }}
+            >{`ID: ${props.id}`}</Text>
           </View>
           <TouchableOpacity
             style={{
@@ -221,12 +227,12 @@ export default function SelectingCard({ props, setProps, setId, closeModal }) {
               backgroundColor: "#0082FF",
               borderRadius: 3,
 
-              marginTop: 18,
+              marginTop: 44,
               paddingVertical: 1.6,
             }}
             onPress={() => {
               setId(props.id);
-              
+
               closeModal(setProps);
             }}
           >

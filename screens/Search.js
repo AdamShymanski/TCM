@@ -38,9 +38,9 @@ export default function Search({ props, setProps }) {
   const [pickerMode, setPickerMode] = useState("filtering");
 
   const [noCardsState, setNoCards] = useState(false);
-  const [cartState, setCartState] = useState(false);
 
   const [countryState, setCountry] = useState(false);
+  const [cartArray, setCartArray] = useState(false);
 
   const isFocused = useIsFocused();
 
@@ -48,15 +48,12 @@ export default function Search({ props, setProps }) {
     const resolvePromise = async () => {
       setProps((prev) => ({ ...prev, loadingState: true }));
 
-      await fetchSavedOffersId(setSavedOffersId, setProps);
-      const doc = await db.collection("users").doc(auth.currentUser.uid).get();
-
-      if (doc.data().cart) {
-        setCartState(doc.data().cart);
-        setCountry(doc.data().country);
-      } else setCartState([]);
-
+      await fetchSavedOffersId(setSavedOffersId);
       await fetchMostRecentOffers(setMostRecentOffers);
+
+      const doc = await db.collection("users").doc(auth.currentUser.uid).get();
+      setCountry(doc.data().country);
+
       setProps((prev) => ({ ...prev, loadingState: false }));
     };
     resolvePromise();
@@ -109,6 +106,7 @@ export default function Search({ props, setProps }) {
   useEffect(async () => {
     if (!isFocused) {
       setSavedOffersId([]);
+      setCartArray([]);
       setProps((prevState) => ({
         ...prevState,
         loadingState: true,
@@ -116,6 +114,10 @@ export default function Search({ props, setProps }) {
     }
     if (isFocused) {
       await fetchSavedOffersId(setSavedOffersId, setProps);
+
+      const doc = await db.collection("users").doc(auth.currentUser.uid).get();
+      setCartArray(doc.data().cart);
+
       setProps((prevState) => ({
         ...prevState,
         loadingState: false,
@@ -124,13 +126,13 @@ export default function Search({ props, setProps }) {
   }, [isFocused]);
 
   useEffect(async () => {
-    if (id !== undefined || null || []) {
+    if (id) {
       setProps((prevState) => ({
         ...prevState,
         loadingState: true,
       }));
 
-      setOffersData(await fetchOffers(id, props.filterParams));
+      await fetchOffers(id, props.filterParams, setOffersData);
 
       setProps((prevState) => ({
         ...prevState,
@@ -220,11 +222,12 @@ export default function Search({ props, setProps }) {
                   marginTop: 4,
                 }}
                 onPress={() => {
-                  setOffersData([]);
                   setId([]);
+                  setOffersData([]);
                   setProps((prevState) => ({
                     ...prevState,
                     screen: "cards",
+                    loadingState: true,
                   }));
                 }}
               >
@@ -235,7 +238,7 @@ export default function Search({ props, setProps }) {
                     color: "#777777",
                   }}
                 >
-                  {"Go back"}
+                  Go back
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -266,7 +269,7 @@ export default function Search({ props, setProps }) {
                     marginRight: 10,
                   }}
                 >
-                  {"Filters"}
+                  Filters
                 </Text>
                 <Icon name="filter-plus" color={"#0082ff"} size={20} />
               </TouchableOpacity>
@@ -308,16 +311,16 @@ export default function Search({ props, setProps }) {
             data={mostRecentOffers}
             scrollEventThrottle={2000}
             renderItem={({ item }) => {
-              return (
-                <OfferCard
-                  props={item}
-                  isSavedState={savedOffersId}
-                  cartArray={cartState}
-                  nameOfCard={true}
-                  userCountry={countryState}
-                />
-              );
               if (item.status === "published") {
+                return (
+                  <OfferCard
+                    props={item}
+                    isSavedState={savedOffersId}
+                    cartArray={cartArray}
+                    nameOfCard={true}
+                    userCountry={countryState}
+                  />
+                );
               }
               return null;
             }}
@@ -390,13 +393,13 @@ export default function Search({ props, setProps }) {
           <FlatList
             data={offersData}
             scrollEventThrottle={2000}
-            renderItem={async ({ item }) => {
+            renderItem={({ item }) => {
               if (item.status === "published") {
                 return (
                   <OfferCard
                     props={item}
                     isSavedState={savedOffersId}
-                    cartState={cartState}
+                    cartArray={cartArray}
                     nameOfCard={false}
                     userCountry={countryState}
                   />

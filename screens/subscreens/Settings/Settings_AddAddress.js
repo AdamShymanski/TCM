@@ -10,42 +10,14 @@ import * as yup from "yup";
 
 import { db, auth, firebaseObj } from "../../../authContext";
 
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
-// import {
-//   getFunctions,
-//   httpsCallable,
-//   connectFunctionsEmulator,
-// } from "firebase/compat/functions";
-
-// export default function AddNewShippingAddress() {
-//   return (
-//     <View style={{ alignItems: "center", justifyContent: "center", flex: 1 }}>
-//       <Text>Test</Text>
-//     </View>
-//   );
-// }
-
-//!
-//!
-//!
-//!
-//! PREVENT FROM CREATING THE SAME ADDRESS, COMAPRE THEM BY JSON.STRINGIFY
-//!
-//!
-//!
-
-export default function AddAddress({ setPage, setShippingAddress }) {
+export default function Settings_AddAddress() {
   const [loadingIndicator, setLoadingIndicator] = useState(false);
   const [countryPickerState, setCountryPickerState] = useState("");
   const [countryInputTouched, setCountryInputTouched] = useState(false);
 
-  const [countryPickerTouched, setCountryPickerTouched] = useState("");
-
   const [error, setError] = useState("");
-
-  const phoneNumberRegEx =
-    /^(?:(?:\+?1\s*(?:[.-]\s*)?)?(?:\(\s*([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s*\)|([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s*(?:[.-]\s*)?)?([2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s*(?:[.-]\s*)?([0-9]{4})(?:\s*(?:#|x\.?|ext\.?|extension)\s*(\d+))?$/;
 
   const reviewSchema = yup.object({
     firstName: yup.string("Wrong format!").required("Required!").max(30),
@@ -56,9 +28,13 @@ export default function AddAddress({ setPage, setShippingAddress }) {
     city: yup.string("Wrong format!").required("Required!").max(30),
     streetAddress1: yup.string("Wrong format!").required("Required!").max(30),
     streetAddress2: yup.string("Required!").max(30),
-    phoneNumber: yup.string("Wrong format!").required("Required!").max(13),
+    phoneNumber: yup
+      .string("Wrong format!")
+      .required("Required!")
+      .max(13, "At most 13 digits!"),
   });
 
+  const route = useRoute();
   const navigation = useNavigation();
 
   return (
@@ -107,41 +83,48 @@ export default function AddAddress({ setPage, setShippingAddress }) {
         }}
         validationSchema={reviewSchema}
         onSubmit={async (values, actions) => {
-          const addShippingAddress = async (props) => {
-            const checkIfAddressExists = (props) => {
-              const result = true;
+          const preventAddressesDuplication = () => {
+            const promise = new Promise((resolve, reject) => {
               db.collection("users")
                 .doc(auth.currentUser.uid)
                 .get()
                 .then((doc) => {
-                  //comapre values to shipppingAddresses in array
-                  if ("shippingAddresses" in doc.data()) {
-                    doc.data().shippingAddresses.forEach((address) => {
+                  if (doc.data().addresses.length > 0) {
+                    doc.data().addresses.forEach((address, index, array) => {
                       if (JSON.stringify(address) === JSON.stringify(values)) {
-                        setError("Address already exists!");
-                        result = false;
+                        reject("Address already exists!");
+                      }
+                      if (index + 1 === array.length) {
+                        resolve();
                       }
                     });
+                  } else {
+                    resolve();
                   }
                 });
-              return result;
-            };
-            console.log("Address does not exist!");
+            });
 
-            if (checkIfAddressExists()) {
-              console.log("XXXX");
+            return promise;
+          };
 
+          preventAddressesDuplication()
+            .then(async () => {
               await db
                 .collection("users")
                 .doc(auth.currentUser.uid)
                 .update({
-                  shippingAddresses:
-                    firebaseObj.firestore.FieldValue.arrayUnion(props),
+                  addresses:
+                    firebaseObj.firestore.FieldValue.arrayUnion(values),
                 });
-            }
-          };
 
-          navigation.goBack();
+              setError("");
+              setLoadingIndicator(false);
+              navigation.goBack();
+            })
+            .catch((e) => {
+              setError(e);
+              setLoadingIndicator(false);
+            });
         }}
         style={{
           flex: 1,
@@ -293,6 +276,7 @@ export default function AddAddress({ setPage, setShippingAddress }) {
                   onChangeText={props.handleChange("zipCode")}
                   label="ZIP/Postal Code"
                   outlineColor={"#5c5c5c"}
+                  keyboardType="numeric"
                   error={
                     props.touched.zipCode && props.errors.zipCode ? true : false
                   }
@@ -591,12 +575,13 @@ export default function AddAddress({ setPage, setShippingAddress }) {
             </ErrorMessage>
 
             <TextInput
-              autoCapitalize="none"
               mode={"outlined"}
-              value={props.values.phoneNumber}
-              onChangeText={props.handleChange("phoneNumber")}
+              autoCapitalize="none"
               label="Phone Number"
               outlineColor={"#5c5c5c"}
+              keyboardType="numeric"
+              value={props.values.phoneNumber}
+              onChangeText={props.handleChange("phoneNumber")}
               error={
                 props.touched.phoneNumber && props.errors.phoneNumber
                   ? true
@@ -661,6 +646,7 @@ export default function AddAddress({ setPage, setShippingAddress }) {
                   paddingHorizontal: 20,
                 }}
                 onPress={async () => {
+                  setLoadingIndicator(true);
                   setCountryInputTouched(true);
                   props.handleSubmit();
                 }}

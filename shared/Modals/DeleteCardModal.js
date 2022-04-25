@@ -42,7 +42,7 @@ export default function DeleteCardModal({ setModal, id }) {
           }}
         >
           <Text style={{ color: "#f4f4f4", fontSize: 26, fontWeight: "700" }}>
-            Are You Sure?
+            Are you sure?
           </Text>
           <Text
             style={{

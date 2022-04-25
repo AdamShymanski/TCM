@@ -83,7 +83,6 @@ export default function FinishGoogleRegister({ callback, name }) {
               addresses: [],
               sellerProfile: {
                 status: "unset",
-                firstSell: null,
                 rating: [],
                 shippingMethods: {
                   domestic: [],

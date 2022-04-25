@@ -2,21 +2,24 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
-  ScrollView,
+  FlatList,
   Clipboard,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
-//correct and updated library is -- import Clipboard from '@react-native-community/clipboard';
-//but it doesn't work :/
 
 import { TextInput } from "react-native-paper";
-import { Formik, ErrorMessage } from "formik";
-import * as yup from "yup";
 
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import * as yup from "yup";
+import { Formik, ErrorMessage } from "formik";
+
 import { Snackbar } from "react-native-paper";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import IconI from "react-native-vector-icons/Ionicons";
 
 import {
+  db,
   auth,
   fetchUserData,
   updateUserData,
@@ -27,12 +30,12 @@ import {
 
 import * as Google from "expo-google-app-auth";
 
-import ReauthenticationModal from "../shared/Modals/ReauthenticationModal";
+import AreYouSureModal from "../shared/Modals/AreYouSureModal";
 import ChangePasswordModal from "../shared/Modals/ChangePasswordModal";
 import { CountryPickerModal } from "../shared/Modals/CountryPickerModal";
-import { AreYouSureModal } from "../shared/Modals/AreYouSureModal";
+import ReauthenticationModal from "../shared/Modals/ReauthenticationModal";
 
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useIsFocused } from "@react-navigation/native";
 
 import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 
@@ -54,14 +57,16 @@ const reviewSchema = yup.object({
 export default function Settings() {
   const [loading, setLoading] = useState(true);
 
-  const [accountFormError, setAccountFormError] = useState("");
+  const [formChanged, setFormChanged] = useState(false);
 
   const [actionType, setActionType] = useState(null);
-  const [modalState, setModal] = useState(false);
   const [areYouSureModal, setAreYouSureModal] = useState(false);
   const [countryPickerState, setCountryPickerState] = useState(false);
-  const [changePasswordModal, setChangePasswordModal] = useState(false);
   const [reauthenticationResult, setReauthenticationResult] = useState(null);
+
+  const [modalState, setModal] = useState(false);
+  const [addressesArray, setAddressesArray] = useState([]);
+  const [changePasswordModal, setChangePasswordModal] = useState(false);
 
   const [snackbarState, setSnackbarState] = useState(false);
 
@@ -76,17 +81,30 @@ export default function Settings() {
   });
 
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
 
-  useEffect(() => {
-    const resolvePromises = async () => {
+  useEffect(async () => {
+    if (isFocused) {
       const result = await fetchUserData();
 
       setUserData(result);
       setInitValues({ nick: result.nick, country: result.country });
+      setAddressesArray(result.addresses);
+
       setLoading(false);
-    };
-    resolvePromises();
-  }, []);
+    } else {
+      setLoading(true);
+      setInitValues({
+        nick: "",
+        country: "",
+      });
+      setUserData({
+        nick: "",
+        country: "",
+      });
+      setAddressesArray([]);
+    }
+  }, [isFocused]);
 
   useEffect(() => {
     const resolvePromises = async () => {
@@ -96,6 +114,11 @@ export default function Settings() {
         } else if (actionType == "changeEmail") {
           await changeEmail();
         } else if (actionType == "updateUser") {
+          setFormChanged(false);
+          setInitValues({
+            nick: userData.nick,
+            country: userData.country,
+          });
           await updateUserData(userData);
         }
 
@@ -108,9 +131,18 @@ export default function Settings() {
   }, [reauthenticationResult]);
 
   const setCountryValue = (value) => {
-    const obj = userData;
-    obj.country = value;
-    setUserData(obj);
+    setUserData((prevState) => ({ ...prevState, country: value }));
+  };
+
+  const detectChanges = (values) => {
+    if (
+      values.nick !== initValues.nick ||
+      userData.country !== initValues.country
+    ) {
+      setFormChanged(true);
+    } else {
+      setFormChanged(false);
+    }
   };
 
   async function reSignInWithGoogleAsync(action) {
@@ -144,7 +176,18 @@ export default function Settings() {
   }
 
   if (loading) {
-    return <View />;
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#1b1b1b",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color="#0082ff" />
+      </View>
+    );
   } else {
     return (
       <View
@@ -188,7 +231,8 @@ export default function Settings() {
               fontSize: 22,
 
               paddingTop: 12,
-              paddingLeft: 12,
+
+              paddingLeft: "5%",
             }}
           >
             Account
@@ -205,41 +249,17 @@ export default function Settings() {
               }}
               validationSchema={reviewSchema}
               onSubmit={async (values, actions) => {
-                const detectChanges = () => {
-                  if (
-                    values.nick == initValues.nick &&
-                    userData.country == initValues.country
-                  ) {
-                    setAccountFormError("No change detected");
-                    return false;
-                  } else {
-                    setAccountFormError("");
-                    return true;
-                  }
-                };
-
-                if (detectChanges()) {
-                  if (
-                    auth.currentUser?.providerData[0].providerId != "google.com"
-                  ) {
-                    setModal(true);
-                  } else {
-                    await reSignInWithGoogleAsync();
-                    setUserData({
-                      nick: values.nick,
-                      country: userData.country,
-                    });
-                    setInitValues({
-                      nick: values.nick,
-                      country: userData.country,
-                    });
-                  }
+                if (
+                  auth.currentUser?.providerData[0].providerId != "google.com"
+                ) {
+                  setModal(true);
+                } else {
+                  await reSignInWithGoogleAsync();
                 }
               }}
               style={{
                 flex: 1,
                 flexDirection: "column",
-                alignItems: "center",
                 width: "100%",
                 height: "100%",
                 marginVertical: 40,
@@ -251,15 +271,23 @@ export default function Settings() {
                   style={{
                     flex: 1,
                     flexDirection: "column",
-                    alignItems: "center",
                     width: "100%",
                     height: "100%",
+                    paddingLeft: "5%",
+                    marginBottom: 20,
                   }}
                 >
                   <TextInput
                     mode={"outlined"}
                     value={props.values.nick}
                     onChangeText={props.handleChange("nick")}
+                    onEndEditing={(e) => {
+                      if (e.nativeEvent.text.length >= 4) {
+                        detectChanges(props.values);
+                      } else {
+                        setFormChanged(false);
+                      }
+                    }}
                     label="Nick"
                     outlineColor={"#5c5c5c"}
                     error={
@@ -300,7 +328,10 @@ export default function Settings() {
                   </ErrorMessage>
                   <TouchableOpacity
                     style={{ width: "80%" }}
-                    onPress={() => setCountryPickerState(true)}
+                    onPress={() => {
+                      setCountryPickerState(true);
+                      detectChanges(props.values);
+                    }}
                   >
                     <TextInput
                       mode={"outlined"}
@@ -352,8 +383,8 @@ export default function Settings() {
                     style={{
                       width: "80%",
                       flexDirection: "row-reverse",
-                      marginBottom: 20,
                       alignItems: "center",
+                      display: formChanged ? "flex" : "none",
                     }}
                   >
                     <TouchableOpacity
@@ -368,6 +399,7 @@ export default function Settings() {
                         borderRadius: 3,
                         paddingHorizontal: 20,
                       }}
+                      disabled={!formChanged}
                       onPress={() => {
                         setActionType("updateUser");
                         props.submitForm();
@@ -383,39 +415,30 @@ export default function Settings() {
                         Submit
                       </Text>
                     </TouchableOpacity>
-                    <Text
-                      style={{
-                        color: "#b40424",
-                        fontWeight: "700",
-                        marginBottom: -20,
-                        marginRight: 16,
-                      }}
-                    >
-                      {accountFormError}
-                    </Text>
                   </View>
                 </View>
               )}
             </Formik>
           </View>
+
           <Text
             style={{
               color: "#f4f4f4",
               fontWeight: "700",
               fontSize: 22,
 
-              paddingTop: 12,
-              paddingLeft: 12,
+              marginTop: 20,
+              marginBottom: 12,
+              paddingLeft: "5%",
             }}
           >
-            Seller ID
+            Account ID
           </Text>
+
           <View
             style={{
-              marginTop: 20,
               backgroundColor: "#1B1B1B",
-              flexDirection: "column",
-              alignItems: "center",
+              paddingLeft: "5%",
             }}
           >
             <View
@@ -423,6 +446,7 @@ export default function Settings() {
                 borderRadius: 6,
                 paddingVertical: 12,
                 flexDirection: "row",
+                alignSelf: "baseline",
                 backgroundColor: "#121212",
 
                 alignItems: "center",
@@ -456,14 +480,216 @@ export default function Settings() {
               </Text>
             </View>
           </View>
+          <FlatList
+            numColumns={2}
+            data={addressesArray}
+            style={{
+              paddingLeft: "5%",
+
+              backgroundColor: "#1b1b1b",
+
+              flex: 1,
+            }}
+            renderItem={({ item, index }) => {
+              if (item.empty) {
+                return (
+                  <TouchableOpacity
+                    style={{
+                      width: "48%",
+                      height: undefined,
+
+                      marginRight: index === 0 || 2 || 4 ? "4%" : "0%",
+
+                      padding: 8,
+                      borderWidth: 2,
+                      borderRadius: 6,
+                      borderColor: "#5c5c5c",
+                      borderStyle: "dashed",
+                      justifyContent: "center",
+
+                      backgroundColor: "#121212",
+
+                      aspectRatio:
+                        addressesArray.length === 0 ? 1.68 / 1 : null,
+                    }}
+                    onPress={() => {
+                      navigation.navigate("CartStack", {
+                        screen: "AddAddress",
+                      });
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#5c5c5c",
+                        fontFamily: "Roboto_Medium",
+                        fontSize: 16,
+                        alignSelf: "center",
+                      }}
+                    >
+                      Add
+                    </Text>
+                    <Text
+                      style={{
+                        color: "#5c5c5c",
+                        fontFamily: "Roboto_Medium",
+                        fontSize: 16,
+                        alignSelf: "center",
+                      }}
+                    >
+                      Address
+                    </Text>
+                  </TouchableOpacity>
+                );
+              } else {
+                return (
+                  <TouchableOpacity
+                    style={{
+                      width: "48%",
+                      marginRight: index === 0 || 2 || 4 ? "4%" : "0%",
+
+                      padding: 10,
+                      borderRadius: 6,
+
+                      backgroundColor: "#121212",
+                    }}
+                    onPress={() => {
+                      navigation.navigate("SettingsStack", {
+                        screen: "Settings_EditAddress",
+                        params: item,
+                      });
+                    }}
+                  >
+                    <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
+                      {`${item.firstName} ${item.lastName}`}
+                    </Text>
+                    <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
+                      {item.streetAddress1}
+                    </Text>
+                    {item.streetAddress2 ? (
+                      <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
+                        {item.streetAddress2}
+                      </Text>
+                    ) : null}
+                    <Text
+                      style={{ color: "#f4f4f4", marginLeft: 6 }}
+                    >{`${item.city}, ${item.zipCode}`}</Text>
+                    <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
+                      {item.country}
+                    </Text>
+                    <Text
+                      style={{ color: "#f4f4f4", marginLeft: 6, marginTop: 8 }}
+                    >
+                      {item.phoneNumber}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              }
+            }}
+            keyExtractor={(item, index) => index.toString()}
+            ListHeaderComponent={() => {
+              return (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+
+                    marginTop: 40,
+                    marginBottom: 12,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#f4f4f4",
+                      fontWeight: "700",
+                      fontSize: 22,
+                      marginRight: 16,
+                    }}
+                  >
+                    Addresses
+                  </Text>
+
+                  <TouchableOpacity
+                    style={{ flexDirection: "row", alignItems: "center" }}
+                    onPress={() => {
+                      navigation.navigate("SettingsStack", {
+                        screen: "Settings_AddAddress",
+                      });
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: "Roboto_Medium",
+                        color: "#0082ff",
+                        marginRight: 6,
+                      }}
+                    >
+                      Add New
+                    </Text>
+                    <IconMCI name={"plus"} color={"#0082ff"} size={20} />
+                  </TouchableOpacity>
+                </View>
+              );
+            }}
+            ListEmptyComponent={() => {
+              if (loading) {
+                return (
+                  <View
+                    style={{
+                      felx: 1,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <ActivityIndicator size="large" color="#0082ff" />
+                  </View>
+                );
+              } else {
+                return (
+                  <View
+                    style={{
+                      alignItems: "center",
+                      flexDirection: "row",
+                      marginTop: 12,
+                      backgroundColor: "#121212",
+                      borderRadius: 6,
+                      width: "96%",
+                      paddingHorizontal: 12,
+                      paddingVertical: 12,
+                    }}
+                  >
+                    <IconI name={"warning"} color={"yellow"} size={50} />
+                    <View style={{ marginLeft: 12 }}>
+                      <Text
+                        style={{
+                          fontSize: 20,
+                          fontWeight: "bold",
+                          color: "#888",
+                        }}
+                      >
+                        Add shipping address
+                      </Text>
+                      <Text
+                        style={{ fontSize: 12, color: "#888", marginRight: 28 }}
+                      >
+                        You cannot buy anything until you add a shipping
+                        address.
+                      </Text>
+                    </View>
+                  </View>
+                );
+              }
+            }}
+          />
           <Text
             style={{
               color: "#f4f4f4",
               fontWeight: "700",
               fontSize: 22,
 
-              paddingTop: 12,
-              paddingLeft: 12,
+              paddingLeft: "5%",
+
+              marginTop: 40,
+              marginBottom: 12,
             }}
           >
             Other
@@ -472,14 +698,16 @@ export default function Settings() {
             style={{
               backgroundColor: "#1B1B1B",
               flexDirection: "column",
-              alignItems: "center",
+
+              paddingLeft: "5%",
+              marginBottom: 30,
             }}
           >
             <View
               style={{
                 backgroundColor: "#121212",
                 paddingVertical: 22,
-                marginTop: 18,
+
                 borderRadius: 5,
 
                 alignItems: "center",
@@ -598,7 +826,7 @@ export default function Settings() {
             onPress: () => {},
           }}
         >
-          Seller ID is copied to clipboard
+          Account ID is copied to clipboard
         </Snackbar>
       </View>
     );

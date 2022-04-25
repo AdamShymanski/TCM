@@ -12,20 +12,24 @@ import {
 
 import { useStripe } from "@stripe/stripe-react-native";
 import { StackActions, NavigationActions } from "react-navigation";
-import { useNavigation } from "@react-navigation/native";
+import {
+  useNavigation,
+  useIsFocused,
+  useRoute,
+} from "@react-navigation/native";
 
 import {
-  functions,
+  db,
   auth,
+  functions,
   fetchName,
   fetchCart,
-  db,
   fetchCardsName,
 } from "../authContext";
 
-import { ActivityIndicator, TextInput, RadioButton } from "react-native-paper";
-
+import { ActivityIndicator, RadioButton } from "react-native-paper";
 import { LogBox } from "react-native";
+
 import SummaryObject from "./../shared/Objects/SummaryObject";
 import Stripe_logo from "../assets/Stripe_logo.png";
 import bottom_arrow from "../assets/arrow_right_bottom.png";
@@ -41,7 +45,16 @@ import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 // import UPS_logo from "../assets/UPS_logo.png";
 // import USPS_logo from "../assets/USPS_logo.png";
 
-export default function Checkout({ pageState, setPage, instantBuy }) {
+export default function Checkout({ pageState, setPage }) {
+  const route = useRoute();
+  const isFocused = useIsFocused();
+
+  let instantBuy = null;
+
+  if (route.params) {
+    instantBuy = route.params.instantBuy;
+  }
+
   LogBox.ignoreLogs([
     "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing and other functionality - use another VirtualizedList-backed container instead.",
   ]);
@@ -70,46 +83,30 @@ export default function Checkout({ pageState, setPage, instantBuy }) {
       setPage("loadingPage");
 
       if (instantBuy) {
-        setOffersState([
-          {
-            data: [
-              {
-                cardId: "swsh4-141",
-                condition: "9",
-                description: "Great condition",
-                id: "RlnLtKOYHgGHh1sNdTNJ",
-                isGraded: true,
-                languageVersion: "English",
-                owner: "798VxQVizSR4YjLoq1au7angEJl1",
-                price: 22.65,
-                status: "verificationPending",
-                timestamp: {
-                  nanoseconds: 819000000,
-                  seconds: 1648408252,
-                },
-              },
-            ],
-            title: "John Doe",
-            uid: "798VxQVizSR4YjLoq1au7angEJl1",
-          },
-        ]);
+        setOffersState(instantBuy);
       } else {
         await fetchCart(setOffersState, () => {});
       }
 
       // fetch id's of owners of cards in users cart
-      const user = await db.collection("users").doc(auth.currentUser.uid).get();
-
-      if (user.data().addresses?.length > 0) {
-        setAddressesArray(user.data().addresses);
-      } else {
-        setAddressesArray([]);
-      }
 
       setPage("shippingPage");
     };
     resolvePromise();
   }, []);
+
+  useEffect(async () => {
+    if (isFocused) {
+      const user = await db.collection("users").doc(auth.currentUser.uid).get();
+      if (user.data().addresses?.length > 0) {
+        setAddressesArray(user.data().addresses);
+      } else {
+        setAddressesArray([]);
+      }
+    } else {
+      setAddressesArray([]);
+    }
+  }, [isFocused]);
 
   useEffect(() => {
     if (addressesArray) {
@@ -122,6 +119,7 @@ export default function Checkout({ pageState, setPage, instantBuy }) {
       setShippingMethod({});
 
       const shippingMethodsArray = [];
+
       const promise = new Promise((resolve, reject) => {
         offersState.forEach(async (obj, index) => {
           const owner = await db.collection("users").doc(obj.uid).get();
@@ -263,6 +261,8 @@ const ShippingPage = ({
             <TouchableOpacity
               style={{
                 width: "48%",
+                height: undefined,
+
                 marginRight: index === 0 || 2 || 4 ? "4%" : "0%",
 
                 padding: 8,
@@ -272,10 +272,12 @@ const ShippingPage = ({
                 borderStyle: "dashed",
                 justifyContent: "center",
 
-                aspectRatio: addressesArray.length > 1 ? undefined : 1 / 1,
+                aspectRatio: addressesArray.length === 0 ? 1.68 / 1 : null,
               }}
               onPress={() => {
-                navigation.navigate("CartStack", { screen: "AddAddress" });
+                navigation.navigate("CartStack", {
+                  screen: "Checkout_AddAddres",
+                });
               }}
             >
               <Text
@@ -791,7 +793,7 @@ const EndPage = () => {
             width: "90%",
           }}
         >
-          The order has been successfully placed. The vendor has 48 hours to
+          The order has been successfully placed. The vendor has 72 hours to
           ship your cards. You can track your shipment in the Transactions Tab.
         </Text>
         <TouchableOpacity
@@ -874,8 +876,9 @@ const EndPage = () => {
               //   ],
               // });
             });
-
-            navigation.dispatch(StackActions.popToTop());
+            if (navigation.canGoBack()) {
+              navigation.dispatch(StackActions.pop(1));
+            }
             navigation.navigate("TransactionsStack", {
               screen: "Transactions",
             });
@@ -1047,24 +1050,28 @@ const getFooter = (
   }, [offersState]);
 
   const initializePaymentSheet = async (data) => {
-    const { paymentIntent, ephemeralKey, customer } = data;
+    try {
+      const { paymentIntent, ephemeralKey, customer } = data;
 
-    let merchantName = auth.currentUser.displayName;
+      let merchantName = auth.currentUser.displayName;
 
-    if (merchantName == null) {
-      merchantName = await fetchName();
+      if (merchantName == null) {
+        merchantName = await fetchName();
+      }
+
+      const { error } = await initPaymentSheet({
+        customerId: customer,
+        customerEphemeralKeySecret: ephemeralKey,
+        paymentIntentClientSecret: paymentIntent,
+        // Set `allowsDelayedPaymentMethods` to true if your business can handle payment
+        //methods that complete payment after a delay, like SEPA Debit and Sofort.
+        allowsDelayedPaymentMethods: true,
+        googlePay: true,
+        merchantDisplayName: merchantName,
+      });
+    } catch (e) {
+      console.log(e);
     }
-
-    const { error } = await initPaymentSheet({
-      customerId: customer,
-      customerEphemeralKeySecret: ephemeralKey,
-      paymentIntentClientSecret: paymentIntent,
-      // Set `allowsDelayedPaymentMethods` to true if your business can handle payment
-      //methods that complete payment after a delay, like SEPA Debit and Sofort.
-      allowsDelayedPaymentMethods: true,
-      googlePay: true,
-      merchantDisplayName: merchantName,
-    });
   };
   const openPaymentSheet = async () => {
     const { error } = await presentPaymentSheet();

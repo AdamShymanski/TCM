@@ -71,6 +71,7 @@ export default function AddCard() {
         values.price = values.price.replace(/,/g, ".").replace(/ /g, "");
 
         await addCard(values, gradingSwitch, photoState, cardId);
+        setLoadingIndicator(false);
         navigation.reset({
           index: 0,
           routes: [{ name: "Thanks" }],
@@ -273,9 +274,8 @@ export default function AddCard() {
 
   const [cardId, setId] = useState(null);
 
-  const [inputPlaceholderState, setInputPlaceholder] = useState(
-    "Number or Name of Card"
-  );
+  const [inputPlaceholderState, setInputPlaceholder] =
+    useState("ID or Name of Card");
 
   const [pickerModal, setPickerModal] = useState(false);
 
@@ -355,7 +355,7 @@ export default function AddCard() {
                 }}
                 placeholder={inputPlaceholderState}
                 onFocus={() => setInputPlaceholder("")}
-                onBlur={() => setInputPlaceholder("Number or Name of Card")}
+                onBlur={() => setInputPlaceholder("ID or Name of Card")}
                 style={{
                   width: 260,
                   height: 40,
@@ -542,7 +542,7 @@ export default function AddCard() {
         style={{ flex: 1 }}
         initialValues={{
           price: "",
-          condition: 0,
+          condition: "",
           description: "",
           languageVersion: "",
         }}
@@ -550,7 +550,6 @@ export default function AddCard() {
         onSubmit={async (values, actions) => {
           setLoadingIndicator(true);
           await submitForm(values);
-          setLoadingIndicator(false);
         }}
       >
         {(formikProps) => (
@@ -647,7 +646,7 @@ export default function AddCard() {
               <TextInput
                 autoCapitalize="none"
                 mode={"outlined"}
-                value={formikProps.values.price}
+                value={formikProps.values.price.toString()}
                 onChangeText={formikProps.handleChange("price")}
                 label="Price ($)"
                 keyboardType="numeric"
@@ -680,7 +679,7 @@ export default function AddCard() {
                   marginTop: 6,
                 }}
               >
-                Example: 2,531.00 or 1.000
+                Example: 2531.00 or 230.50
               </Text>
               <ErrorMessage component="div" name="price">
                 {(msg) => (
@@ -803,7 +802,7 @@ export default function AddCard() {
               <TextInput
                 autoCapitalize="none"
                 mode={"outlined"}
-                value={formikProps.values.condition}
+                value={formikProps.values.condition.toString()}
                 onChangeText={formikProps.handleChange("condition")}
                 label="Condition (from 1 to 10)"
                 outlineColor={"#5c5c5c"}
@@ -852,41 +851,78 @@ export default function AddCard() {
                 )}
               </ErrorMessage>
             </View>
-            <View
+
+            <Text
               style={{
-                flex: 1,
-                flexDirection: "column",
-                alignItems: "flex-start",
-                width: "100%",
+                fontSize: 12,
+                color: "#5C5C5C",
+                fontFamily: "Roboto_Medium",
+                marginTop: 20,
               }}
             >
-              <View
+              IS THE CARD GRADED?
+            </Text>
+
+            <View style={{ flexDirection: "row", marginTop: 12 }}>
+              <TouchableOpacity
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginTop: 20,
+                  borderWidth: 1,
+                  borderColor: gradingSwitch ? "#0082ff" : "#5c5c5c",
+
+                  backgroundColor: gradingSwitch ? "#0082ff" : "#1b1b1b",
+
+                  paddingHorizontal: 12,
+                  paddingVertical: 5,
+
+                  borderRadius: 3,
+                  borderTopRightRadius: 0,
+                  borderBottomRightRadius: 0,
+                }}
+                onPress={() => {
+                  setGrading((prevState) => !prevState);
                 }}
               >
                 <Text
                   style={{
-                    flexDirection: "row",
-
-                    color: "#f4f4f4",
                     fontWeight: "700",
-                    fontSize: 20,
-                    marginRight: 10,
+                    color: gradingSwitch ? "#121212" : "#5c5c5c",
+                    fontSize: 16,
                   }}
                 >
-                  Is the card graded?
+                  Yes
                 </Text>
-                <Checkbox
-                  status={gradingSwitch ? "checked" : "unchecked"}
-                  color={"#0082ff"}
-                  uncheckedColor={"#5c5c5c"}
-                  onPress={() => setGrading(!gradingSwitch)}
-                />
-              </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  borderColor: !gradingSwitch ? "#0082ff" : "#5c5c5c",
+                  borderWidth: 1,
+
+                  backgroundColor: !gradingSwitch ? "#0082ff" : "#1b1b1b",
+
+                  paddingVertical: 5,
+                  paddingHorizontal: 12,
+
+                  borderRadius: 3,
+                  borderTopLeftRadius: 0,
+                  borderBottomLeftRadius: 0,
+                }}
+                onPress={() => {
+                  setGrading((prevState) => !prevState);
+                }}
+              >
+                <Text
+                  style={{
+                    fontWeight: "700",
+                    color: !gradingSwitch ? "#121212" : "#5c5c5c",
+                    fontSize: 16,
+                  }}
+                >
+                  No
+                </Text>
+              </TouchableOpacity>
             </View>
+
             <View
               style={{
                 width: "85%",
@@ -931,7 +967,8 @@ export default function AddCard() {
                   color="#0082ff"
                   animating={loadingIndicator}
                   style={{
-                    marginRight: 14,
+                    marginRight: 18,
+                    marginTop: 20,
                   }}
                 />
               ) : null}

@@ -164,7 +164,9 @@ export default function AddShippingMethod() {
                 name: values.name,
                 from: parseInt(values.from),
                 to: parseInt(values.to),
-                price: parseFloat(values.price),
+                price: parseFloat(
+                  values.price.replace(/,/g, ".").replace(/ /g, "")
+                ),
                 tracking: trackingState,
               },
               rangeState
@@ -448,7 +450,7 @@ export default function AddShippingMethod() {
             >
               <View style={{ width: "38%" }}>
                 <TextInput
-                autoCapitalize="none"
+                  autoCapitalize="none"
                   mode={"outlined"}
                   value={props.values.from}
                   onChangeText={props.handleChange("from")}
@@ -517,7 +519,7 @@ export default function AddShippingMethod() {
 
               <View style={{ width: "38%" }}>
                 <TextInput
-                autoCapitalize="none"
+                  autoCapitalize="none"
                   mode={"outlined"}
                   value={props.values.to}
                   keyboardType="numeric"
@@ -580,7 +582,7 @@ export default function AddShippingMethod() {
               </View>
             </View>
             <TextInput
-                autoCapitalize="none"
+              autoCapitalize="none"
               mode={"outlined"}
               value={props.values.price}
               onChangeText={props.handleChange("price")}
@@ -649,8 +651,8 @@ export default function AddShippingMethod() {
               style={{
                 marginTop: 6,
 
-                paddingHorizontal: 12,
-                paddingVertical: 8,
+                paddingHorizontal: 18,
+                paddingVertical: 16,
 
                 borderRadius: 3,
                 backgroundColor: "#121212",
@@ -707,8 +709,10 @@ export default function AddShippingMethod() {
                 }}
               >
                 {props.values.price
-                  ? parseFloat(props.values.price).toFixed(2)
-                  : "0"}{" "}
+                  ? parseFloat(
+                      props.values.price.replace(/,/g, ".").replace(/ /g, "")
+                    ).toFixed(2)
+                  : "0.00"}{" "}
                 USD
               </Text>
             </View>

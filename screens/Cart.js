@@ -16,8 +16,7 @@ import { fetchCart } from "../authContext";
 import ZigzagLines from "react-native-zigzag-lines";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-import { useIsFocused } from "@react-navigation/native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useIsFocused } from "@react-navigation/native";
 
 export default function Cart({ route }) {
   const [offersState, setOffersState] = useState([]);
@@ -149,7 +148,7 @@ export default function Cart({ route }) {
               marginLeft: 12,
             }}
           >
-            {totalState.price} USD{" "}
+            {totalState.price.toFixed(2)} USD{" "}
             <Text style={{ fontFamily: "Roboto_Regular", color: "#7C7C7C" }}>
               for
             </Text>{" "}
@@ -162,15 +161,18 @@ export default function Cart({ route }) {
           <TouchableOpacity
             style={{
               marginHorizontal: 12,
-              paddingVertical: 5,
+
               paddingHorizontal: 12,
 
-              borderRadius: 3,
-              backgroundColor: "#0082ff",
+              // borderRadius: 4,
 
+              flexDirection: "row",
+
+              backgroundColor: "#0082ff",
               alignItems: "center",
               justifyContent: "center",
-              flexDirection: "row",
+              borderRadius: 6,
+              paddingVertical: 7,
             }}
             onPress={() => {
               navigation.navigate("Checkout");
