@@ -68,7 +68,9 @@ export default function AddCard() {
   const submitForm = async (values) => {
     if (cardId) {
       if (photoState) {
-        values.price = values.price.replace(/,/g, ".").replace(/ /g, "");
+        if (values.price.toString().indexOf(".") !== -1) {
+          values.price = values.price.replace(/,/g, ".").replace(/ /g, "");
+        }
 
         await addCard(values, gradingSwitch, photoState, cardId);
         setLoadingIndicator(false);

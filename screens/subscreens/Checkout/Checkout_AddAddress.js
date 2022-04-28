@@ -12,7 +12,7 @@ import { db, auth, firebaseObj } from "../../../authContext";
 
 import { useNavigation } from "@react-navigation/native";
 
-export default function Checkout_AddAddres() {
+export default function Checkout_AddAddress() {
   const [loadingIndicator, setLoadingIndicator] = useState(false);
   const [countryPickerState, setCountryPickerState] = useState("");
   const [countryInputTouched, setCountryInputTouched] = useState(false);

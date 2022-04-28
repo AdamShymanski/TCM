@@ -27,8 +27,8 @@ export const storage = firebase.storage();
 export const functions = firebase.functions();
 
 if (__DEV__) {
-  firebase.functions().useEmulator("192.168.0.101", 5001);
-  firebase.firestore().useEmulator("192.168.0.101", 8080);
+  firebase.functions().useEmulator("192.168.0.103", 5001);
+  firebase.firestore().useEmulator("192.168.0.103", 8080);
 } else {
   var GoogleSignIn = require("expo-google-sign-in");
 }
@@ -301,11 +301,17 @@ export async function addNewRating(props) {
 
 //! OFFERS - AND RELATED TO IT
 export async function addCard(values, gradingSwitch, photoState, cardId) {
-  if (values.condition) condition = parseFloat(values.condition);
-  else condition = null;
+  const condition = parseFloat(values.condition);
 
   //parse price
   values.price = parseFloat(values.price);
+
+  const doc = await db.collection("users").doc(auth.currentUser.uid).get();
+
+  const cardStatus =
+    doc.data().sellerProfile.status === "restricted"
+      ? "suspended"
+      : "verification_pending";
 
   db.collection(`offers`)
     .add({
@@ -313,7 +319,7 @@ export async function addCard(values, gradingSwitch, photoState, cardId) {
       isGraded: gradingSwitch,
       owner: auth.currentUser.uid,
       cardId: cardId,
-      status: "verificationPending",
+      status: cardStatus,
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     })
     .then(async (docRef) => {
@@ -452,7 +458,7 @@ export async function editCard(props, outValues, initValues, valuesOrder) {
       await db
         .collection("cardsData")
         .doc(props.cardId)
-        .update({ updateObj, status: "verificationPending" });
+        .update({ updateObj, status: "verification_pending" });
     }
   } catch (error) {
     console.log(error);

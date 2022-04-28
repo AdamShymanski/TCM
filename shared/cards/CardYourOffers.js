@@ -71,7 +71,7 @@ export function CardYourOffers({ props, setModal, setId }) {
     return outArray;
   };
   const returnStatus = (prop) => {
-    if (prop === "verificationPending") {
+    if (prop === "verification_pending") {
       return (
         <View
           style={{

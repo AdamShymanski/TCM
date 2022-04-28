@@ -41,7 +41,7 @@ import EditShippingMethod from "./screens/subscreens/Seller/EditShippingMethod";
 import TransactionDetails from "./screens/subscreens/Transactions/TransactionDetails";
 import Settings_AddAddress from "./screens/subscreens/Settings/Settings_AddAddress";
 import Settings_EditAddress from "./screens/subscreens/Settings/Settings_EditAddress";
-import Checkout_AddAddress from "./screens/subscreens/Checkout/Checkout_AddAddres";
+import Checkout_AddAddress from "./screens/subscreens/Checkout/Checkout_AddAddress";
 
 import History from "./screens/subscreens/Seller/History";
 import ReferralProgram from "./screens/ReferralProgram";

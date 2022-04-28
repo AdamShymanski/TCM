@@ -205,10 +205,11 @@ export default function YourOffers() {
                       flexDirection: "row",
                       alignItems: "center",
                       justifyContent: "center",
-                      width: "96%",
+
                       backgroundColor: "#121212",
                       paddingVertical: 10,
-                      marginLeft: "2%",
+                      width: "90%",
+                      marginLeft: "5%",
 
                       marginBottom: 6,
                       marginTop: 14,

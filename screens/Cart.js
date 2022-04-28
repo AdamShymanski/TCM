@@ -171,7 +171,7 @@ export default function Cart({ route }) {
               backgroundColor: "#0082ff",
               alignItems: "center",
               justifyContent: "center",
-              borderRadius: 6,
+              borderRadius: 4,
               paddingVertical: 7,
             }}
             onPress={() => {
