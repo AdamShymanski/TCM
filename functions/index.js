@@ -82,17 +82,7 @@ async function sendPushNotification(expoPushToken) {
   // });
 }
 
-exports.events = functions.https.onRequest((request, response) => {
-  response.send("Endpoint for Stripe Webhooks!");
-});
-
 exports.createStripeAccount = functions.https.onCall(async (data, context) => {
-  const doc = await admin
-    .firestore()
-    .collection("users")
-    .doc(context.auth.uid)
-    .get();
-
   const account = await stripe.accounts.create({
     type: "express",
     business_type: "individual",
@@ -246,7 +236,6 @@ exports.overWriteUserDocs = functions.https.onCall(async (data, context) => {
               addresses: [],
               sellerProfile: {
                 status: "unset",
-                firstSell: null,
                 rating: [],
                 shippingMethods: {
                   domestic: [],
@@ -507,8 +496,7 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
           res.status(400).send(err);
         }
       });
-  }
-  if (event.type === "payment_intent.canceled") {
+  } else if (event.type === "payment_intent.canceled") {
     await admin
       .firestore()
       .collection("transactions")
@@ -532,32 +520,145 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
           res.status(200).send("success");
         });
       });
-  } else {
-    //event type was not handled
+  } else if (event.type === "account.updated") {
+    const accountData = event.data.object;
 
+    if (accountData.requirements.pending_verification.length > 0) {
+      //! PEDNING VERIFICATION
+      await admin
+        .firestore()
+        .collection("users")
+        .doc(accountData.business_profile.name)
+        .update({
+          ["sellerProfile.status"]: "verification_pending",
+        });
+
+      //update status of all offers
+
+      await admin
+        .firestore()
+        .collection("offers")
+        .where("owner", "==", accountData.business_profile.name)
+        .where("status", "==", "published")
+        .get()
+        .then((offers) => {
+          if (offers.length > 0) {
+            offers.forEach(async (offer) => {
+              offer.ref.update({ status: "suspended" });
+            });
+          }
+        });
+
+      //update
+    } else if (!(accountData.charges_enabled || accountData.payouts_enabled)) {
+      //! RESTRICTED
+      await admin
+        .firestore()
+        .collection("users")
+        .doc(accountData.business_profile.name)
+        .update({
+          ["sellerProfile.status"]: "restricted",
+        });
+
+      //update status of all offers
+
+      await admin
+        .firestore()
+        .collection("offers")
+        .where("owner", "==", accountData.business_profile.name)
+        .where("status", "==", "published")
+        .get()
+        .then((offers) => {
+          if (offers.length > 0) {
+            offers.forEach(async (offer) => {
+              offer.ref.update({ status: "suspended" });
+            });
+          }
+        });
+    } else if (
+      accountData.requirements.eventually_due.length > 0 &&
+      accountData.requirements.current_deadline.length === 0
+    ) {
+      //! ENABLED
+
+      await admin
+        .firestore()
+        .collection("users")
+        .doc(accountData.business_profile.name)
+        .update({
+          ["sellerProfile.status"]: "enabled",
+        });
+
+      //update status of all offers
+
+      await admin
+        .firestore()
+        .collection("offers")
+        .where("owner", "==", accountData.business_profile.name)
+        .where("status", "==", "suspended")
+        .get()
+        .then((offers) => {
+          if (offers.length > 0) {
+            offers.forEach(async (offer) => {
+              offer.ref.update({ status: "published" });
+            });
+          }
+        });
+    } else if (accountData.requirements.eventually_due.length === 0) {
+      await admin
+        .firestore()
+        .collection("users")
+        .doc(accountData.business_profile.name)
+        .update({
+          ["sellerProfile.status"]: "enabled",
+        });
+
+      await admin
+        .firestore()
+        .collection("offers")
+        .where("owner", "==", accountData.business_profile.name)
+        .where("status", "==", "suspended")
+        .get()
+        .then((offers) => {
+          if (offers.length > 0) {
+            offers.forEach(async (offer) => {
+              offer.ref.update({ status: "published" });
+            });
+          }
+        });
+    }
+  } else {
     res.status(200).send("event type not handled");
   }
 });
 
-exports.deleteExpiredTransactions = functions.pubsub
-  .schedule("every 5 minutes")
+exports.validateOffersStatus = functions.pubsub
+  .schedule("every 10 minutes")
   .onRun((context) => {
-    const date = new Date();
-    date.setDate(date.getDate() - 1);
-    const expirationDate = admin.firestore.Timestamp.fromDate(date);
-
-    console.log(expirationDate);
+    //check status of all sellerProfiles
+    //if status != enabled, set status of all published offers to suspended
 
     admin
       .firestore()
-      .collection("transactions")
-      .where("timestamps", "<", expirationDate)
-      .where("status", "==", "unpaid")
+      .collection("users")
+      .where("sellerProfile.status", "!=", "enabled")
       .get()
       .then((snapshot) => {
         if (snapshot.lenght > 0) {
-          snapshot.forEach((doc) => {
-            doc.ref.delete();
+          snapshot.forEach(async (doc) => {
+            await admin
+              .firestore()
+              .collection("offers")
+              .where("owner", "==", doc.id)
+              .where("status", "==", "published")
+              .get()
+              .then((offers) => {
+                if (offers.length > 0) {
+                  offers.forEach(async (offer) => {
+                    offer.ref.update({ status: "suspended" });
+                  });
+                }
+              });
           });
         }
       });

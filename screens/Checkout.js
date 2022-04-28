@@ -35,6 +35,7 @@ import Stripe_logo from "../assets/Stripe_logo.png";
 import bottom_arrow from "../assets/arrow_right_bottom.png";
 import signature from "../assets/signature_x.png";
 
+import IconI from "react-native-vector-icons/Ionicons";
 import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 
 // import IconMI from "react-native-vector-icons/MaterialIcons";
@@ -66,9 +67,6 @@ export default function Checkout({ pageState, setPage }) {
   const [addressesArray, setAddressesArray] = useState([]);
 
   const [offersState, setOffersState] = useState([]);
-
-  const [noAvailableShippingMethods, setNoAvailableShippingMethods] =
-    useState(false);
 
   const addEmptyObj = (array) => {
     if (array.length === 0) {
@@ -116,8 +114,6 @@ export default function Checkout({ pageState, setPage }) {
 
   useEffect(() => {
     if (shippingAddress) {
-      setShippingMethod({});
-
       const shippingMethodsArray = [];
 
       const promise = new Promise((resolve, reject) => {
@@ -145,10 +141,12 @@ export default function Checkout({ pageState, setPage }) {
       });
 
       promise.then(() => {
+        shippingMethodsArray.forEach((item, index) => {
+          if (item.data.length === 0)
+            shippingMethodsArray[index].data.push({ empty: true });
+        });
         setAvalibleShippingMethods(shippingMethodsArray);
       });
-    } else {
-      setAvalibleShippingMethods("Set your shipping address first");
     }
   }, [shippingAddress]);
 
@@ -160,10 +158,7 @@ export default function Checkout({ pageState, setPage }) {
         outputObj[item.uid] = false;
       });
 
-      setNoAvailableShippingMethods(false);
       setShippingMethod(outputObj);
-    } else {
-      setNoAvailableShippingMethods(true);
     }
   }, [avalibleShippingMethods]);
 
@@ -177,7 +172,6 @@ export default function Checkout({ pageState, setPage }) {
         shippingMethod={shippingMethod}
         addressesArray={addressesArray}
         avalibleShippingMethods={avalibleShippingMethods}
-        noAvailableShippingMethods={noAvailableShippingMethods}
       />
     );
   } else if (pageState === "summaryPage") {
@@ -205,7 +199,6 @@ const ShippingPage = ({
   shippingMethod,
   addressesArray,
   avalibleShippingMethods,
-  noAvailableShippingMethods,
 }) => {
   const [loadingIndicator, setLoadingIndicator] = useState(false);
   const [errorState, setError] = useState(false);
@@ -238,6 +231,8 @@ const ShippingPage = ({
 
   useEffect(() => {
     if (addressesArray.length === 2 && addressesArray[1].empty === true) {
+      setShippingAddress(addressesArray[0]);
+    } else if (addressesArray.length >= 2) {
       setShippingAddress(addressesArray[0]);
     }
   }, [addressesArray]);
@@ -276,7 +271,7 @@ const ShippingPage = ({
               }}
               onPress={() => {
                 navigation.navigate("CartStack", {
-                  screen: "Checkout_AddAddres",
+                  screen: "Checkout_AddAddress",
                 });
               }}
             >
@@ -379,152 +374,186 @@ const ShippingPage = ({
               Shipping Methods
             </Text>
 
-            {noAvailableShippingMethods ? (
-              <View>
-                <Text>Seller doesn't provide</Text>
-              </View>
-            ) : (
-              <View>
-                <View
+            <View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginBottom: 6,
+                  marginLeft: 12,
+                }}
+              >
+                <IconMCI name={"radar"} size={16} color={"#24FF00"} />
+                <Text
                   style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    marginBottom: 6,
-                    marginLeft: 12,
+                    fontSize: 14,
+                    color: "#5c5c5c",
                   }}
                 >
-                  <IconMCI name={"radar"} size={16} color={"#24FF00"} />
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      color: "#5c5c5c",
-                    }}
-                  >
-                    {"  - Package tracking available"}
-                  </Text>
-                </View>
-                <SectionList
-                  style={{ width: "100%", flexGrow: 0 }}
-                  sections={avalibleShippingMethods}
-                  keyExtractor={(item, index) => item + index}
-                  renderItem={({ item, index, section }) => {
+                  {"  - Method with parcel tracking"}
+                </Text>
+              </View>
+              <SectionList
+                style={{ width: "100%", flexGrow: 0 }}
+                sections={avalibleShippingMethods}
+                keyExtractor={(item, index) => item + index}
+                renderItem={({ item, index, section }) => {
+                  if (item.empty) {
                     return (
                       <View
                         style={{
-                          width: "100%",
-
-                          marginTop: 6,
-                          paddingHorizontal: 12,
-                          paddingVertical: 8,
-
-                          borderRadius: 3,
-                          backgroundColor: "#121212",
-
-                          flexDirection: "row",
                           alignItems: "center",
-                          justifyContent: "space-between",
+                          flexDirection: "row",
+                          marginTop: 12,
+                          backgroundColor: "#121212",
+                          borderRadius: 6,
+                          width: "100%",
+                          paddingHorizontal: 12,
+                          paddingVertical: 12,
                         }}
                       >
-                        {item.tracking ? (
-                          <IconMCI name={"radar"} size={16} color={"#24FF00"} />
-                        ) : null}
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            color: "#f4f4f4",
-                            fontWeight: "700",
-                          }}
-                        >
-                          {item.carrier}
-                        </Text>
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            color: "#939393",
-                          }}
-                        >
-                          {item.name}
-                        </Text>
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            color: "#f4f4f4",
-                          }}
-                        >
-                          {item.from} - {item.to} days
-                        </Text>
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            color: "#f4f4f4",
-                            fontWeight: "700",
-                          }}
-                        >
-                          {item.price.toFixed(2)} USD
-                        </Text>
-                        <RadioButton
-                          value="first"
-                          status={
-                            JSON.stringify(shippingMethod[section.uid]) ===
-                            JSON.stringify(item)
-                              ? "checked"
-                              : "unchecked"
-                          }
-                          onPress={() => {
-                            setShippingMethod((prevState) => ({
-                              ...prevState,
-                              [section.uid]: item,
-                            }));
-                          }}
-                          uncheckedColor="#f4f4f4"
-                          color="#0082ff"
-                        />
+                        <IconI name={"warning"} color={"yellow"} size={50} />
+                        <View style={{ marginLeft: 12 }}>
+                          <Text
+                            style={{
+                              fontSize: 20,
+                              fontWeight: "bold",
+                              color: "#888",
+                            }}
+                          >
+                            No shipping available
+                          </Text>
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              color: "#888",
+                              marginRight: 28,
+                            }}
+                          >
+                            This seller doesn't provide shipping for specified
+                            address.
+                          </Text>
+                        </View>
                       </View>
                     );
-                  }}
-                  renderSectionHeader={({ section: { title } }) => (
-                    <View>
+                  }
+
+                  return (
+                    <View
+                      style={{
+                        width: "100%",
+
+                        marginTop: 6,
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+
+                        borderRadius: 3,
+                        backgroundColor: "#121212",
+
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      {item.tracking ? (
+                        <IconMCI name={"radar"} size={16} color={"#24FF00"} />
+                      ) : null}
                       <Text
                         style={{
-                          color: "#7c7c7c",
-                          fontSize: 12,
-                          marginTop: 16,
+                          fontSize: 14,
+                          color: "#f4f4f4",
+                          fontWeight: "700",
                         }}
                       >
-                        from{"  "}
-                        <Text
-                          style={{
-                            color: "#bbbbbb",
-                            fontSize: 17,
-                            fontFamily: "Roboto_Medium",
-                          }}
-                        >
-                          {title}
-                        </Text>
+                        {item.carrier}
                       </Text>
-                    </View>
-                  )}
-                  ListEmptyComponent={() => {
-                    return (
-                      <View
+                      <Text
                         style={{
-                          felx: 1,
-                          justifyContent: "center",
-                          alignItems: "center",
-                          marginTop: 20,
+                          fontSize: 14,
+                          color: "#939393",
                         }}
                       >
-                        <ActivityIndicator
-                          size="large"
-                          color="#0082ff"
-                          style={{ marginTop: 20 }}
-                        />
-                      </View>
-                    );
-                  }}
-                />
-              </View>
-            )}
+                        {item.name}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          color: "#f4f4f4",
+                        }}
+                      >
+                        {item.from} - {item.to} days
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          color: "#f4f4f4",
+                          fontWeight: "700",
+                        }}
+                      >
+                        {item.price.toFixed(2)} USD
+                      </Text>
+                      <RadioButton
+                        value="first"
+                        status={
+                          JSON.stringify(shippingMethod[section.uid]) ===
+                          JSON.stringify(item)
+                            ? "checked"
+                            : "unchecked"
+                        }
+                        onPress={() => {
+                          setShippingMethod((prevState) => ({
+                            ...prevState,
+                            [section.uid]: item,
+                          }));
+                        }}
+                        uncheckedColor="#f4f4f4"
+                        color="#0082ff"
+                      />
+                    </View>
+                  );
+                }}
+                renderSectionHeader={({ section: { title } }) => (
+                  <View>
+                    <Text
+                      style={{
+                        color: "#7c7c7c",
+                        fontSize: 12,
+                        marginTop: 16,
+                      }}
+                    >
+                      from{"  "}
+                      <Text
+                        style={{
+                          color: "#bbbbbb",
+                          fontSize: 17,
+                          fontFamily: "Roboto_Medium",
+                        }}
+                      >
+                        {title}
+                      </Text>
+                    </Text>
+                  </View>
+                )}
+                ListEmptyComponent={() => {
+                  return (
+                    <View
+                      style={{
+                        felx: 1,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        marginTop: 20,
+                      }}
+                    >
+                      <ActivityIndicator
+                        size="large"
+                        color="#0082ff"
+                        style={{ marginTop: 20 }}
+                      />
+                    </View>
+                  );
+                }}
+              />
+            </View>
 
             <View
               style={{

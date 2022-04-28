@@ -44,7 +44,6 @@ export default function SellerProfile() {
   const [statistics, setStatistics] = useState(null);
 
   const [noStripe, setNoStripe] = useState(true);
-  const [requirements, setRequirements] = useState(true);
 
   const isFocused = useIsFocused();
 
@@ -572,12 +571,6 @@ export default function SellerProfile() {
                   setNoStripe(false);
                   setAccountData(result.data);
                   setLoadingState(false);
-
-                  if (result.data.payouts_enabled) {
-                    setRequirements(true);
-                  } else {
-                    setRequirements(false);
-                  }
                 }
               })
               .catch((e) => {

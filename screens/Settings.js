@@ -485,6 +485,7 @@ export default function Settings() {
             data={addressesArray}
             style={{
               paddingLeft: "5%",
+              paddingRight: "5%",
 
               backgroundColor: "#1b1b1b",
 

@@ -128,7 +128,7 @@ export default function SelectingCard({ props, setProps, setId, closeModal }) {
           style={{
             width: "90%",
             height: undefined,
-            aspectRatio: 1 / 1.2,
+            aspectRatio: 1 / 1.1,
             backgroundColor: "#121212",
             borderRadius: 8,
 
@@ -148,69 +148,6 @@ export default function SelectingCard({ props, setProps, setId, closeModal }) {
           >
             {props.name}
           </Text>
-          {/* <View
-            style={{
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginTop: 12,
-              }}
-            >
-              <Image
-                source={inStock}
-                style={{
-                  width: 21,
-                  height: undefined,
-                  aspectRatio: 22 / 21.1,
-                  marginRight: 8,
-                }}
-              />
-              <Text
-                style={{ fontWeight: "700", fontSize: 14, color: "#f4f4f4" }}
-              >
-                {details[0]}
-              </Text>
-            </View>
-
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginTop: 12,
-              }}
-            >
-              <Image
-                source={bluePricetag}
-                style={{
-                  width: 18,
-                  height: undefined,
-                  aspectRatio: 1 / 1,
-                  marginRight: 8,
-                }}
-              />
-              <Text
-                style={{ fontWeight: "700", fontSize: 12, color: "#f4f4f4" }}
-              >
-                <Text
-                  style={{ fontWeight: "600", fontSize: 10, color: "#696969" }}
-                >
-                  from
-                </Text>{" "}
-                {details[2]}{" "}
-                <Text
-                  style={{ fontWeight: "600", fontSize: 10, color: "#696969" }}
-                >
-                  to
-                </Text>{" "}
-                {details[1]} USD
-              </Text>
-            </View>
-          </View> */}
           <View>
             <Text
               style={{ color: "#5c5c5c", fontFamily: "Roboto_Medium" }}
@@ -228,7 +165,7 @@ export default function SelectingCard({ props, setProps, setId, closeModal }) {
               borderRadius: 3,
 
               marginTop: 44,
-              paddingVertical: 1.6,
+              paddingVertical: 5,
             }}
             onPress={() => {
               setId(props.id);
