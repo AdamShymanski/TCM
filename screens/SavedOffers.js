@@ -52,7 +52,7 @@ export default function SavedOffers() {
         flexDirection: "column",
       }}
     >
-      {cardsData == null || cardsData.length == 0 ? (
+      {cardsData === null || cardsData.length === 0 ? (
         <View
           style={{
             flex: 1,

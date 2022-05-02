@@ -7,10 +7,9 @@ import {
   TouchableOpacity,
   SectionList,
   FlatList,
-  ScrollView,
+  LogBox,
 } from "react-native";
 
-import { useStripe } from "@stripe/stripe-react-native";
 import { StackActions, NavigationActions } from "react-navigation";
 import {
   useNavigation,
@@ -27,8 +26,8 @@ import {
   fetchCardsName,
 } from "../authContext";
 
+import { useStripe } from "@stripe/stripe-react-native";
 import { ActivityIndicator, RadioButton } from "react-native-paper";
-import { LogBox } from "react-native";
 
 import SummaryObject from "./../shared/Objects/SummaryObject";
 import Stripe_logo from "../assets/Stripe_logo.png";
@@ -38,13 +37,13 @@ import signature from "../assets/signature_x.png";
 import IconI from "react-native-vector-icons/Ionicons";
 import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 
-// import IconMI from "react-native-vector-icons/MaterialIcons";
-// import AddShippingMethod from "./subscreens/Seller/AddShippingMethod";
-// import DHL_logo from "../assets/DHL_logo.png";
-// import FedExExpress_logo from "../assets/FedEx_Express_logo.png";
-// import FedEx_logo from "../assets/FedEx_logo.png";
 // import UPS_logo from "../assets/UPS_logo.png";
+// import DHL_logo from "../assets/DHL_logo.png";
 // import USPS_logo from "../assets/USPS_logo.png";
+// import FedEx_logo from "../assets/FedEx_logo.png";
+// import IconMI from "react-native-vector-icons/MaterialIcons";
+// import FedExExpress_logo from "../assets/FedEx_Express_logo.png";
+// import AddShippingMethod from "./subscreens/Seller/AddShippingMethod";
 
 export default function Checkout({ pageState, setPage }) {
   const route = useRoute();

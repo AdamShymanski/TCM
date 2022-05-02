@@ -54,9 +54,8 @@ import CustomDrawer from "./shared/CustomDrawer";
 
 //!import SearchForSeller from "./screens/SearchForSeller";
 
-import { db, auth, setChatListeners, functions } from "./authContext.js";
-
 import { AdMobBanner } from "expo-ads-admob";
+import { db, auth, setChatListeners, functions } from "./authContext.js";
 
 import IconMI from "react-native-vector-icons/MaterialIcons";
 import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
@@ -94,10 +93,13 @@ Notifications.setNotificationHandler({
 
 async function registerForPushNotificationsAsync() {
   let token;
+
   if (Device.isDevice) {
     const { status: existingStatus } =
       await Notifications.getPermissionsAsync();
+
     let finalStatus = existingStatus;
+
     if (existingStatus !== "granted") {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
@@ -686,6 +688,16 @@ function YourOffersStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
+        name="WorkInProgress"
+        component={WorkInProgress}
+        options={{
+          headerTitle: () => <CustomHeader version={"workInProgress"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
+      <Stack.Screen
         name="YourOffers"
         component={YourOffers}
         options={{
@@ -714,7 +726,9 @@ function YourOffersStack() {
                 paddingHorizontal: 12,
               }}
               onPress={() =>
-                navigation.navigate("YourOffersStack", { screen: "AddCard" })
+                navigation.navigate("YourOffersStack", {
+                  screen: "WorkInProgress",
+                })
               }
             >
               <Text
@@ -734,16 +748,6 @@ function YourOffersStack() {
             backgroundColor: "#121212",
           },
         })}
-      />
-      <Stack.Screen
-        name="WorkInProgress"
-        component={WorkInProgress}
-        options={{
-          headerTitle: () => <CustomHeader version={"workInProgress"} />,
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        }}
       />
       <Stack.Screen
         name="ImageBrowser"
@@ -876,16 +880,6 @@ function SellerStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="SellerProfile"
-        component={SellerProfile}
-        options={{
-          headerTitle: () => <CustomHeader version={"sellerProfile"} />,
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        }}
-      />
-      <Stack.Screen
         name="WorkInProgress"
         component={WorkInProgress}
         options={{
@@ -895,6 +889,17 @@ function SellerStack() {
           },
         }}
       />
+      <Stack.Screen
+        name="SellerProfile"
+        component={SellerProfile}
+        options={{
+          headerTitle: () => <CustomHeader version={"sellerProfile"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
+
       <Stack.Screen
         name="History"
         component={History}
@@ -1315,13 +1320,10 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [finishRegisterProcess, setFinishRegisterProcess] = useState(null);
-  const [adBanerState, setAdBannerState] = useState(true);
-  const [deepLinkData, setDeepLinkData] = useState(true);
 
-  const [expoPushToken, setExpoPushToken] = useState("");
-  const [notification, setNotification] = useState(false);
-  const notificationListener = useRef();
   const responseListener = useRef();
+  const notificationListener = useRef();
+  const [expoPushToken, setExpoPushToken] = useState(null);
 
   LogBox.ignoreLogs([
     "Setting a timer for a long period of time, i.e. multiple minutes, is a performance and correctness issue on Android as it keeps the timer module awake, and timers can only be called when the app is in the foreground. See https://github.com/facebook/react-native/issues/12981 for more info.",
@@ -1352,7 +1354,7 @@ export default function App() {
 
   const handleDeepLink = async (event) => {
     let data = Linking.parse(event.url);
-    setDeepLinkData(data);
+    // setDeepLinkData(data);
   };
 
   const linking = {
@@ -1386,22 +1388,6 @@ export default function App() {
 
     const resolvePromises = async () => {
       try {
-        registerForPushNotificationsAsync().then((token) =>
-          setExpoPushToken(token)
-        );
-
-        // This listener is fired whenever a notification is received while the app is foregrounded
-        notificationListener.current =
-          Notifications.addNotificationReceivedListener((notification) => {
-            setNotification(notification);
-          });
-
-        // This listener is fired whenever a user taps on or interacts with a notification (works when app is foregrounded, backgrounded, or killed)
-        responseListener.current =
-          Notifications.addNotificationResponseReceivedListener((response) => {
-            console.log(response);
-          });
-
         Linking.addEventListener("url", handleDeepLink);
 
         await Font.loadAsync({
@@ -1429,6 +1415,26 @@ export default function App() {
             enableInExpoDevelopment: true,
           });
         }
+
+        if (currentUser) {
+          registerForPushNotificationsAsync().then((token) =>
+            setExpoPushToken(token)
+          );
+
+          // This listener is fired whenever a notification is received while the app is foregrounded
+          notificationListener.current =
+            Notifications.addNotificationReceivedListener((notification) => {
+              console.log(notification);
+            });
+
+          // This listener is fired whenever a user taps on or interacts with a notification (works when app is foregrounded, backgrounded, or killed)
+          responseListener.current =
+            Notifications.addNotificationResponseReceivedListener(
+              (response) => {
+                console.log(response);
+              }
+            );
+        }
       } catch (e) {
         console.log(e);
       }
@@ -1445,25 +1451,25 @@ export default function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (currentUser) {
-      if (
-        currentUser.notificationToken === null ||
-        currentUser.notificationToken !== expoPushToken
-      ) {
-        db.collection("users").doc(currentUser.uid).update({
-          notificationToken: expoPushToken,
-        });
-      }
-    }
-  }, [currentUser]);
+  // useEffect(() => {
+  //   if (currentUser) {
+  //     if (
+  //       currentUser.notificationToken === null ||
+  //       currentUser.notificationToken !== expoPushToken
+  //     ) {
+  //       db.collection("users").doc(currentUser.uid).update({
+  //         notificationToken: expoPushToken,
+  //       });
+  //     }
+  //   }
+  // }, [currentUser]);
 
   useEffect(async () => {
     if (expoPushToken) {
       const doc = await db.collection("users").doc(currentUser.uid).get();
       if (
-        !doc.data().notificationToken ||
-        doc.data().notificationToken !== expoPushToken
+        !doc.data()?.notificationToken ||
+        doc.data()?.notificationToken !== expoPushToken
       ) {
         db.collection("users").doc(currentUser.uid).update({
           notificationToken: expoPushToken,
@@ -1480,10 +1486,10 @@ export default function App() {
         <NavigationContainer>
           <Stack.Navigator>
             <Stack.Screen
-              name="setFinishRegisterProcess"
+              name="FinishGoogleRegister"
               children={() => (
                 <FinishGoogleRegister
-                  callback={setFinishRegisterProcess}
+                  setFinishRegisterProcess={setFinishRegisterProcess}
                   name={currentUser.displayName}
                 />
               )}
@@ -1694,7 +1700,12 @@ export default function App() {
               },
             })}
             name="FinishGoogleRegister"
-            component={FinishGoogleRegister}
+            children={() => (
+              <FinishGoogleRegister
+                setFinishRegisterProcess={setFinishRegisterProcess}
+                name={currentUser.displayName}
+              />
+            )}
           />
         </Stack.Navigator>
       </NavigationContainer>
