@@ -43,7 +43,7 @@ export default function CustomDrawer({ navigation }) {
       db.collection("users")
         .doc(auth.currentUser.uid)
         .onSnapshot((snapshot) => {
-          setNotificationState(!snapshot.data().lastSupportMessageReaded);
+          // setNotificationState(!snapshot.data().lastSupportMessageReaded);
         });
     };
 
@@ -218,7 +218,9 @@ export default function CustomDrawer({ navigation }) {
             labelStyle={{ color: "#f4f4f4" }}
             label="Seller Profile"
             onPress={() => {
-              navigation.navigate("SellerStack", { screen: "SellerProfile" });
+              navigation.navigate("SellerStack", {
+                screen: "WorkInProgress",
+              });
             }}
           />
 
@@ -229,7 +231,9 @@ export default function CustomDrawer({ navigation }) {
             labelStyle={{ color: "#f4f4f4" }}
             label="Your Offers"
             onPress={() => {
-              navigation.navigate("YourOffersStack");
+              navigation.navigate("YourOffersStack", {
+                screen: "WorkInProgress",
+              });
             }}
           />
         </Drawer.Section>

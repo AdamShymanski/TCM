@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  LogBox,
 } from "react-native";
 
 import { TextInput } from "react-native-paper";
@@ -19,7 +20,6 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import IconI from "react-native-vector-icons/Ionicons";
 
 import {
-  db,
   auth,
   fetchUserData,
   updateUserData,
@@ -29,7 +29,8 @@ import {
   auth,
 } from '../authContext';
 
-import * as Google from 'expo-google-app-auth';
+// import * as GoogleSignIn from "expo-google-app-auth";
+import * as GoogleSignIn from "expo-google-sign-in";
 
 import AreYouSureModal from "../shared/Modals/AreYouSureModal";
 import ChangePasswordModal from "../shared/Modals/ChangePasswordModal";
@@ -83,6 +84,10 @@ export default function Settings() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
 
+  LogBox.ignoreLogs([
+    "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing and other functionality - use another VirtualizedList-backed container instead.",
+  ]);
+
   useEffect(async () => {
     if (isFocused) {
       const result = await fetchUserData();
@@ -132,6 +137,11 @@ export default function Settings() {
 
   const setCountryValue = (value) => {
     setUserData((prevState) => ({ ...prevState, country: value }));
+    if (value !== initValues.country) {
+      setFormChanged(true);
+    } else {
+      setFormChanged(false);
+    }
   };
 
   const detectChanges = (values) => {
@@ -150,11 +160,48 @@ export default function Settings() {
       if (action === 'deleteAccount') {
         navigation.navigate('DeletingAccount');
       }
-      const result = await Google.logInAsync({
+
+      await GoogleSignIn.askForPlayServicesAsync();
+      const { type, user } = await GoogleSignIn.signInAsync();
+
+      if (
+        type === "success" &&
+        (await googleReSignIn({
+          idToken: user.auth.idToken,
+          accessToken: user.auth.accessToken,
+        }))
+      ) {
+        if (action === "deleteAccount") {
+          await deleteAccount();
+          navigation.navigate("DeletingAccount");
+        } else {
+          await updateUserData(userData);
+          setInitValues({
+            nick: userData.nick,
+            country: userData.country,
+          });
+          setFormChanged(false);
+        }
+      } else {
+        return { cancelled: true };
+      }
+    } catch ({ message }) {
+      alert("login: Error:" + message);
+    }
+  }
+
+  async function reSignInWsithGoogleAsync(action) {
+    try {
+      if (action === "deleteAccount") {
+        navigation.navigate("DeletingAccount");
+      }
+      //352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com
+      //352773112597-5hpaljq5qchg3044oh2agh10pvebg47v.apps.googleusercontent.com
+      const result = await GoogleSignIn.logInAsync({
         androidClientId:
-          '352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com',
-        androidStandaloneAppClientId: `352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com`,
-        scopes: ['profile', 'email'],
+          "442180761659-d8gpds50nqm1464ftuqufa972ppl2iti.apps.googleusercontent.com",
+        androidStandaloneAppClientId: `442180761659-d8gpds50nqm1464ftuqufa972ppl2iti.apps.googleusercontent.com`,
+        scopes: ["profile", "email"],
       });
 
       if (result.type === 'success' && (await googleReSignIn(result))) {
@@ -380,7 +427,6 @@ export default function Settings() {
                     style={{ width: "80%" }}
                     onPress={() => {
                       setCountryPickerState(true);
-                      detectChanges(props.values);
                     }}
                   >
                     <TextInput
@@ -716,7 +762,7 @@ export default function Settings() {
                         Add shipping address
                       </Text>
                       <Text
-                        style={{ fontSize: 12, color: "#888", marginRight: 28 }}
+                        style={{ fontSize: 12, color: "#888", width: "92%" }}
                       >
                         You cannot buy anything until you add a shipping
                         address.

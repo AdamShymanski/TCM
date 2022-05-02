@@ -11,8 +11,8 @@ import { TextInput } from "react-native-paper";
 import { Formik, ErrorMessage } from "formik";
 import * as yup from "yup";
 
+import { db, auth, functions, firebaseObj, login } from "../authContext";
 import { CountryPickerModal } from "../shared/Modals/CountryPickerModal";
-import { db, auth, functions } from "../authContext";
 
 const firstCapitalLetter = /^[A-Z].*/;
 const reviewSchema = yup.object({
@@ -26,7 +26,10 @@ const reviewSchema = yup.object({
     .min(28, "Wrong Code!"),
 });
 
-export default function FinishGoogleRegister({ callback, name }) {
+export default function FinishGoogleRegister({
+  setFinishRegisterProcess,
+  name,
+}) {
   const [error, setError] = useState(false);
   const [loadingIndicator, setLoadingIndicator] = useState(false);
   const [countryPickerState, setCountryPickerState] = useState("");
@@ -69,11 +72,12 @@ export default function FinishGoogleRegister({ callback, name }) {
         onSubmit={async (values, actions) => {
           setLoadingIndicator(true);
 
-          db.collection("users")
+          await db
+            .collection("users")
             .doc(auth.currentUser.uid)
             .set({
               nick: name,
-              country: country.trim(),
+              country: values.country.trim(),
               discounts: {
                 referralProgram: [],
                 compensation: [],
@@ -100,24 +104,25 @@ export default function FinishGoogleRegister({ callback, name }) {
               },
               notificationToken: null,
               savedOffers: [],
-              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              createdAt: firebaseObj.firestore.FieldValue.serverTimestamp(),
             });
 
-          if (values.referralCode !== "") {
-            const functionCall = functions.httpsCallable("useReferralCode");
-
-            functionCall({ code: values.referralCode.trim() })
-              .then(() => {
-                callback(false);
-              })
-              .catch((error) => {
-                setError("Wrong Referral Code!");
-              });
-          } else {
-            callback(false);
-          }
-
           setLoadingIndicator(false);
+          setFinishRegisterProcess(false);
+
+          // if (values.referralCode !== "") {
+          //   const functionCall = functions.httpsCallable("useReferralCode");
+
+          //   functionCall({ code: values.referralCode.trim() })
+          //     .then(() => {
+          //       callback(false);
+          //     })
+          //     .catch((error) => {
+          //       setError("Wrong Referral Code!");
+          //     });
+          // } else {
+          //   callback(false);
+          // }
         }}
         style={{
           flex: 1,

@@ -6,7 +6,7 @@ import "firebase/functions";
 
 import pokemon from "pokemontcgsdk";
 
-// import * as GoogleSignIn from "expo-google-sign-in";
+import * as GoogleSignIn from "expo-google-sign-in";
 
 if (firebase.apps.length === 0) {
   firebase.initializeApp({
@@ -29,8 +29,6 @@ export const functions = firebase.functions();
 if (__DEV__) {
   firebase.functions().useEmulator("192.168.0.103", 5001);
   firebase.firestore().useEmulator("192.168.0.103", 8080);
-} else {
-  var GoogleSignIn = require("expo-google-sign-in");
 }
 
 //! CARDS
@@ -301,9 +299,8 @@ export async function addNewRating(props) {
 
 //! OFFERS - AND RELATED TO IT
 export async function addCard(values, gradingSwitch, photoState, cardId) {
-  const condition = parseFloat(values.condition);
-
-  //parse price
+  //parse price & condition
+  values.condition = parseFloat(values.condition);
   values.price = parseFloat(values.price);
 
   const doc = await db.collection("users").doc(auth.currentUser.uid).get();

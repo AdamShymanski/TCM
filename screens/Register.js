@@ -103,31 +103,40 @@ export default function Register() {
         onSubmit={async (values, actions) => {
           setLoadingIndicator(true);
 
-          if (values.referralCode !== "") {
-            const functionCall = functions.httpsCallable("useReferralCode");
+          // if (values.referralCode !== "") {
+          //   const functionCall = functions.httpsCallable("useReferralCode");
 
-            functionCall({ code: values.referralCode.trim() })
-              .then(async () => {
-                await register(
-                  values.email,
-                  values.password,
-                  values.nick,
-                  values.country,
-                  setError
-                );
-              })
-              .catch((error) => {
-                setError("Wrong Referral Code!");
-              });
-          } else {
-            await register(
-              values.email,
-              values.password,
-              values.nick,
-              values.country,
-              setError
-            );
-          }
+          //   functionCall({ code: values.referralCode.trim() })
+          //     .then(async () => {
+          //       await register(
+          //         values.email,
+          //         values.password,
+          //         values.nick,
+          //         values.country,
+          //         setError
+          //       );
+          //     })
+          //     .catch((error) => {
+          //       setError("Wrong Referral Code!");
+          //     });
+          // } else {
+          //   await register(
+          //     values.email,
+          //     values.password,
+          //     values.nick,
+          //     values.country,
+          //     setError
+          //   );
+          // }
+
+          await register(
+            values.email,
+            values.password,
+            values.nick,
+            values.country,
+            setError
+          );
+          callback(true);
         }}
         style={{
           flex: 1,

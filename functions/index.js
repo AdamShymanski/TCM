@@ -1,19 +1,13 @@
-const functions = require("firebase-functions");
-const admin = require("firebase-admin");
-
 const request = require("request");
-
-// const express = require("express");
-// const cors = require("cors");
-
-// const app = express();
-// app.use(cors({ origin: true }));
+const admin = require("firebase-admin");
+const functions = require("firebase-functions");
 
 const stripe = require("stripe")(
-  "sk_test_51KDXfNCVH1iPNeBrKw7YbGdP8IpIPZiQKrG6uKrrUSd3xVie1zH7EJe9uO5pdvnl8lgl17qhxB5Q9JM84WFr6Nqb00lWqb7G75"
+  "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"
 );
 
-//! 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
+//! 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
+//! sk_test_51KDXfNCVH1iPNeBrKw7YbGdP8IpIPZiQKrG6uKrrUSd3xVie1zH7EJe9uO5pdvnl8lgl17qhxB5Q9JM84WFr6Nqb00lWqb7G75
 
 const endpointSecret =
   "whsec_fe2b32369c4237e36bdacd1e74883ebebadde92f87c0eda852575649abee2e38";
@@ -41,6 +35,105 @@ function uuidv4() {
     }
     return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
   });
+}
+
+async function handleCardDeletion(id) {
+  const offert = await admin.firestore().collection("offers").doc(id).get();
+  const doc = await admin
+    .firestore()
+    .collection("cardsData")
+    .doc(offert.data().cardId)
+    .get();
+
+  const recentPriceH = doc.data().highestPrice;
+  const recentPriceL = doc.data().lowestPrice;
+
+  const offersNumber = doc.data().offersNumber - 1;
+
+  let updateObj = {
+    offersNumber: offersNumber,
+    highestPrice: recentPriceH,
+    lowestPrice: recentPriceL,
+  };
+
+  async function searchForNewHighestPrice() {
+    const result = await admin
+      .firestore()
+      .collection("offers")
+      .where("cardId", "==", offert.data().cardId)
+      .get();
+
+    let newPrice = [0, 0];
+    // 0- price, 1- index
+    const arr = [];
+
+    result.forEach((doc) => {
+      arr.push(doc.data());
+    });
+
+    arr.forEach((item, index) => {
+      if (item.price < recentPriceH) {
+        if (index === 0) {
+          newPrice = [item.price, index];
+        } else {
+          if (item.price > newPrice[0]) {
+            newPrice = [item.price, index];
+          }
+        }
+      }
+    });
+
+    return arr[newPrice[1]].price;
+  }
+
+  async function searchForNewLowestPrice() {
+    const result = await admin
+      .firestore()
+      .collection("offers")
+      .where("cardId", "==", offert.data().cardId)
+      .get();
+
+    let newPrice = [0, 0];
+    // 0- price, 1- index
+    const arr = [];
+
+    result.forEach((doc) => {
+      arr.push(doc.data());
+    });
+
+    arr.forEach((item, index) => {
+      if (item.price > recentPriceH) {
+        if (index === 0) {
+          newPrice = [item.price, index];
+        } else {
+          if (item.price < newPrice[0]) {
+            newPrice = [item.price, index];
+          }
+        }
+      }
+    });
+
+    return arr[newPrice[1]].price;
+  }
+
+  if (doc.data().offersNumber === 1) {
+    updateObj.highestPrice = 0;
+    updateObj.lowestPrice = 0;
+  } else {
+    if (recentPriceL == offert.data().price) {
+      const result = await searchForNewLowestPrice();
+      updateObj.lowestPrice = result;
+    }
+    if (recentPriceH == offert.data().price) {
+      const result = await searchForNewHighestPrice();
+      updateObj.highestPrice = result;
+    }
+  }
+  await admin
+    .firestore()
+    .collection("cardsData")
+    .doc(offert.data().cardId)
+    .update(updateObj);
 }
 
 async function sendPushNotification(expoPushToken) {
@@ -451,6 +544,8 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
                       .collection("offers")
                       .doc(offer.id)
                       .update({ status: "sold" });
+
+                    await handleCardDeletion(offer.id);
                   });
                 });
 
@@ -572,6 +667,7 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
           if (offers.length > 0) {
             offers.forEach(async (offer) => {
               offer.ref.update({ status: "suspended" });
+              await handleCardDeletion(offer.id);
             });
           }
         });
@@ -623,6 +719,40 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
           if (offers.length > 0) {
             offers.forEach(async (offer) => {
               offer.ref.update({ status: "published" });
+
+              const doc = await admin
+                .firestore()
+                .collection("cardsData")
+                .doc(offer.data().cardId)
+                .get();
+
+              const actualPriceH = doc.data().highestPrice;
+              const actualPriceL = doc.data().lowestPrice;
+              const newPrice = values.price;
+
+              const keysOrder = ["offersNumber", "highestPrice", "lowestPrice"];
+
+              let updateObj = {
+                [keysOrder[0]]: doc.data().offersNumber + 1,
+                [keysOrder[1]]: doc.data().highestPrice,
+                [keysOrder[2]]: doc.data().lowestPrice,
+              };
+
+              if ((actualPriceH && actualPriceL) === 0) {
+                updateObj[keysOrder[1]] = values.price;
+                updateObj[keysOrder[2]] = values.price;
+              } else {
+                if (actualPriceH < newPrice) {
+                  updateObj[keysOrder[1]] = values.price;
+                }
+                if (actualPriceL > newPrice) {
+                  updateObj[keysOrder[2]] = values.price;
+                }
+              }
+
+              db.collection("cardsData")
+                .doc(offer.data().cardId)
+                .update(updateObj);
             });
           }
         });
@@ -656,6 +786,7 @@ exports.validateOffersStatus = functions.pubsub
                 if (offers.length > 0) {
                   offers.forEach(async (offer) => {
                     offer.ref.update({ status: "suspended" });
+                    await handleCardDeletion(offer.id);
                   });
                 }
               });

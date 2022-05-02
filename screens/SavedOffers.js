@@ -48,27 +48,11 @@ export default function SavedOffers() {
     <View
       style={{
         flex: 1,
-        backgroundColor: '#1b1b1b',
-        flexDirection: 'column',
-      }}>
-      {cardsData !== null || cardsData.length > 0 ? (
-        !loadingState ? (
-          <FlatList
-            data={cardsData}
-            renderItem={({ item, index }) => {
-              return (
-                <CardSavedOffers
-                  props={item}
-                  setCardsData={setCardsData}
-                  cardsData={cardsData}
-                  index={index}
-                />
-              );
-            }}
-            keyExtractor={(item, index) => index.toString()}
-          />
-        ) : null
-      ) : (
+        backgroundColor: "#1b1b1b",
+        flexDirection: "column",
+      }}
+    >
+      {cardsData === null || cardsData.length === 0 ? (
         <View
           style={{
             flex: 1,
