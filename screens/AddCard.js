@@ -25,7 +25,6 @@ import { addCard, fetchCards, fetchMoreCards } from "../authContext";
 import pikachu from "../assets/pikachu.png";
 
 import SelectingCard from "../shared/Cards/SelectingCard";
-
 import PickerModal from "../shared/Modals/PickerModal";
 import { LanguagePickerModal } from "../shared/Modals/LanguagePickerModal";
 
@@ -63,6 +62,12 @@ export default function AddCard() {
     inputValue: "",
     inputFocusState: false,
     sorterParams: "Rarity Declining",
+    filterParams: {
+      language: [],
+      price: { from: null, to: null },
+      graded: null,
+      condition: null,
+    },
   });
 
   const submitForm = async (values) => {
@@ -291,6 +296,7 @@ export default function AddCard() {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#1b1b1b", padding: 20 }}>
       <PickerModal
+        props={props}
         setProps={setProps}
         mode={"sorting"}
         visible={pickerModal}
@@ -552,6 +558,7 @@ export default function AddCard() {
         onSubmit={async (values, actions) => {
           setLoadingIndicator(true);
           await submitForm(values);
+          setLoadingIndicator(false);
         }}
       >
         {(formikProps) => (

@@ -164,7 +164,7 @@ export default function SelectingCard({ props, setProps, setId, closeModal }) {
               backgroundColor: "#0082FF",
               borderRadius: 3,
 
-              marginTop: 44,
+              marginTop: 28,
               paddingVertical: 5,
             }}
             onPress={() => {

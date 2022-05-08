@@ -99,7 +99,7 @@ export default function Home() {
           paddingVertical: 8,
         }}
         onPress={() => {
-          navigation.navigate("YourOffersStack", { screen: "WorkInProgress" });
+          navigation.navigate("YourOffersStack", { screen: "YourOffers" });
         }}
       >
         <View>

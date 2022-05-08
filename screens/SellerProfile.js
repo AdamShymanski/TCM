@@ -22,12 +22,10 @@ import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 import cart_white_down_icon from "./../assets/cart_white_down.png";
 import cart_white_up_icon from "./../assets/cart_white_up.png";
 
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useIsFocused } from "@react-navigation/native";
 import { db, auth, functions } from "../authContext";
 
 import clipboard_text_clock from "./../assets/clipboard_text_clock.png";
-
-import { useIsFocused } from "@react-navigation/native";
 
 export default function SellerProfile() {
   const navigation = useNavigation();
@@ -37,11 +35,12 @@ export default function SellerProfile() {
 
   const [UADLoading, setUADLoading] = useState(false);
 
-  const [accountData, setAccountData] = useState(null);
+  const [accountData, setAccountData] = useState(false);
+  const [topElement, setTopElement] = useState(null);
 
   const [rating, setRating] = useState([]);
-  const [shippingMethods, setShippingMethods] = useState(null);
   const [statistics, setStatistics] = useState(null);
+  const [shippingMethods, setShippingMethods] = useState(null);
 
   const [noStripe, setNoStripe] = useState(true);
 
@@ -57,532 +56,405 @@ export default function SellerProfile() {
     }
   };
 
-  const renderVendorStatus = () => {
-    let topElement = null;
-    if (accountData === null || undefined) {
-      //! PENDING
-      topElement = (
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-
-              borderTopLeftRadius: 6,
-              borderBottomLeftRadius: 6,
-
-              backgroundColor: "#102e4a",
-
-              flexDirection: "row",
-              alignItems: "center",
-              alignSelf: "flex-start",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={{ color: "#096DCA", marginRight: 12 }}>Pending</Text>
-            <IconMCI name={"sync"} size={16} color={"#096DCA"} />
-          </View>
-          <View
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-
-              borderTopRightRadius: 6,
-              borderBottomRightRadius: 6,
-
-              backgroundColor: "#101f2d",
-
-              flexDirection: "row",
-              alignSelf: "flex-start",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text
-              style={{
-                color: "#f4f4f4",
-
-                fontFamily: "Roboto_Medium",
-              }}
-            >
-              Account is now being verified.
-            </Text>
-          </View>
-        </View>
-      );
-    }
-    if (accountData.requirements.pending_verification.length > 0) {
-      //! PENDING
-      topElement = (
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-
-              borderTopLeftRadius: 6,
-              borderBottomLeftRadius: 6,
-
-              backgroundColor: "#102e4a",
-
-              flexDirection: "row",
-              alignItems: "center",
-              alignSelf: "flex-start",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={{ color: "#096DCA", marginRight: 12 }}>Pending</Text>
-            <IconMCI name={"sync"} size={16} color={"#096DCA"} />
-          </View>
-          <View
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-
-              borderTopRightRadius: 6,
-              borderBottomRightRadius: 6,
-
-              backgroundColor: "#101f2d",
-
-              flexDirection: "row",
-              alignSelf: "flex-start",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text
-              style={{
-                color: "#f4f4f4",
-
-                fontFamily: "Roboto_Medium",
-              }}
-            >
-              Account is now being verified.
-            </Text>
-          </View>
-        </View>
-      );
-    } else if (!(accountData.charges_enabled || accountData.payouts_enabled)) {
-      //! RESTRICTED
-      topElement = (
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-
-              borderTopLeftRadius: 6,
-              borderBottomLeftRadius: 6,
-
-              backgroundColor: "#4a1010",
-
-              flexDirection: "row",
-              alignItems: "center",
-              alignSelf: "flex-start",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={{ color: "#C31313", marginRight: 12 }}>
-              Restricted
-            </Text>
-            <IconMCI name={"cancel"} size={16} color={"#C31313"} />
-          </View>
-          <TouchableOpacity
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-
-              borderTopRightRadius: 6,
-              borderBottomRightRadius: 6,
-
-              backgroundColor: "#2d1010",
-
-              flexDirection: "row",
-              alignItems: "center",
-              alignSelf: "flex-start",
-              justifyContent: "space-between",
-            }}
-            onPress={() => {
-              setUADLoading(true);
-              const query = functions.httpsCallable("linkStripeAccount");
-
-              query()
-                .then((result) => {
-                  Linking.openURL(result.data);
-                  setUADLoading(false);
-                })
-                .catch((err) => {
-                  console.log(err);
-                  setUADLoading(false);
-                });
-            }}
-          >
-            {UADLoading ? (
-              <ActivityIndicator size="small" color="#f4f4f4" />
-            ) : (
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <Text
-                  style={{
-                    color: "#f4f4f4",
-                    marginRight: 8,
-                    fontFamily: "Roboto_Medium",
-                  }}
-                >
-                  {accountData.details_submitted
-                    ? "Update account details"
-                    : "Finish account setup"}
-                </Text>
-                <IconMI name="double-arrow" size={14} color="#f4f4f4" />
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-      );
-    } else if (
-      accountData.requirements.eventually_due.length > 0 &&
-      accountData.requirements.current_deadline.length === 0
-    ) {
-      //! ENABLED
-      topElement = (
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-
-              borderTopLeftRadius: 6,
-              borderBottomLeftRadius: 6,
-
-              backgroundColor: "#102e4a",
-
-              flexDirection: "row",
-              alignItems: "center",
-              alignSelf: "flex-start",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={{ color: "#096DCA", marginRight: 12 }}>Enabled</Text>
-            <IconMCI name={"check"} size={16} color={"#096DCA"} />
-          </View>
-          <View
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-
-              borderTopRightRadius: 6,
-              borderBottomRightRadius: 6,
-
-              backgroundColor: "#101f2d",
-
-              flexDirection: "row",
-              alignSelf: "flex-start",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text
-              style={{
-                color: "#f4f4f4",
-
-                fontFamily: "Roboto_Medium",
-              }}
-            >
-              Account successfully set up.
-            </Text>
-          </View>
-        </View>
-      );
-    } else if (accountData.requirements.eventually_due.length === 0) {
-      //! COMPLETED
-      topElement = (
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-
-              borderTopLeftRadius: 6,
-              borderBottomLeftRadius: 6,
-
-              backgroundColor: "#114a10",
-
-              flexDirection: "row",
-              alignItems: "center",
-              alignSelf: "flex-start",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={{ color: "#0DCA09", marginRight: 12 }}>Completed</Text>
-            <IconMCI name={"check"} size={16} color={"#0DCA09"} />
-          </View>
-          <View
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-
-              borderTopRightRadius: 6,
-              borderBottomRightRadius: 6,
-
-              backgroundColor: "#112d10",
-
-              flexDirection: "row",
-              alignSelf: "flex-start",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text
-              style={{
-                color: "#f4f4f4",
-
-                fontFamily: "Roboto_Medium",
-              }}
-            >
-              Account successfully set up.
-            </Text>
-          </View>
-        </View>
-      );
-    } else if (false) {
-      // ! RESTRICTED SOON
-      topElement = (
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-
-              borderTopLeftRadius: 6,
-              borderBottomLeftRadius: 6,
-
-              backgroundColor: "#59520d",
-
-              flexDirection: "row",
-              alignItems: "center",
-              alignSelf: "flex-start",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={{ color: "#FFE600", marginRight: 12 }}>
-              Restricted Soon
-            </Text>
-            <IconMCI name={"clock"} size={16} color={"#FFE600"} />
-          </View>
-          <View
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-
-              borderTopRightRadius: 6,
-              borderBottomRightRadius: 6,
-
-              backgroundColor: "#35310f",
-
-              flexDirection: "row",
-              alignSelf: "flex-start",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text
-              style={{
-                color: "#f4f4f4",
-
-                fontFamily: "Roboto_Medium",
-              }}
-            >
-              Account lacks some information.
-            </Text>
-          </View>
-        </View>
-      );
-    } else if (false) {
-      // ! REJECTED
-      return (
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-
-              borderTopLeftRadius: 6,
-              borderBottomLeftRadius: 6,
-
-              backgroundColor: "#2c2c2c",
-
-              flexDirection: "row",
-              alignItems: "center",
-              alignSelf: "flex-start",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={{ color: "#676767", marginRight: 12 }}>Rejected</Text>
-            <IconMCI name={"cancel"} size={16} color={"#676767"} />
-          </View>
-          <View
-            style={{
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-
-              borderTopRightRadius: 6,
-              borderBottomRightRadius: 6,
-
-              backgroundColor: "#1e1e1e",
-
-              flexDirection: "row",
-              alignSelf: "flex-start",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text
-              style={{
-                color: "#f4f4f4",
-
-                fontFamily: "Roboto_Medium",
-              }}
-            >
-              Account permanently blocked.
-            </Text>
-          </View>
-        </View>
-      );
-    }
-
-    return (
-      <View
-        style={{
-          width: "96%",
-
-          paddingVertical: 14,
-          paddingHorizontal: 16,
-
-          backgroundColor: "#121212",
-          borderRadius: 6,
-
-          flexDirection: "row",
-          justifyContent: "flex-start",
-          marginTop: 12,
-        }}
-      >
-        <View>
-          <Text
-            style={{
-              color: "#5c5c5c",
-              fontFamily: "Roboto_Medium",
-              fontSize: 12,
-              marginBottom: 12,
-            }}
-          >
-            VENDOR STATUS
-          </Text>
-          {topElement}
-          <TouchableOpacity
-            disabled={!accountData.details_submitted}
-            style={{
-              alignItems: "center",
-              flexDirection: "row",
-              alignSelf: "flex-start",
-
-              marginTop: 10,
-
-              paddingHorizontal: 14,
-              paddingVertical: 6,
-
-              borderRadius: 4,
-              backgroundColor: accountData.details_submitted
-                ? "#0082ff"
-                : "#003466",
-            }}
-            onPress={() => {
-              let query = functions.httpsCallable("loginStripeLink");
-
-              query()
-                .then((result) => {
-                  Linking.openURL(result.data);
-                })
-                .catch((err) => console.log(err));
-            }}
-          >
-            <Image
-              source={stripe_black_logo}
-              style={{
-                height: 16,
-                width: undefined,
-                aspectRatio: 282 / 117,
-
-                marginRight: 8,
-              }}
-            />
-            <Text
-              style={{
-                color: accountData.details_submitted ? "#121212" : "#001427",
-                fontWeight: "700",
-              }}
-            >
-              Dashboard
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
-
   useEffect(async () => {
-    if (!isFocused) {
-      setLoadingState(true);
-      setShippingMethods(null);
-    }
+    const listener = db
+      .collection("users")
+      .doc(auth.currentUser.uid)
+      .onSnapshot((doc) => {
+        setRating(doc.data().sellerProfile.rating);
+        setStatistics(doc.data().sellerProfile.statistics);
+        setShippingMethods(doc.data().sellerProfile.shippingMethods);
 
-    if (isFocused) {
-      db.collection("users")
-        .doc(auth.currentUser.uid)
-        .onSnapshot((doc) => {
-          setRating(doc.data().sellerProfile.rating);
-          setStatistics(doc.data().sellerProfile.statistics);
-          setShippingMethods(doc.data().sellerProfile.shippingMethods);
+        setLoadingState(false);
 
-          if (doc.data().stripe.vendorId) {
-            const query = functions.httpsCallable("fetchStripeAccount");
+        if (doc.data().stripe.vendorId) {
+          setNoStripe(false);
+          const query = functions.httpsCallable("fetchStripeAccount");
 
+          query()
+            .then((result) => {
+              if (result.data) {
+                setAccountData(result.data);
+              }
+            })
+            .catch((e) => {
+              setNoStripe(true);
+            });
+
+          {
             //pending
             // - under_review in requirements.disabled_reason
-
             //completed
             // - eventualy_due is empty
-
             //enabled
             // - currentl_deadline is empty
             // - eventualy_due is not empty
-
             //rejected
             // - disabled_reason
-
             //restriced
             // - currently_due
             // - currentl_deadline
-
             //restriced soon
-            //
-
-            query()
-              .then((result) => {
-                if (result.data) {
-                  setNoStripe(false);
-                  setAccountData(result.data);
-                  setLoadingState(false);
-                }
-              })
-              .catch((e) => {
-                setNoStripe(true);
-              });
-          } else {
-            setLoadingState(false);
-            setNoStripe(true);
           }
-        });
+        } else {
+          setNoStripe(true);
+        }
+      });
+    if (!isFocused) {
+      setLoadingState(true);
+      setShippingMethods(null);
+      return listener;
+    }
+
+    if (isFocused) {
+      listener;
     }
   }, [isFocused]);
+
+  useEffect(() => {
+    if (accountData.requirements) {
+      if (accountData.requirements.pending_verification.length > 0) {
+        //! PENDING
+        setTopElement(
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View
+              style={{
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+
+                borderTopLeftRadius: 6,
+                borderBottomLeftRadius: 6,
+
+                backgroundColor: "#102e4a",
+
+                flexDirection: "row",
+                alignItems: "center",
+                alignSelf: "flex-start",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text style={{ color: "#096DCA", marginRight: 12 }}>Pending</Text>
+              <IconMCI name={"sync"} size={16} color={"#096DCA"} />
+            </View>
+            <View
+              style={{
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+
+                borderTopRightRadius: 6,
+                borderBottomRightRadius: 6,
+
+                backgroundColor: "#101f2d",
+
+                flexDirection: "row",
+                alignSelf: "flex-start",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  color: "#f4f4f4",
+
+                  fontFamily: "Roboto_Medium",
+                }}
+              >
+                Account is now being verified
+              </Text>
+            </View>
+          </View>
+        );
+      } else if (
+        !(accountData.charges_enabled && accountData?.payouts_enabled)
+      ) {
+        //! RESTRICTED
+        setTopElement(
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View
+              style={{
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+
+                borderTopLeftRadius: 6,
+                borderBottomLeftRadius: 6,
+
+                backgroundColor: "#4a1010",
+
+                flexDirection: "row",
+                alignItems: "center",
+                alignSelf: "flex-start",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text style={{ color: "#C31313", marginRight: 12 }}>
+                Restricted
+              </Text>
+              <IconMCI name={"cancel"} size={16} color={"#C31313"} />
+            </View>
+            <TouchableOpacity
+              style={{
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+
+                borderTopRightRadius: 6,
+                borderBottomRightRadius: 6,
+
+                backgroundColor: "#2d1010",
+
+                flexDirection: "row",
+                alignItems: "center",
+                alignSelf: "flex-start",
+                justifyContent: "space-between",
+              }}
+              onPress={() => {
+                setUADLoading(true);
+                const query = functions.httpsCallable("linkStripeAccount");
+
+                query()
+                  .then((result) => {
+                    Linking.openURL(result.data);
+                    setUADLoading(false);
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                    setUADLoading(false);
+                  });
+              }}
+            >
+              {UADLoading ? (
+                <ActivityIndicator size="small" color="#f4f4f4" />
+              ) : (
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Text
+                    style={{
+                      color: "#f4f4f4",
+                      marginRight: 8,
+                      fontFamily: "Roboto_Medium",
+                    }}
+                  >
+                    {accountData.details_submitted
+                      ? "Update account details"
+                      : "Finish account setup"}
+                  </Text>
+                  <IconMI name="double-arrow" size={14} color="#f4f4f4" />
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+        );
+      } else if (
+        accountData.requirements.eventually_due.length > 0 &&
+        accountData.requirements.current_deadline === null
+      ) {
+        //! ENABLED
+        setTopElement(
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View
+              style={{
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+
+                borderTopLeftRadius: 6,
+                borderBottomLeftRadius: 6,
+
+                backgroundColor: "#102e4a",
+
+                flexDirection: "row",
+                alignItems: "center",
+                alignSelf: "flex-start",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text style={{ color: "#096DCA", marginRight: 12 }}>Enabled</Text>
+              <IconMCI name={"check"} size={16} color={"#096DCA"} />
+            </View>
+            <View
+              style={{
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+
+                borderTopRightRadius: 6,
+                borderBottomRightRadius: 6,
+
+                backgroundColor: "#101f2d",
+
+                flexDirection: "row",
+                alignSelf: "flex-start",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  color: "#f4f4f4",
+
+                  fontFamily: "Roboto_Medium",
+                }}
+              >
+                Account successfully set up
+              </Text>
+            </View>
+          </View>
+        );
+      } else if (accountData.requirements.eventually_due.length === 0) {
+        //! COMPLETED
+        setTopElement(
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View
+              style={{
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+
+                borderTopLeftRadius: 6,
+                borderBottomLeftRadius: 6,
+
+                backgroundColor: "#114a10",
+
+                flexDirection: "row",
+                alignItems: "center",
+                alignSelf: "flex-start",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text style={{ color: "#0DCA09", marginRight: 12 }}>
+                Completed
+              </Text>
+              <IconMCI name={"check"} size={16} color={"#0DCA09"} />
+            </View>
+            <View
+              style={{
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+
+                borderTopRightRadius: 6,
+                borderBottomRightRadius: 6,
+
+                backgroundColor: "#112d10",
+
+                flexDirection: "row",
+                alignSelf: "flex-start",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  color: "#f4f4f4",
+
+                  fontFamily: "Roboto_Medium",
+                }}
+              >
+                Account successfully set up
+              </Text>
+            </View>
+          </View>
+        );
+      }
+    }
+  }, [accountData]);
+
+  const renderVendorStatus = () => {
+    if (loadingState || topElement === null) {
+      return (
+        <View
+          style={{
+            width: "96%",
+
+            paddingVertical: 14,
+            paddingHorizontal: 16,
+
+            backgroundColor: "#121212",
+            borderRadius: 6,
+
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+            marginTop: 12,
+          }}
+        >
+          <ActivityIndicator size={"large"} color={"#0082ff"} />
+        </View>
+      );
+    } else {
+      return (
+        <View
+          style={{
+            width: "96%",
+
+            paddingVertical: 14,
+            paddingHorizontal: 16,
+
+            backgroundColor: "#121212",
+            borderRadius: 6,
+
+            flexDirection: "row",
+            justifyContent: "flex-start",
+            marginTop: 12,
+          }}
+        >
+          <View>
+            <Text
+              style={{
+                color: "#5c5c5c",
+                fontFamily: "Roboto_Medium",
+                fontSize: 12,
+                marginBottom: 12,
+              }}
+            >
+              VENDOR STATUS
+            </Text>
+            {topElement}
+            <TouchableOpacity
+              disabled={!accountData.details_submitted}
+              style={{
+                alignItems: "center",
+                flexDirection: "row",
+                alignSelf: "flex-start",
+
+                marginTop: 10,
+
+                paddingHorizontal: 14,
+                paddingVertical: 6,
+
+                borderRadius: 4,
+                backgroundColor: accountData.details_submitted
+                  ? "#0082ff"
+                  : "#003466",
+              }}
+              onPress={() => {
+                let query = functions.httpsCallable("loginStripeLink");
+
+                query()
+                  .then((result) => {
+                    Linking.openURL(result.data);
+                  })
+                  .catch((err) => console.log(err));
+              }}
+            >
+              <Image
+                source={stripe_black_logo}
+                style={{
+                  height: 16,
+                  width: undefined,
+                  aspectRatio: 282 / 117,
+
+                  marginRight: 8,
+                }}
+              />
+              <Text
+                style={{
+                  color: accountData.details_submitted ? "#121212" : "#001427",
+                  fontWeight: "700",
+                }}
+              >
+                Dashboard
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+  };
 
   if (loadingState) {
     return (
@@ -795,7 +667,7 @@ export default function SellerProfile() {
                 </Text>
               </TouchableOpacity> */}
             </View>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text
                 style={{
                   color: "#5c5c5c",
@@ -808,7 +680,7 @@ export default function SellerProfile() {
                 HISTORY
               </Text>
               <FlatList
-                data={accountData ? accountData.transactions : null}
+                data={accountData ? accountData.transactions : []}
                 renderItem={({ item }) => {
                   if (item == "empty") {
                     return null;
@@ -980,7 +852,7 @@ export default function SellerProfile() {
                       <View
                         style={{
                           width: "100%",
-                          height: 40,
+                          height: 60,
                           justifyContent: "center",
                           alignItems: "center",
                         }}
@@ -1660,4 +1532,245 @@ export default function SellerProfile() {
       );
     }
   }
+}
+
+//! OTHER UNHANDLED CASES OF ACCOUNT STATUS
+
+// else if (false) {
+//   // ! RESTRICTED SOON
+//   topElement = (
+//     <View style={{ flexDirection: "row", alignItems: "center" }}>
+//       <View
+//         style={{
+//           paddingVertical: 8,
+//           paddingHorizontal: 12,
+
+//           borderTopLeftRadius: 6,
+//           borderBottomLeftRadius: 6,
+
+//           backgroundColor: "#59520d",
+
+//           flexDirection: "row",
+//           alignItems: "center",
+//           alignSelf: "flex-start",
+//           justifyContent: "space-between",
+//         }}
+//       >
+//         <Text style={{ color: "#FFE600", marginRight: 12 }}>
+//           Restricted Soon
+//         </Text>
+//         <IconMCI name={"clock"} size={16} color={"#FFE600"} />
+//       </View>
+//       <View
+//         style={{
+//           paddingVertical: 8,
+//           paddingHorizontal: 12,
+
+//           borderTopRightRadius: 6,
+//           borderBottomRightRadius: 6,
+
+//           backgroundColor: "#35310f",
+
+//           flexDirection: "row",
+//           alignSelf: "flex-start",
+//           justifyContent: "space-between",
+//           alignItems: "center",
+//         }}
+//       >
+//         <Text
+//           style={{
+//             color: "#f4f4f4",
+
+//             fontFamily: "Roboto_Medium",
+//           }}
+//         >
+//           Account lacks some information.
+//         </Text>
+//       </View>
+//     </View>
+//   );
+// } else if (false) {
+//   // ! REJECTED
+//   return (
+//     <View style={{ flexDirection: "row", alignItems: "center" }}>
+//       <View
+//         style={{
+//           paddingVertical: 8,
+//           paddingHorizontal: 12,
+
+//           borderTopLeftRadius: 6,
+//           borderBottomLeftRadius: 6,
+
+//           backgroundColor: "#2c2c2c",
+
+//           flexDirection: "row",
+//           alignItems: "center",
+//           alignSelf: "flex-start",
+//           justifyContent: "space-between",
+//         }}
+//       >
+//         <Text style={{ color: "#676767", marginRight: 12 }}>
+//           Rejected
+//         </Text>
+//         <IconMCI name={"cancel"} size={16} color={"#676767"} />
+//       </View>
+//       <View
+//         style={{
+//           paddingVertical: 8,
+//           paddingHorizontal: 12,
+
+//           borderTopRightRadius: 6,
+//           borderBottomRightRadius: 6,
+
+//           backgroundColor: "#1e1e1e",
+
+//           flexDirection: "row",
+//           alignSelf: "flex-start",
+//           justifyContent: "space-between",
+//           alignItems: "center",
+//         }}
+//       >
+//         <Text
+//           style={{
+//             color: "#f4f4f4",
+
+//             fontFamily: "Roboto_Medium",
+//           }}
+//         >
+//           Account permanently blocked.
+//         </Text>
+//       </View>
+//     </View>
+//   );
+// }
+
+//! VENDOR STATUS INDICATOR COMPONENT - PENDING
+{
+  /*
+  return (
+  <View
+    style={{
+      width: "96%",
+
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+
+      backgroundColor: "#121212",
+      borderRadius: 6,
+
+      flexDirection: "row",
+      justifyContent: "flex-start",
+      marginTop: 12,
+    }}
+  >
+    {/* <View>
+      <Text
+        style={{
+          color: "#5c5c5c",
+          fontFamily: "Roboto_Medium",
+          fontSize: 12,
+          marginBottom: 12,
+        }}
+      >
+        VENDOR STATUS
+      </Text>
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View
+          style={{
+            paddingVertical: 8,
+            paddingHorizontal: 12,
+
+            borderTopLeftRadius: 6,
+            borderBottomLeftRadius: 6,
+
+            backgroundColor: "#102e4a",
+
+            flexDirection: "row",
+            alignItems: "center",
+            alignSelf: "flex-start",
+            justifyContent: "space-between",
+          }}
+        >
+          <Text style={{ color: "#096DCA", marginRight: 12 }}>
+            Pending
+          </Text>
+          <IconMCI name={"sync"} size={16} color={"#096DCA"} />
+        </View>
+        <View
+          style={{
+            paddingVertical: 8,
+            paddingHorizontal: 12,
+
+            borderTopRightRadius: 6,
+            borderBottomRightRadius: 6,
+
+            backgroundColor: "#101f2d",
+
+            flexDirection: "row",
+            alignSelf: "flex-start",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              color: "#f4f4f4",
+
+              fontFamily: "Roboto_Medium",
+            }}
+          >
+            Account is now being verified.
+          </Text>
+        </View>
+      </View>
+      <TouchableOpacity
+        disabled={!accountData.details_submitted}
+        style={{
+          alignItems: "center",
+          flexDirection: "row",
+          alignSelf: "flex-start",
+
+          marginTop: 10,
+
+          paddingHorizontal: 14,
+          paddingVertical: 6,
+
+          borderRadius: 4,
+          backgroundColor: accountData.details_submitted
+            ? "#0082ff"
+            : "#003466",
+        }}
+        onPress={() => {
+          let query = functions.httpsCallable("loginStripeLink");
+
+          query()
+            .then((result) => {
+              Linking.openURL(result.data);
+            })
+            .catch((err) => console.log(err));
+        }}
+      >
+        <Image
+          source={stripe_black_logo}
+          style={{
+            height: 16,
+            width: undefined,
+            aspectRatio: 282 / 117,
+
+            marginRight: 8,
+          }}
+        />
+        <Text
+          style={{
+            color: accountData.details_submitted ? "#121212" : "#001427",
+            fontWeight: "700",
+          }}
+        >
+          Dashboard
+        </Text>
+      </TouchableOpacity>
+    </View> 
+  </View>
+);
+*/
 }

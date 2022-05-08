@@ -75,20 +75,13 @@ const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 const prefix = Linking.makeUrl("/");
 
-if (!__DEV__) {
-  Sentry.init({
-    dsn: "https://6131440690cd436b8802bd5b1318e1a6@o1133377.ingest.sentry.io/6179878",
-    enableInExpoDevelopment: true,
-    debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
-  });
+if (__DEV__) {
+} else {
 }
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
+Sentry.init({
+  dsn: "https://6131440690cd436b8802bd5b1318e1a6@o1133377.ingest.sentry.io/6179878",
+  enableInExpoDevelopment: true,
+  debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
 });
 
 async function registerForPushNotificationsAsync() {
@@ -118,7 +111,7 @@ async function registerForPushNotificationsAsync() {
       name: "default",
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#FF231F7C",
+      lightColor: "#0082ff",
     });
   }
 
@@ -688,20 +681,20 @@ function YourOffersStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="WorkInProgress"
-        component={WorkInProgress}
+        name="YourOffers"
+        component={YourOffers}
         options={{
-          headerTitle: () => <CustomHeader version={"workInProgress"} />,
+          headerTitle: () => <CustomHeader version={"yourOffers"} />,
           headerStyle: {
             backgroundColor: "#121212",
           },
         }}
       />
       <Stack.Screen
-        name="YourOffers"
-        component={YourOffers}
+        name="WorkInProgress"
+        component={WorkInProgress}
         options={{
-          headerTitle: () => <CustomHeader version={"yourOffers"} />,
+          headerTitle: () => <CustomHeader version={"workInProgress"} />,
           headerStyle: {
             backgroundColor: "#121212",
           },
@@ -727,7 +720,7 @@ function YourOffersStack() {
               }}
               onPress={() =>
                 navigation.navigate("YourOffersStack", {
-                  screen: "WorkInProgress",
+                  screen: "YourOffers",
                 })
               }
             >
@@ -880,16 +873,6 @@ function SellerStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="WorkInProgress"
-        component={WorkInProgress}
-        options={{
-          headerTitle: () => <CustomHeader version={"workInProgress"} />,
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        }}
-      />
-      <Stack.Screen
         name="SellerProfile"
         component={SellerProfile}
         options={{
@@ -899,7 +882,16 @@ function SellerStack() {
           },
         }}
       />
-
+      <Stack.Screen
+        name="WorkInProgress"
+        component={WorkInProgress}
+        options={{
+          headerTitle: () => <CustomHeader version={"workInProgress"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
       <Stack.Screen
         name="History"
         component={History}
@@ -1325,32 +1317,14 @@ export default function App() {
   const notificationListener = useRef();
   const [expoPushToken, setExpoPushToken] = useState(null);
 
+  const [notification, setNotification] = useState(false);
+
   LogBox.ignoreLogs([
     "Setting a timer for a long period of time, i.e. multiple minutes, is a performance and correctness issue on Android as it keeps the timer module awake, and timers can only be called when the app is in the foreground. See https://github.com/facebook/react-native/issues/12981 for more info.",
   ]);
   LogBox.ignoreLogs([
     "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing and other functionality - use another VirtualizedList-backed container instead.",
   ]);
-
-  async function sendPushNotification(expoPushToken) {
-    const message = {
-      to: expoPushToken,
-      sound: "default",
-      title: "Original Title",
-      body: "And here is the body!",
-      data: { someData: "goes here" },
-    };
-
-    await fetch("https://exp.host/--/api/v2/push/send", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Accept-encoding": "gzip, deflate",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(message),
-    });
-  }
 
   const handleDeepLink = async (event) => {
     let data = Linking.parse(event.url);
@@ -1375,15 +1349,52 @@ export default function App() {
           .doc(auth.currentUser.uid)
           .get();
 
+        setCurrentUser(user);
+
         if (!usersDoc.exists) {
           setFinishRegisterProcess(true);
         } else {
           setFinishRegisterProcess(false);
+          registerForPushNotificationsAsync().then((token) => {
+            setExpoPushToken(token);
+
+            if (
+              token &&
+              (!usersDoc.data()?.notificationToken ||
+                usersDoc.data()?.notificationToken !== token)
+            ) {
+              db.collection("users").doc(auth.currentUser.uid).update({
+                notificationToken: token,
+              });
+            }
+          });
+
+          // This listener is fired whenever a notification is received while the app is foregrounded
         }
+      } else {
+        setCurrentUser(null);
       }
 
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: false,
+          shouldSetBadge: false,
+        }),
+      });
+
+      notificationListener.current =
+        Notifications.addNotificationReceivedListener((notification) => {
+          setNotification(notification);
+        });
+
+      // This listener is fired whenever a user taps on or interacts with a notification (works when app is foregrounded, backgrounded, or killed)
+      responseListener.current =
+        Notifications.addNotificationResponseReceivedListener((response) => {
+          console.log(response);
+        });
+
       setLoading(false);
-      setCurrentUser(user);
     });
 
     const resolvePromises = async () => {
@@ -1404,36 +1415,6 @@ export default function App() {
             await Updates.fetchUpdateAsync();
             Updates.reloadAsync();
           }
-
-          Sentry.init({
-            dsn: "https://6131440690cd436b8802bd5b1318e1a6@o1133377.ingest.sentry.io/6179878",
-            enableInExpoDevelopment: true,
-          });
-
-          Sentry.init({
-            dsn: "https://6131440690cd436b8802bd5b1318e1a6@o1133377.ingest.sentry.io/6179878",
-            enableInExpoDevelopment: true,
-          });
-        }
-
-        if (currentUser) {
-          registerForPushNotificationsAsync().then((token) =>
-            setExpoPushToken(token)
-          );
-
-          // This listener is fired whenever a notification is received while the app is foregrounded
-          notificationListener.current =
-            Notifications.addNotificationReceivedListener((notification) => {
-              console.log(notification);
-            });
-
-          // This listener is fired whenever a user taps on or interacts with a notification (works when app is foregrounded, backgrounded, or killed)
-          responseListener.current =
-            Notifications.addNotificationResponseReceivedListener(
-              (response) => {
-                console.log(response);
-              }
-            );
         }
       } catch (e) {
         console.log(e);
@@ -1451,33 +1432,6 @@ export default function App() {
     };
   }, []);
 
-  // useEffect(() => {
-  //   if (currentUser) {
-  //     if (
-  //       currentUser.notificationToken === null ||
-  //       currentUser.notificationToken !== expoPushToken
-  //     ) {
-  //       db.collection("users").doc(currentUser.uid).update({
-  //         notificationToken: expoPushToken,
-  //       });
-  //     }
-  //   }
-  // }, [currentUser]);
-
-  useEffect(async () => {
-    if (expoPushToken) {
-      const doc = await db.collection("users").doc(currentUser.uid).get();
-      if (
-        !doc.data()?.notificationToken ||
-        doc.data()?.notificationToken !== expoPushToken
-      ) {
-        db.collection("users").doc(currentUser.uid).update({
-          notificationToken: expoPushToken,
-        });
-      }
-    }
-  }, [expoPushToken]);
-
   if (loading) {
     return <View />;
   } else if (currentUser) {
@@ -1490,7 +1444,6 @@ export default function App() {
               children={() => (
                 <FinishGoogleRegister
                   setFinishRegisterProcess={setFinishRegisterProcess}
-                  name={currentUser.displayName}
                 />
               )}
               options={({ navigation, route }) => ({
@@ -1508,7 +1461,10 @@ export default function App() {
                       borderColor: "#777777",
                       paddingHorizontal: 12,
                     }}
-                    onPress={() => auth.signOut()}
+                    onPress={() => {
+                      auth.signOut();
+                      navigation.navigate("Welcome");
+                    }}
                   >
                     <Text
                       style={{
@@ -1532,8 +1488,10 @@ export default function App() {
         </NavigationContainer>
       );
     } else {
+      //! pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX
+      //! pk_live_51KDXfNCVH1iPNeBrTGAw1ZFwnNCTNO3rJ23zBni3ohGDWO8zuby2xDw3dYiHabs2furS1EAgQKq3hdtR2PP2jPZr00JCFvS9h8
       return (
-        <StripeProvider publishableKey="pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX">
+        <StripeProvider publishableKey="pk_live_51KDXfNCVH1iPNeBrTGAw1ZFwnNCTNO3rJ23zBni3ohGDWO8zuby2xDw3dYiHabs2furS1EAgQKq3hdtR2PP2jPZr00JCFvS9h8">
           <NavigationContainer linking={linking}>
             <Drawer.Navigator
               style={{ backgroundColor: "#82ff00" }}
@@ -1703,7 +1661,6 @@ export default function App() {
             children={() => (
               <FinishGoogleRegister
                 setFinishRegisterProcess={setFinishRegisterProcess}
-                name={currentUser.displayName}
               />
             )}
           />

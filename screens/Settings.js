@@ -92,8 +92,9 @@ export default function Settings() {
     if (isFocused) {
       const result = await fetchUserData();
 
-      setUserData(result);
       setInitValues({ nick: result.nick, country: result.country });
+      setUserData({ nick: result.nick, country: result.country });
+
       setAddressesArray(result.addresses);
 
       setLoading(false);
@@ -137,6 +138,7 @@ export default function Settings() {
 
   const setCountryValue = (value) => {
     setUserData((prevState) => ({ ...prevState, country: value }));
+
     if (value !== initValues.country) {
       setFormChanged(true);
     } else {
@@ -149,6 +151,7 @@ export default function Settings() {
       values.nick !== initValues.nick ||
       userData.country !== initValues.country
     ) {
+      setUserData(values);
       setFormChanged(true);
     } else {
       setFormChanged(false);
@@ -167,6 +170,7 @@ export default function Settings() {
       if (
         type === "success" &&
         (await googleReSignIn({
+          type: "success",
           idToken: user.auth.idToken,
           accessToken: user.auth.accessToken,
         }))
@@ -175,12 +179,13 @@ export default function Settings() {
           await deleteAccount();
           navigation.navigate("DeletingAccount");
         } else {
-          await updateUserData(userData);
           setInitValues({
             nick: userData.nick,
             country: userData.country,
           });
           setFormChanged(false);
+
+          await updateUserData(userData);
         }
       } else {
         return { cancelled: true };
@@ -190,37 +195,37 @@ export default function Settings() {
     }
   }
 
-  async function reSignInWsithGoogleAsync(action) {
-    try {
-      if (action === "deleteAccount") {
-        navigation.navigate("DeletingAccount");
-      }
-      //352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com
-      //352773112597-5hpaljq5qchg3044oh2agh10pvebg47v.apps.googleusercontent.com
-      const result = await GoogleSignIn.logInAsync({
-        androidClientId:
-          "442180761659-d8gpds50nqm1464ftuqufa972ppl2iti.apps.googleusercontent.com",
-        androidStandaloneAppClientId: `442180761659-d8gpds50nqm1464ftuqufa972ppl2iti.apps.googleusercontent.com`,
-        scopes: ["profile", "email"],
-      });
+  // async function reSignInWsithGoogleAsync(action) {
+  //   try {
+  //     if (action === "deleteAccount") {
+  //       navigation.navigate("DeletingAccount");
+  //     }
+  //     //352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com
+  //     //352773112597-5hpaljq5qchg3044oh2agh10pvebg47v.apps.googleusercontent.com
+  //     const result = await GoogleSignIn.logInAsync({
+  //       androidClientId:
+  //         "442180761659-d8gpds50nqm1464ftuqufa972ppl2iti.apps.googleusercontent.com",
+  //       androidStandaloneAppClientId: `442180761659-d8gpds50nqm1464ftuqufa972ppl2iti.apps.googleusercontent.com`,
+  //       scopes: ["profile", "email"],
+  //     });
 
-      if (result.type === "success" && (await googleReSignIn(result))) {
-        if (action === "deleteAccount") {
-          await deleteAccount();
-        } else {
-          await updateUserData(userData);
-        }
-      } else {
-        return { cancelled: true };
-      }
-    } catch (e) {
-      if (e.code == "auth/email-already-in-use") {
-        console.log("Duplicated emails has been detected");
-      } else {
-        console.log(e);
-      }
-    }
-  }
+  //     if (result.type === "success" && (await googleReSignIn(result))) {
+  //       if (action === "deleteAccount") {
+  //         await deleteAccount();
+  //       } else {
+  //         await updateUserData(userData);
+  //       }
+  //     } else {
+  //       return { cancelled: true };
+  //     }
+  //   } catch (e) {
+  //     if (e.code == "auth/email-already-in-use") {
+  //       console.log("Duplicated emails has been detected");
+  //     } else {
+  //       console.log(e);
+  //     }
+  //   }
+  // }
 
   if (loading) {
     return (
@@ -291,8 +296,8 @@ export default function Settings() {
           >
             <Formik
               initialValues={{
-                nick: userData.nick,
-                country: userData.country,
+                nick: initValues.nick,
+                country: initValues.country,
               }}
               validationSchema={reviewSchema}
               onSubmit={async (values, actions) => {

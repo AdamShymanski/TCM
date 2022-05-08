@@ -128,7 +128,7 @@ export default function Login() {
                       style={{
                         width: "80%",
 
-                        backgroundColor: "#1b1b1b",
+                        backgroundColor: "#121212",
                         color: "#f4f4f4",
                         marginTop: 20,
                       }}

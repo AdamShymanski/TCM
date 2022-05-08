@@ -488,6 +488,7 @@ export default function EditCard({ route }) {
         }}
         validationSchema={reviewSchema}
         onSubmit={async (values, actions) => {
+          setLoadingIndicator(true);
           const initValues = [
             route.params.props.price,
             route.params.props.condition,
@@ -539,6 +540,8 @@ export default function EditCard({ route }) {
             route.params.setModal(false);
             navigation.goBack();
           }
+          
+          setLoadingIndicator(false);
         }}
       >
         {(props) => (

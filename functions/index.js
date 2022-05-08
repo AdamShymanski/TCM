@@ -3,10 +3,10 @@ const admin = require("firebase-admin");
 const functions = require("firebase-functions");
 
 const stripe = require("stripe")(
-  "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"
+  "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"
 );
 
-//! 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
+//! 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
 //! sk_test_51KDXfNCVH1iPNeBrKw7YbGdP8IpIPZiQKrG6uKrrUSd3xVie1zH7EJe9uO5pdvnl8lgl17qhxB5Q9JM84WFr6Nqb00lWqb7G75
 
 const endpointSecret =
@@ -176,36 +176,43 @@ async function sendPushNotification(expoPushToken) {
 }
 
 exports.createStripeAccount = functions.https.onCall(async (data, context) => {
-  const account = await stripe.accounts.create({
-    type: "express",
-    business_type: "individual",
-    email: context.auth.token.email,
-    business_profile: {
-      mcc: "5947",
-      name: context.auth.uid,
-      product_description:
-        "PTCG Marketplace is platform for trading your Pokémon cards.",
-    },
-    business_type: "individual",
-  });
-
-  //Check if account is already assigned to user
-  //! Do afer successful account linking
-
-  await admin
+  const doc = await admin
     .firestore()
     .collection("users")
     .doc(context.auth.uid)
-    .update({ [`stripe.vendorId`]: account.id });
+    .get();
 
-  const accountLink = await stripe.accountLinks.create({
-    account: account.id,
-    refresh_url: "https://ptcgmarketplace.com/returnToApp",
-    return_url: "https://ptcgmarketplace.com/returnToApp",
-    type: "account_onboarding",
-  });
+  if (doc.data().stripe.vendorId === null) {
+    const account = await stripe.accounts.create({
+      type: "express",
+      business_type: "individual",
+      email: context.auth.token.email,
+      business_profile: {
+        mcc: "5947",
+        name: context.auth.uid,
+        product_description:
+          "PTCG Marketplace is platform for trading your Pokémon cards.",
+      },
+      business_type: "individual",
+    });
 
-  // console.log(accountLink.url);
+    //Check if account is already assigned to user
+    //! Do afer successful account linking
+
+    await admin
+      .firestore()
+      .collection("users")
+      .doc(context.auth.uid)
+      .update({ [`stripe.vendorId`]: account.id });
+
+    var accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: "https://ptcgmarketplace.com/returnToApp",
+      return_url: "https://ptcgmarketplace.com/returnToApp",
+      type: "account_onboarding",
+    });
+  }
+
   return accountLink.url;
 });
 
@@ -253,17 +260,17 @@ exports.fetchStripeAccount = functions.https.onCall(async (data, context) => {
 
   const vendorId = doc.data().stripe.vendorId;
 
-  const account = await stripe.accounts.retrieve(vendorId);
   const balance = await stripe.balance.retrieve({
     stripeAccount: vendorId,
   });
-
   const transactions = await stripe.balanceTransactions.list(
     {
       limit: 3,
     },
     { stripeAccount: vendorId }
   );
+
+  const account = await stripe.accounts.retrieve(vendorId);
 
   account.balance = balance;
   account.transactions =

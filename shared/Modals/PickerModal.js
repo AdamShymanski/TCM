@@ -48,7 +48,6 @@ const PickerModal = ({ props, setProps, mode, visible, setVisible }) => {
     },
     ["from", "to", "condition"]
   );
-
   const countryCodes = [
     { Code: "PL", Name: "Polish" },
     { Code: "JP", Name: "Japanese" },

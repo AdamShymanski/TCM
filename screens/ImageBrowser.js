@@ -50,7 +50,7 @@ const ImageBrowserScreen = ({ route }) => {
       uri,
       [{ resize: { height: 1600, width: 1200 } }],
 
-      { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+      { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG }
     );
     return file;
   };
@@ -101,7 +101,16 @@ const ImageBrowserScreen = ({ route }) => {
   );
 
   const emptyStayComponent = (
-    <Text style={styles.emptyStay}>You don't have any pictures(</Text>
+    <Text
+      style={{
+        fontFamily: "Roboto_Medium",
+        color: "#f4f4f4",
+        textAlign: "center",
+        marginTop: 30,
+      }}
+    >
+      {"You don't have any pictures :("}
+    </Text>
   );
 
   return (
