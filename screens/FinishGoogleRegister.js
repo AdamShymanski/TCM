@@ -26,10 +26,7 @@ const reviewSchema = yup.object({
     .min(28, "Wrong Code!"),
 });
 
-export default function FinishGoogleRegister({
-  setFinishRegisterProcess,
-  name,
-}) {
+export default function FinishGoogleRegister({ setFinishRegisterProcess }) {
   const [error, setError] = useState(false);
   const [loadingIndicator, setLoadingIndicator] = useState(false);
   const [countryPickerState, setCountryPickerState] = useState("");
@@ -76,7 +73,7 @@ export default function FinishGoogleRegister({
             .collection("users")
             .doc(auth.currentUser.uid)
             .set({
-              nick: name,
+              nick: auth.currentUser.displayName,
               country: values.country.trim(),
               discounts: {
                 referralProgram: [],

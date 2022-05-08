@@ -136,7 +136,6 @@ export default function Register() {
             values.country,
             setError
           );
-          callback(true);
         }}
         style={{
           flex: 1,

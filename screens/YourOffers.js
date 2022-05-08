@@ -28,7 +28,10 @@ export default function YourOffers() {
   const [cardsData, setCardsData] = useState([]);
   const [deleteModal, setDeleteModal] = useState(null);
   const [alertModal, setAlertModal] = useState(null);
+
+  const [restricted, setRestricted] = useState(true);
   const [loadingState, setLoadingState] = useState(true);
+
   const [vendorId, setVendorId] = useState(undefined);
   const [activityIndicator, setActivityIndicator] = useState(false);
 
@@ -38,13 +41,30 @@ export default function YourOffers() {
     const resolvePromises = async () => {
       //fetch id of stripe vendor account
       const doc = await db.collection("users").doc(auth.currentUser.uid).get();
-      setVendorId(doc.data()?.stripe?.vendorId);
 
-      setCardsData(await fetchUsersCards());
+      if (doc.data().stripe.vendorId) {
+        const query = functions.httpsCallable("fetchStripeAccount");
+        setCardsData(await fetchUsersCards());
+
+        query()
+          .then((result) => {
+            if (result.data.charges_enabled && result.data.payouts_enabled) {
+              setVendorId(doc.data().stripe.vendorId);
+              setRestricted(false);
+              setLoadingState(false);
+            } else {
+              setRestricted(true);
+              setVendorId(doc.data().stripe.vendorId);
+              setLoadingState(false);
+            }
+          })
+          .catch((e) => {});
+      } else {
+        setLoadingState(false);
+      }
     };
 
     resolvePromises();
-    setLoadingState(false);
   }, []);
 
   useEffect(() => {
@@ -60,6 +80,242 @@ export default function YourOffers() {
     resolvePromises();
   }, [deleteModal]);
 
+  if (loadingState) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#1b1b1b",
+        }}
+      >
+        <ActivityIndicator size="large" color="#0082ff" />
+      </View>
+    );
+  }
+  if (restricted) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#1b1b1b",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <IconMCI
+          name="shield-check"
+          color={"#0082ff"}
+          size={58}
+          style={{ marginBottom: 12, marginTop: 20 }}
+        />
+        <Text
+          style={{
+            color: "#f4f4f4",
+            fontSize: 28,
+            fontWeight: "700",
+            marginBottom: 12,
+            paddingHorizontal: 20,
+            textAlign: "center",
+          }}
+        >
+          Complete Onboarding!
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            width: "80%",
+            color: "#4f4f4f",
+            marginBottom: 60,
+            textAlign: "center",
+          }}
+        >
+          Please complete the setup of your Stripe account. This is needed so
+          that we can send you the funds for the sold products to your bank
+          account.
+        </Text>
+
+        {activityIndicator ? (
+          <ActivityIndicator size={"large"} color={"#0082ff"} />
+        ) : (
+          <View
+            style={{
+              width: "90%",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <TouchableOpacity
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "90%",
+                backgroundColor: "#0082ff",
+                paddingVertical: 8,
+                marginLeft: "2%",
+                marginTop: 10,
+                marginBottom: 6,
+                borderRadius: 4,
+              }}
+              onPress={() => {
+                const query = functions.httpsCallable("linkStripeAccount");
+
+                setActivityIndicator(true);
+
+                query()
+                  .then((result) => {
+                    Linking.openURL(result.data);
+                    setActivityIndicator(false);
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                    setActivityIndicator(false);
+                  });
+              }}
+            >
+              <Text
+                style={{
+                  color: "#121212",
+                  fontWeight: "700",
+                  fontSize: 15,
+                }}
+              >
+                {"Add Vendor Details"}
+              </Text>
+            </TouchableOpacity>
+            <View style={{ flexDirection: "row", marginTop: 12 }}>
+              <Text style={{ fontFamily: "Roboto_Medium", color: "#555555" }}>
+                Powered by{"  "}
+              </Text>
+              <Image
+                source={Stripe_logo}
+                style={{
+                  aspectRatio: 282 / 117,
+                  width: undefined,
+                  height: 20,
+                }}
+              />
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  }
+  if (!vendorId) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#1b1b1b",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <IconMCI
+          name="shield-check"
+          color={"#0082ff"}
+          size={58}
+          style={{ marginBottom: 12, marginTop: 20 }}
+        />
+        <Text
+          style={{
+            color: "#f4f4f4",
+            fontSize: 38,
+            fontWeight: "700",
+            marginBottom: 12,
+            paddingHorizontal: 20,
+            textAlign: "center",
+          }}
+        >
+          Let us know you!
+        </Text>
+        <Text
+          style={{
+            fontSize: 15,
+            width: "80%",
+            color: "#4f4f4f",
+            marginBottom: 60,
+            textAlign: "center",
+          }}
+        >
+          Before we allow you to post your offer, we need to verify your
+          identity for safety reasons. Therefore, you must create Stripe
+          account. It's really easy and don't take more then 5 minutes to set
+          up.
+        </Text>
+
+        {activityIndicator ? (
+          <ActivityIndicator size={"large"} color={"#0082ff"} />
+        ) : (
+          <View
+            style={{
+              width: "90%",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <TouchableOpacity
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "90%",
+                backgroundColor: "#0082ff",
+                paddingVertical: 8,
+                marginLeft: "2%",
+                marginTop: 10,
+                marginBottom: 6,
+                borderRadius: 4,
+              }}
+              onPress={() => {
+                const query = functions.httpsCallable("createStripeAccount");
+
+                setActivityIndicator(true);
+
+                query()
+                  .then((result) => {
+                    Linking.openURL(result.data);
+                    setActivityIndicator(false);
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                    setActivityIndicator(false);
+                  });
+              }}
+            >
+              <Text
+                style={{
+                  color: "#121212",
+                  fontWeight: "700",
+                  fontSize: 15,
+                }}
+              >
+                {"Add Vendor Details"}
+              </Text>
+            </TouchableOpacity>
+            <View style={{ flexDirection: "row", marginTop: 12 }}>
+              <Text style={{ fontFamily: "Roboto_Medium", color: "#555555" }}>
+                Powered by{"  "}
+              </Text>
+              <Image
+                source={Stripe_logo}
+                style={{
+                  aspectRatio: 282 / 117,
+                  width: undefined,
+                  height: 20,
+                }}
+              />
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  }
+
   return (
     <View
       style={{
@@ -68,268 +324,141 @@ export default function YourOffers() {
         flexDirection: "column",
       }}
     >
-      {loadingState ? (
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <ActivityIndicator size="large" color="#0082ff" />
-        </View>
-      ) : (
-        <View style={{ flex: 1 }}>
-          {!vendorId ? (
-            <View
+      <View style={{ flex: 1 }}>
+        {cardsData.length > 0 ? (
+          <View
+            style={{
+              flex: 1,
+            }}
+          >
+            <TouchableOpacity
               style={{
-                flex: 1,
-                backgroundColor: "#1b1b1b",
-                flexDirection: "column",
-                justifyContent: "center",
+                flexDirection: "row",
                 alignItems: "center",
+                justifyContent: "center",
+
+                backgroundColor: "#121212",
+                paddingVertical: 10,
+                width: "90%",
+                marginLeft: "5%",
+
+                marginBottom: 6,
+                marginTop: 14,
+                borderRadius: 4,
+              }}
+              onPress={() => {
+                navigation.navigate("AddCard");
               }}
             >
               <IconMCI
-                name="shield-check"
-                color={"#0082ff"}
-                size={58}
-                style={{ marginBottom: 12, marginTop: 20 }}
+                name="plus"
+                size={24}
+                color="#f4f4f4"
+                style={{ position: "absolute", left: "25%" }}
               />
               <Text
                 style={{
                   color: "#f4f4f4",
-                  fontSize: 38,
                   fontWeight: "700",
-                  marginBottom: 12,
-                  paddingHorizontal: 20,
-                  textAlign: "center",
+                  fontSize: 15,
+                  marginRight: 8,
                 }}
               >
-                Let us know you!
+                {"Add a new card"}
               </Text>
+            </TouchableOpacity>
+            <FlatList
+              data={cardsData}
+              renderItem={({ item, index }) => {
+                return (
+                  <CardYourOffers
+                    props={item}
+                    setModal={setDeleteModal}
+                    setId={setId}
+                  />
+                );
+              }}
+              keyExtractor={(item, index) => index.toString()}
+            />
+          </View>
+        ) : (
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#1b1b1b",
+            }}
+          >
+            <IconMCI
+              name="cards"
+              color={"#0082ff"}
+              size={58}
+              style={{ marginBottom: 12, marginTop: 20 }}
+            />
+            <Text
+              style={{
+                color: "#f4f4f4",
+                fontSize: 38,
+                fontWeight: "700",
+                marginBottom: 12,
+                paddingHorizontal: 20,
+                textAlign: "center",
+              }}
+            >
+              Add New Offers!
+            </Text>
+            <Text
+              style={{
+                fontSize: 15,
+                width: "80%",
+                color: "#4f4f4f",
+                marginBottom: 60,
+                textAlign: "center",
+              }}
+            >
+              Add photos, description, price and condition of the card and sell
+              it. It's really easy with PTCG Marketplace.
+            </Text>
+
+            <TouchableOpacity
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "90%",
+                backgroundColor: "#0082ff",
+                paddingVertical: 8,
+                marginLeft: "2%",
+                marginTop: 10,
+                marginBottom: 6,
+                borderRadius: 4,
+              }}
+              onPress={() => {
+                navigation.navigate("AddCard");
+              }}
+            >
+              <IconMCI
+                name="plus"
+                size={24}
+                color="#121212"
+                style={{ position: "absolute", left: "25%" }}
+              />
               <Text
                 style={{
+                  color: "#121212",
+                  fontWeight: "700",
                   fontSize: 15,
-                  width: "80%",
-                  color: "#4f4f4f",
-                  marginBottom: 60,
-                  textAlign: "center",
+                  marginLeft: 12,
                 }}
               >
-                Before we allow you to post your offer, we need to verify your
-                identity for safety reasons. Therefore, you must create Stripe
-                account. It's really easy and don't take more then 5 minutes to
-                set up.
+                {"Add a new card"}
               </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
 
-              {activityIndicator ? (
-                <ActivityIndicator size={"large"} color={"#0082ff"} />
-              ) : (
-                <View
-                  style={{
-                    width: "90%",
-                    flexDirection: "column",
-                    alignItems: "center",
-                  }}
-                >
-                  <TouchableOpacity
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "90%",
-                      backgroundColor: "#0082ff",
-                      paddingVertical: 8,
-                      marginLeft: "2%",
-                      marginTop: 10,
-                      marginBottom: 6,
-                      borderRadius: 4,
-                    }}
-                    onPress={() => {
-                      const query = functions.httpsCallable(
-                        "createStripeAccount"
-                      );
-
-                      setActivityIndicator(true);
-
-                      query()
-                        .then((result) => {
-                          Linking.openURL(result.data);
-                          setActivityIndicator(false);
-                        })
-                        .catch((err) => {
-                          console.log(err);
-                          setActivityIndicator(false);
-                        });
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: "#121212",
-                        fontWeight: "700",
-                        fontSize: 15,
-                      }}
-                    >
-                      {"Add Vendor Details"}
-                    </Text>
-                  </TouchableOpacity>
-                  <View style={{ flexDirection: "row", marginTop: 12 }}>
-                    <Text
-                      style={{ fontFamily: "Roboto_Medium", color: "#555555" }}
-                    >
-                      Powered by{"  "}
-                    </Text>
-                    <Image
-                      source={Stripe_logo}
-                      style={{
-                        aspectRatio: 282 / 117,
-                        width: undefined,
-                        height: 20,
-                      }}
-                    />
-                  </View>
-                </View>
-              )}
-            </View>
-          ) : (
-            <View style={{ flex: 1 }}>
-              {cardsData.length > 0 ? (
-                <View
-                  style={{
-                    flex: 1,
-                  }}
-                >
-                  <TouchableOpacity
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-
-                      backgroundColor: "#121212",
-                      paddingVertical: 10,
-                      width: "90%",
-                      marginLeft: "5%",
-
-                      marginBottom: 6,
-                      marginTop: 14,
-                      borderRadius: 4,
-                    }}
-                    onPress={() => {
-                      navigation.navigate("AddCard");
-                    }}
-                  >
-                    <IconMCI
-                      name="plus"
-                      size={24}
-                      color="#f4f4f4"
-                      style={{ position: "absolute", left: "25%" }}
-                    />
-                    <Text
-                      style={{
-                        color: "#f4f4f4",
-                        fontWeight: "700",
-                        fontSize: 15,
-                        marginRight: 8,
-                      }}
-                    >
-                      {"Add a new card"}
-                    </Text>
-                  </TouchableOpacity>
-                  <FlatList
-                    data={cardsData}
-                    renderItem={({ item, index }) => {
-                      return (
-                        <CardYourOffers
-                          props={item}
-                          setModal={setDeleteModal}
-                          setId={setId}
-                        />
-                      );
-                    }}
-                    keyExtractor={(item, index) => index.toString()}
-                  />
-                </View>
-              ) : (
-                <View
-                  style={{
-                    flex: 1,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "#1b1b1b",
-                  }}
-                >
-                  <IconMCI
-                    name="cards"
-                    color={"#0082ff"}
-                    size={58}
-                    style={{ marginBottom: 12, marginTop: 20 }}
-                  />
-                  <Text
-                    style={{
-                      color: "#f4f4f4",
-                      fontSize: 38,
-                      fontWeight: "700",
-                      marginBottom: 12,
-                      paddingHorizontal: 20,
-                      textAlign: "center",
-                    }}
-                  >
-                    Add New Offers!
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      width: "80%",
-                      color: "#4f4f4f",
-                      marginBottom: 60,
-                      textAlign: "center",
-                    }}
-                  >
-                    Add photos, description, price and condition of the card and
-                    sell it. It's really easy with PTCG Marketplace.
-                  </Text>
-
-                  <TouchableOpacity
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "90%",
-                      backgroundColor: "#0082ff",
-                      paddingVertical: 8,
-                      marginLeft: "2%",
-                      marginTop: 10,
-                      marginBottom: 6,
-                      borderRadius: 4,
-                    }}
-                    onPress={() => {
-                      navigation.navigate("AddCard");
-                    }}
-                  >
-                    <IconMCI
-                      name="plus"
-                      size={24}
-                      color="#121212"
-                      style={{ position: "absolute", left: "25%" }}
-                    />
-                    <Text
-                      style={{
-                        color: "#121212",
-                        fontWeight: "700",
-                        fontSize: 15,
-                        marginLeft: 12,
-                      }}
-                    >
-                      {"Add a new card"}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          )}
-        </View>
-      )}
       {deleteModal ? (
         <DeleteCardModal setModal={setDeleteModal} id={id} />
       ) : null}

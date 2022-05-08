@@ -2,8 +2,30 @@ import React from "react";
 import { View, Text } from "react-native";
 
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { useIsFocused } from "@react-navigation/native";
 
 export default function WorkInProgress() {
+  // useEffect(() => {
+  //   const listener = db
+  //     .collection("users")
+  //     .doc(auth.currentUser.uid)
+  //     .onSnapshot((doc) => {
+  //       if (doc.data().vendorId) {
+  //         navigator.navigate("SellerStack", {
+  //           screen: "SellerProfile",
+  //         });
+  //       }
+  //     });
+  //   if (isFocused) {
+  //     listener();
+  //   }
+  //   if (!isFocused) {
+  //     return listener();
+  //   }
+  // }, [isFocused]);
+
+  // const isFocused = useIsFocused();
+
   return (
     <View
       style={{

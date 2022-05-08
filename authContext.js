@@ -26,10 +26,10 @@ export const db = firebase.firestore();
 export const storage = firebase.storage();
 export const functions = firebase.functions();
 
-if (__DEV__) {
-  firebase.functions().useEmulator("192.168.0.103", 5001);
-  firebase.firestore().useEmulator("192.168.0.103", 8080);
-}
+// if (__DEV__) {
+//   firebase.functions().useEmulator("192.168.0.102", 5001);
+//   firebase.firestore().useEmulator("192.168.0.102", 8080);
+// }
 
 //! CARDS
 export async function fetchCards(props, setProps) {
@@ -1387,6 +1387,11 @@ export async function fetchSavedCards(setSavedCards, setLoading) {
   try {
     const outputArray = [];
     const doc = await db.collection("users").doc(auth.currentUser.uid).get();
+
+    if (doc.data().savedOffers.length === 0) {
+      setSavedCards([]);
+      setLoading(false);
+    }
 
     const arrLength = doc.data().savedOffers.length;
 

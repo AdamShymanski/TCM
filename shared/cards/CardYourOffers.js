@@ -14,6 +14,7 @@ import language_icon from "./../../assets/language.png";
 import condition_icon from "./../../assets/condition.png";
 
 import IconIO from "react-native-vector-icons/Ionicons";
+import IconMI from "react-native-vector-icons/MaterialIcons";
 import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 
 import { fetchPhotos, fetchCardsName } from "../../authContext";
@@ -168,7 +169,41 @@ export function CardYourOffers({ props, setModal, setId }) {
           >
             REJECTED
           </Text>
-          <IconMCI name={"cancel"} size={16} color={"#C31313"} />
+          <IconMI name={"done-all"} size={16} color={"#C31313"} />
+        </View>
+      );
+    }
+    if (prop === "sold") {
+      return (
+        <View
+          style={{
+            flexDirection: "row",
+            alignSelf: "flex-start",
+            alignItems: "center",
+
+            justifyContent: "space-evenly",
+
+            marginTop: 18,
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+
+            backgroundColor: "#023261",
+            borderTopLeftRadius: 4,
+            borderTopRightRadius: 4,
+          }}
+        >
+          <Text
+            style={{
+              color: "#0082ff",
+
+              fontSize: 10,
+              marginRight: 6,
+              fontFamily: "Roboto_Medium",
+            }}
+          >
+            SOLD
+          </Text>
+          <IconMI name={"done-all"} size={16} color={"#0082ff"} />
         </View>
       );
     }
