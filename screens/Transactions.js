@@ -1,97 +1,68 @@
 import React, { useState, useEffect } from "react";
 
-import { db, auth, fetchCardsName } from "../authContext";
+import { db, auth, fetchCardsName, functions } from "../authContext";
 
-import { View, Text, FlatList, ActivityIndicator } from "react-native";
 import TransactionObject from "./../shared/Objects/TransactionObject";
-
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import ConfirmSendingModal from "./../shared/Modals/ConfirmSendingModal";
+import AddTrackigNumberModal from "./../shared/Modals/AddTrackigNumberModal";
 
 import { useIsFocused } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { View, Text, FlatList, ActivityIndicator } from "react-native";
 
 export default function Transactions() {
   const [loading, setLoading] = useState(true);
-  const [transcations, setTranscations] = useState([]);
+  const [transcationsBought, setTransactionBought] = useState([]);
+  const [transcationsSold, setTransactionsSold] = useState([]);
+
+  const [callCounter, setCallCounter] = useState([0, 0]);
+
+  const [ATN, setATN] = useState(false);
+  const [CS, setCS] = useState(false);
 
   const isFocused = useIsFocused();
 
-  // useEffect(() => {
-  //   const resolvePromises = async () => {
-  //     let outArray = [];
-
-  //     await db
-  //       .collection("transactions")
-  //       .where("buyer", "==", auth.currentUser.uid)
-  //       .get()
-  //       .then((snapshot) => {
-  //         snapshot.forEach((doc) => {
-  //           let obj = doc.data();
-  //           obj.id = doc.id;
-  //           outArray.push(obj);
-  //         });
-  //       });
-  //     await db
-  //       .collection("transactions")
-  //       .where("seller", "==", auth.currentUser.uid)
-  //       .get()
-  //       .then((snapshot) => {
-  //         snapshot.forEach((doc) => {
-  //           let obj = doc.data();
-  //           obj.id = doc.id;
-  //           outArray.push(obj);
-  //         });
-  //       });
-
-  //     //sort objects in array by timestamp
-  //     outArray.sort((a, b) => {
-  //       return b.timestamp - a.timestamp;
-  //     });
-
-  //     setTranscations(outArray);
-  //     setLoading(false);
-  //   };
-
-  //   resolvePromises();
-  // }, []);
-
   useEffect(async () => {
     if (!isFocused) {
-      setTranscations([]);
+      setTransactionsSold([]);
+      setTransactionBought([]);
       setLoading(true);
     }
     if (isFocused) {
-      let outArray = [];
-
-      await db
-        .collection("transactions")
+      db.collection("transactions")
         .where("buyer", "==", auth.currentUser.uid)
-        .get()
-        .then((snapshot) => {
+        .onSnapshot((snapshot) => {
+          setTransactionBought([]);
+
           snapshot.forEach((doc) => {
-            let obj = doc.data();
-            obj.id = doc.id;
-            outArray.push(obj);
+            if (doc.data().status !== "unpaid") {
+              let obj = doc.data();
+              obj.id = doc.id;
+
+              setTransactionBought((prevStat) => {
+                return [...prevStat, obj];
+              });
+            }
           });
         });
-      await db
-        .collection("transactions")
+
+      db.collection("transactions")
         .where("seller", "==", auth.currentUser.uid)
-        .get()
-        .then((snapshot) => {
+        .onSnapshot((snapshot) => {
+          setTransactionsSold([]);
+
           snapshot.forEach((doc) => {
-            let obj = doc.data();
-            obj.id = doc.id;
-            outArray.push(obj);
+            if (doc.data().status !== "unpaid") {
+              let obj = doc.data();
+              obj.id = doc.id;
+
+              setTransactionsSold((prevStat) => {
+                return [...prevStat, obj];
+              });
+            }
           });
+          setLoading(false);
         });
-
-      //sort objects in array by timestamp
-      outArray.sort((a, b) => {
-        return b.timestamp - a.timestamp;
-      });
-
-      setTranscations(outArray);
-      setLoading(false);
     }
   }, [isFocused]);
 
@@ -109,7 +80,7 @@ export default function Transactions() {
       </View>
     );
   } else {
-    if (transcations.length > 0) {
+    if (transcationsBought.length > 0 || transcationsSold.length > 0) {
       return (
         <View
           style={{
@@ -119,11 +90,30 @@ export default function Transactions() {
             backgroundColor: "#1b1b1b",
           }}
         >
+          {ATN ? (
+            <AddTrackigNumberModal
+              id={ATN}
+              setModal={setATN}
+              setLoading={setLoading}
+            />
+          ) : null}
+
+          {CS ? (
+            <ConfirmSendingModal
+              id={CS}
+              setModal={setCS}
+              setLoading={setLoading}
+            />
+          ) : null}
           <FlatList
-            data={transcations}
+            data={[...transcationsBought, ...transcationsSold].sort((a, b) => {
+              return b.timestamp - a.timestamp;
+            })}
             style={{ flex: 1, width: "100%" }}
             renderItem={({ item, index, array }) => {
-              return <TransactionObject props={item} />;
+              return (
+                <TransactionObject props={item} setCS={setCS} setATN={setATN} />
+              );
             }}
             keyExtractor={(item, index) => index.toString()}
           />

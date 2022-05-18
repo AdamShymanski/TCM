@@ -10,162 +10,392 @@ import {
 
 import red_arrow from "../../assets/red_arrow.png";
 import green_arrow from "../../assets/green_arrow.png";
+import parcel_received from "../../assets/parcel_received.png";
+import parcel_in_transit from "../../assets/parcel_in_transit.png";
 
 import IconMI from "react-native-vector-icons/MaterialIcons";
 import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 
 import { useNavigation } from "@react-navigation/native";
-import { auth, fetchCardsName } from "../../authContext";
+import { auth, fetchCardsName, firebaseObj, db } from "../../authContext";
 
-export default function TransactionObject({ props }) {
-  const [cardReceived, setCardReceived] = useState(false);
+export default function TransactionObject({ props, setATN, setCS }) {
   const [offersArray, setOffersArray] = useState([]);
+  const [parcelReceived, setParcelReceived] = useState(
+    props.shipping.delivered
+  );
 
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [disputeButtonState, setDisputeButtonState] = useState(true);
   const [type, setType] = useState(null);
+  const [totalAmount, setTotalAmount] = useState(0);
 
-  const handleShippingField = (prop) => {
-    
-    {
-      /* <IconMCI name={"check-circle"} size={14} color={"#25DD21"} />
-              <Text
-                style={{
-                  fontFamily: "Roboto_Medium",
-                  color: "#f4f4f4",
-                  marginLeft: 8,
-                }}
-              >
-                Delivered
-              </Text> */
-    }
-
-    {
-      /* <IconMCI
-                name={"chevron-right-circle"}
-                size={14}
-                color={"#25DD21"}
-              />
-              <Text
-                style={{
-                  fontFamily: "Roboto_Medium",
-                  color: "#f4f4f4",
-                  marginLeft: 8,
-                }}
-              >
-                Parcel sent
-              </Text> */
-    }
-
-    {
-      /* <IconMCI name={"clock"} size={14} color={"#FFE600"} />
-              <Text
-                style={{
-                  fontFamily: "Roboto_Medium",
-                  color: "#f4f4f4",
-                  marginLeft: 8,
-                }}
-              >
-                Awaiting shipment
-              </Text> */
-    }
-
-    if (prop === "sold") {
-      if (props.shipping.method.tracking) {
+  const handleShippingField = () => {
+    if (type === "bought") {
+      if (props.shipping.delivered) {
         return {
-          top: (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginTop: 4,
-              }}
-            >
-              <IconMCI name={"clock"} size={14} color={"#FFE600"} />
-              <Text
-                style={{
-                  fontFamily: "Roboto_Medium",
-                  color: "#f4f4f4",
-                  marginLeft: 8,
-                }}
-              >
-                Awaiting shipment
-              </Text>
-            </View>
-          ),
-          bottom: (
-            <TouchableOpacity
-              style={{
-                marginTop: 10,
-                width: "80%",
-                paddingVertical: 5,
-
-                borderRadius: 3,
-                backgroundColor: "#25DD21",
-
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{ color: "#121212", fontWeight: "700", fontSize: 11 }}
-              >
-                Add Tracking Number
-              </Text>
-            </TouchableOpacity>
-          ),
+          top: props.shipping.trackingNumber
+            ? props.shipping.trackingNumber
+            : "NO TRACKING",
+          bottom: `Parcell has been delivered.`,
         };
-      } else {
-        return (
-          <TouchableOpacity
-            style={{
-              marginTop: 10,
-              width: "60%",
-              paddingVertical: 5,
-
-              borderRadius: 3,
-              backgroundColor: "#25DD21",
-
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ color: "#121212", fontWeight: "700", fontSize: 13 }}>
-              Parcel Sent
-            </Text>
-          </TouchableOpacity>
-        );
-      }
-    } else {
-      if (!props.shipping.sent) {
-        return {
-          top: "Awaiting shipment",
-          bottom: "Seller has 3 days to sent parcel, from date of purchase.",
-        };
-      } else if (props.shipping.delivered) {
-        return {
-          top: "Delivered",
-          bottom: "",
-        };
-      } else {
-        if (props.shipping.sent && props.shipping.method.tracking) {
+      } else if (props.shipping.sent) {
+        if (props.shipping.method.tracking) {
           return {
             top: props.shipping.trackingNumber,
             bottom: "Tap on the tracking number to copy it to clipboard.",
           };
-        }
-        if (props.shipping.sent && !props.shipping.method.tracking) {
+        } else if (!props.shipping.method.tracking) {
+          function timeConverter(UNIX_timestamp) {
+            var a = new Date(UNIX_timestamp * 888);
+            var months = [
+              "Jan",
+              "Feb",
+              "Mar",
+              "Apr",
+              "May",
+              "Jun",
+              "Jul",
+              "Aug",
+              "Sep",
+              "Oct",
+              "Nov",
+              "Dec",
+            ];
+            var year = a.getFullYear();
+            var month = months[a.getMonth()];
+            var date = a.getDate();
+            var hour = a.getHours();
+            var min = a.getMinutes();
+            var sec = a.getSeconds();
+            var time =
+              date +
+              "/" +
+              a.getMonth() +
+              "/" +
+              year +
+              " " +
+              hour +
+              ":" +
+              min +
+              ":" +
+              sec;
+            return time;
+          }
+          const s = new Date(1504095567183).toLocaleDateString("en-US");
+
           return {
-            top: "Parcel sent",
+            top: "NO TRACKING",
             bottom: `Package should arrive within ${props.shipping.method.from} to ${props.shipping.method.to} days.`,
           };
         }
-        return;
+      } else {
+        return {
+          top: "Awaiting shipment",
+          bottom: "Seller has 3 days to sent parcel, from date of purchase.",
+        };
+      }
+    } else {
+      if (props.shipping.delivered) {
+        return {
+          top: props.shipping.trackingNumber
+            ? props.shipping.trackingNumber
+            : "NO TRACKING",
+          bottom: `Parcell has been delivered.`,
+        };
+      } else if (props.shipping.sent) {
+        if (props.shipping.method.tracking) {
+          return {
+            top: props.shipping.trackingNumber,
+            bottom: `Package should arrive within ${props.shipping.method.from} to ${props.shipping.method.to} days.`,
+          };
+        } else if (!props.shipping.method.tracking) {
+          return {
+            top: "NO TRACKING",
+            bottom: `Package should arrive within ${props.shipping.method.from} to ${props.shipping.method.to} days.`,
+          };
+        }
+      } else {
+        return {
+          top: "Awaiting shipment",
+          bottom: "You have 3 days to send the package",
+        };
+      }
+    }
+  };
 
-        // if (props.shipping.method.tracking) {
-        //   if (props.shipping.trackingNumber) {
-        //   }
-        // } else {
-        //   return `Average delivery time: ${props.shipping.method.from} - ${props.shipping.method.t}`;
-        // }
+  const handleUpperStatus = () => {
+    if (type == "bought") {
+      if (props.shipping.delivered || parcelReceived) {
+        return (
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+            <Image
+              source={parcel_received}
+              style={{ aspectRatio: 1 / 1, width: 20, height: undefined }}
+            />
+
+            <Text
+              style={{
+                color: "#f4f4f4",
+                fontSize: 18,
+                marginLeft: 10,
+                fontWeight: "700",
+              }}
+            >
+              Delivered
+            </Text>
+          </View>
+        );
+      } else if (props.shipping.sent) {
+        return (
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+            <Image
+              source={parcel_in_transit}
+              style={{ aspectRatio: 1 / 1, width: 20, height: undefined }}
+            />
+
+            <Text
+              style={{
+                color: "#FFD400",
+                fontSize: 18,
+                marginLeft: 10,
+                fontWeight: "700",
+              }}
+            >
+              In Transit
+            </Text>
+          </View>
+        );
+      } else {
+        return (
+          <View
+            style={{ flexDirection: "row", alignItems: "center", width: "50%" }}
+          >
+            <Image
+              source={green_arrow}
+              style={{ aspectRatio: 1 / 1, width: 20, height: undefined }}
+            />
+
+            <Text
+              style={{
+                color: "#f4f4f4",
+                fontSize: 18,
+                marginLeft: 10,
+                fontWeight: "700",
+              }}
+            >
+              Bought
+            </Text>
+          </View>
+        );
+      }
+    } else {
+      if (props.shipping.delivered) {
+        return (
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+            <Image
+              source={parcel_received}
+              style={{ aspectRatio: 1 / 1, width: 20, height: undefined }}
+            />
+
+            <Text
+              style={{
+                color: "#f4f4f4",
+                fontSize: 18,
+                marginLeft: 10,
+                fontWeight: "700",
+              }}
+            >
+              Delivered
+            </Text>
+          </View>
+        );
+      } else if (props.shipping.sent) {
+        return (
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+            <Image
+              source={parcel_in_transit}
+              style={{ aspectRatio: 1 / 1, width: 20, height: undefined }}
+            />
+
+            <Text
+              style={{
+                color: "#FFD400",
+                fontSize: 18,
+                marginLeft: 10,
+                fontWeight: "700",
+              }}
+            >
+              In Transit
+            </Text>
+          </View>
+        );
+      } else {
+        return (
+          <View
+            style={{ flexDirection: "row", alignItems: "center", width: "50%" }}
+          >
+            <Image
+              source={red_arrow}
+              style={{ aspectRatio: 1 / 1, width: 20, height: undefined }}
+            />
+
+            <Text
+              style={{
+                color: "#f4f4f4",
+                fontSize: 18,
+                marginLeft: 10,
+                fontWeight: "700",
+              }}
+            >
+              Sold
+            </Text>
+          </View>
+        );
+      }
+    }
+  };
+
+  const handleBottomStatus = () => {
+    if (type == "bought") {
+      if (props.shipping.delivered) {
+        return (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginTop: 4,
+            }}
+          >
+            <View
+              style={{
+                width: 8,
+                height: 8,
+                backgroundColor: "#0082ff",
+                borderRadius: 6,
+                marginRight: 8,
+              }}
+            />
+            <Text style={{ fontFamily: "Roboto_Medium", color: "#f4f4f4" }}>
+              Parcel Received
+            </Text>
+          </View>
+        );
+      } else if (props.shipping.sent) {
+        return (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginTop: 4,
+            }}
+          >
+            <View
+              style={{
+                width: 8,
+                height: 8,
+                backgroundColor: "#FFD400",
+                borderRadius: 6,
+                marginRight: 8,
+              }}
+            />
+            <Text style={{ fontFamily: "Roboto_Medium", color: "#f4f4f4" }}>
+              Parcel on the way
+            </Text>
+          </View>
+        );
+      } else {
+        return (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginTop: 4,
+            }}
+          >
+            <View
+              style={{
+                width: 8,
+                height: 8,
+                backgroundColor: "#05FD00",
+                borderRadius: 6,
+                marginRight: 8,
+              }}
+            />
+            <Text style={{ fontFamily: "Roboto_Medium", color: "#f4f4f4" }}>
+              Payment accepted
+            </Text>
+          </View>
+        );
+      }
+    } else {
+      if (props.shipping.delivered) {
+        return (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginTop: 4,
+            }}
+          >
+            <View
+              style={{
+                width: 8,
+                height: 8,
+                backgroundColor: "#0082ff",
+                borderRadius: 6,
+                marginRight: 8,
+              }}
+            />
+            <Text style={{ fontFamily: "Roboto_Medium", color: "#f4f4f4" }}>
+              Parcel Received
+            </Text>
+          </View>
+        );
+      } else if (props.shipping.sent) {
+        return (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginTop: 4,
+            }}
+          >
+            <View
+              style={{
+                width: 8,
+                height: 8,
+                backgroundColor: "#FFD400",
+                borderRadius: 6,
+                marginRight: 8,
+              }}
+            />
+            <Text style={{ fontFamily: "Roboto_Medium", color: "#f4f4f4" }}>
+              Parcel on the way
+            </Text>
+          </View>
+        );
+      } else {
+        return (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginTop: 4,
+            }}
+          >
+            <View
+              style={{
+                width: 8,
+                height: 8,
+                backgroundColor: "#D80000",
+                borderRadius: 6,
+                marginRight: 8,
+              }}
+            />
+            <Text style={{ fontFamily: "Roboto_Medium", color: "#f4f4f4" }}>
+              Awaiting shipment
+            </Text>
+          </View>
+        );
       }
     }
   };
@@ -208,26 +438,6 @@ export default function TransactionObject({ props }) {
 
   const navigation = useNavigation();
 
-  if (type === null) {
-    return (
-      <View
-        style={{
-          width: "94%",
-
-          backgroundColor: "#121212",
-
-          marginLeft: "3%",
-          marginTop: 10,
-          borderRadius: 6,
-
-          padding: 16,
-
-          height: 200,
-        }}
-      />
-    );
-  }
-
   if (type === "sold") {
     return (
       <View
@@ -251,28 +461,7 @@ export default function TransactionObject({ props }) {
           }}
         >
           <View style={{ width: "50%" }}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                width: "50%",
-              }}
-            >
-              <Image
-                source={red_arrow}
-                style={{ aspectRatio: 1 / 1, width: 20, height: undefined }}
-              />
-              <Text
-                style={{
-                  color: "#f4f4f4",
-                  fontSize: 18,
-                  marginLeft: 10,
-                  fontWeight: "700",
-                }}
-              >
-                Sold
-              </Text>
-            </View>
+            {handleUpperStatus()}
             <Text
               style={{
                 color: "#5c5c5c",
@@ -283,8 +472,7 @@ export default function TransactionObject({ props }) {
             >
               STATUS
             </Text>
-
-            {handleShippingField("sold").top}
+            {handleBottomStatus()}
             <Text
               style={{
                 color: "#5c5c5c",
@@ -295,7 +483,117 @@ export default function TransactionObject({ props }) {
             >
               SHIPPING
             </Text>
-            {handleShippingField("sold").bottom}
+            {props.shipping.sent ? (
+              <View style={{ flexDirection: "row", marginTop: 6 }}>
+                <View
+                  style={{
+                    padding: 2,
+                    paddingHorizontal: 8,
+                    borderTopLeftRadius: 2,
+                    borderBottomLeftRadius: 2,
+                    backgroundColor: "#302c2c",
+                  }}
+                >
+                  <Text style={{ color: "#f4f4f4", fontWeight: "700" }}>
+                    {props.shipping.method.carrier}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    padding: 2,
+                    paddingHorizontal: 8,
+                    borderTopRightRadius: 2,
+                    borderBottomRightRadius: 2,
+                    backgroundColor: "#252525",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#fff",
+                    }}
+                  >
+                    {handleShippingField().top}
+                  </Text>
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={{
+                  marginTop: 10,
+                  paddingVertical: 5,
+                  alignSelf: "flex-start",
+                  paddingHorizontal: 12,
+
+                  borderRadius: 3,
+                  backgroundColor: "#25DD21",
+
+                  alignItems: "center",
+                }}
+                onPress={() => {
+                  if (props.shipping.method.tracking) {
+                    setATN(props.id);
+                  } else {
+                    setCS(props.id);
+                  }
+                }}
+              >
+                <View
+                  style={{
+                    alignItems: "center",
+                    justifyContent: "space-evenly",
+                    flexDirection: "row",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#121212",
+                      fontWeight: "700",
+                      fontSize: 11,
+                      alignItems: "center",
+                      justifyContent: "space-evenly",
+                      marginRight: 6,
+                    }}
+                  >
+                    {props.shipping.method.tracking
+                      ? "Add Tracking Number"
+                      : "Parcel Sent"}
+                  </Text>
+                  <IconMI name="double-arrow" size={14} color="#121212" />
+                </View>
+              </TouchableOpacity>
+            )}
+            {/* <View style={{ flexDirection: "row", marginTop: 6 }}>
+              <View
+                style={{
+                  padding: 2,
+                  paddingHorizontal: 8,
+                  borderTopLeftRadius: 2,
+                  borderBottomLeftRadius: 2,
+                  backgroundColor: "#302c2c",
+                }}
+              >
+                <Text style={{ color: "#f4f4f4", fontWeight: "700" }}>
+                  {props.shipping.method.carrier}
+                </Text>
+              </View>
+              <View
+                style={{
+                  padding: 2,
+                  paddingHorizontal: 8,
+                  borderTopRightRadius: 2,
+                  borderBottomRightRadius: 2,
+                  backgroundColor: "#252525",
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#fff",
+                  }}
+                >
+                  {handleShippingField().top}
+                </Text>
+              </View>
+            </View> */}
           </View>
 
           <View style={{ width: "50%" }}>
@@ -321,7 +619,7 @@ export default function TransactionObject({ props }) {
               </Text>
             </View>
             <FlatList
-              data={offersArray}
+              data={offersArray[0]?.price ? [offersArray[0]] : []}
               renderItem={({ item, index }) => {
                 return (
                   <View style={{ marginBottom: 8 }}>
@@ -363,6 +661,51 @@ export default function TransactionObject({ props }) {
                 );
               }}
               keyExtractor={(item, index) => index.toString()}
+              ListFooterComponent={() => {
+                if (offersArray.length > 1) {
+                  // 3 dots
+                  return (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginBottom: 4,
+                      }}
+                    >
+                      <View
+                        style={{
+                          borderRadius: 6,
+                          width: 6,
+                          height: 6,
+                          marginRight: 4,
+                          marginLeft: 4,
+                          backgroundColor: "#383838",
+                        }}
+                      />
+                      <View
+                        style={{
+                          borderRadius: 6,
+                          width: 6,
+                          height: 6,
+                          marginRight: 4,
+
+                          backgroundColor: "#383838",
+                        }}
+                      />
+                      <View
+                        style={{
+                          borderRadius: 6,
+                          width: 6,
+                          height: 6,
+
+                          backgroundColor: "#383838",
+                        }}
+                      />
+                    </View>
+                  );
+                }
+                return null;
+              }}
               ListEmptyComponent={
                 <View style={{ marginVertical: 20, marginTop: 14 }}>
                   <ActivityIndicator color={"#0082ff"} size={"large"} />
@@ -398,22 +741,8 @@ export default function TransactionObject({ props }) {
           </View>
         </View>
         <Text style={{ color: "#5c5c5c", fontSize: 11, marginTop: 10 }}>
-          You have 7 days to send the parcel after receiving the funds
+          {handleShippingField().bottom}
         </Text>
-        <TouchableOpacity
-          style={{
-            backgroundColor: "#0082ff",
-            borderRadius: 4,
-            alignItems: "center",
-            paddingVertical: 5,
-
-            marginTop: 10,
-          }}
-        >
-          <Text style={{ color: "#121212", fontWeight: "700" }}>
-            Contact Support
-          </Text>
-        </TouchableOpacity>
       </View>
     );
   }
@@ -439,24 +768,7 @@ export default function TransactionObject({ props }) {
         }}
       >
         <View style={{ width: "50%" }}>
-          <View
-            style={{ flexDirection: "row", alignItems: "center", width: "50%" }}
-          >
-            <Image
-              source={green_arrow}
-              style={{ aspectRatio: 1 / 1, width: 20, height: undefined }}
-            />
-            <Text
-              style={{
-                color: "#f4f4f4",
-                fontSize: 18,
-                marginLeft: 10,
-                fontWeight: "700",
-              }}
-            >
-              Bought
-            </Text>
-          </View>
+          {handleUpperStatus()}
           <Text
             style={{
               color: "#5c5c5c",
@@ -467,26 +779,7 @@ export default function TransactionObject({ props }) {
           >
             STATUS
           </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginTop: 4,
-            }}
-          >
-            <View
-              style={{
-                width: 8,
-                height: 8,
-                backgroundColor: "#05FD00",
-                borderRadius: 6,
-                marginRight: 8,
-              }}
-            />
-            <Text style={{ fontFamily: "Roboto_Medium", color: "#f4f4f4" }}>
-              Cards Received
-            </Text>
-          </View>
+          {handleBottomStatus()}
           <Text
             style={{
               color: "#5c5c5c",
@@ -497,6 +790,7 @@ export default function TransactionObject({ props }) {
           >
             SHIPPING
           </Text>
+
           <View style={{ flexDirection: "row", marginTop: 6 }}>
             <View
               style={{
@@ -525,7 +819,7 @@ export default function TransactionObject({ props }) {
                   color: "#fff",
                 }}
               >
-                {handleShippingField("bought").top}
+                {handleShippingField().top}
               </Text>
             </View>
           </View>
@@ -554,7 +848,7 @@ export default function TransactionObject({ props }) {
             </Text>
           </View>
           <FlatList
-            data={offersArray}
+            data={offersArray[0]?.price ? [offersArray[0]] : []}
             renderItem={({ item, index }) => {
               return (
                 <View style={{ marginBottom: 8 }}>
@@ -596,8 +890,53 @@ export default function TransactionObject({ props }) {
               );
             }}
             keyExtractor={(item, index) => index.toString()}
+            ListFooterComponent={() => {
+              if (offersArray.length > 1) {
+                // 3 dots
+                return (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginBottom: 4,
+                    }}
+                  >
+                    <View
+                      style={{
+                        borderRadius: 6,
+                        width: 6,
+                        height: 6,
+                        marginRight: 4,
+                        marginLeft: 4,
+                        backgroundColor: "#383838",
+                      }}
+                    />
+                    <View
+                      style={{
+                        borderRadius: 6,
+                        width: 6,
+                        height: 6,
+                        marginRight: 4,
+
+                        backgroundColor: "#383838",
+                      }}
+                    />
+                    <View
+                      style={{
+                        borderRadius: 6,
+                        width: 6,
+                        height: 6,
+
+                        backgroundColor: "#383838",
+                      }}
+                    />
+                  </View>
+                );
+              }
+              return null;
+            }}
             ListEmptyComponent={
-              <View style={{ marginVertical: 20, marginTop: 14 }}>
+              <View style={{ marginBottom: 10, marginTop: 3 }}>
                 <ActivityIndicator color={"#0082ff"} size={"large"} />
               </View>
             }
@@ -631,78 +970,45 @@ export default function TransactionObject({ props }) {
         </View>
       </View>
       <Text style={{ color: "#5c5c5c", fontSize: 11, marginTop: 10 }}>
-        {handleShippingField("bought").bottom}
+        {handleShippingField().bottom}
       </Text>
-      <TouchableOpacity
-        style={{
-          backgroundColor: "#0082ff",
-          borderRadius: 4,
-          alignItems: "center",
-          paddingVertical: 5,
-
-          marginTop: 16,
-        }}
-      >
-        <Text style={{ color: "#121212", fontWeight: "700" }}>
-          Contact Support
-        </Text>
-      </TouchableOpacity>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          width: "100%",
-          justifyContent: "space-between",
-        }}
-      >
+      {!parcelReceived && props.shipping.sent ? (
         <TouchableOpacity
           style={{
             borderRadius: 4,
-            backgroundColor: disputeButtonState ? "#c21313" : "#390e0e",
-            paddingVertical: 5,
 
-            width: "40%",
-            marginTop: 10,
-
-            alignItems: "center",
-          }}
-          disabled={disputeButtonState}
-        >
-          <Text
-            style={{
-              color: disputeButtonState ? "#fff" : "#613e3e",
-              fontWeight: "700",
-            }}
-          >
-            Open Dispute
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={{
-            borderRadius: 4,
-            borderWidth: cardReceived ? 0 : 2.2,
-
-            backgroundColor: cardReceived ? "#2fbd22" : "transparent",
+            backgroundColor: "#2fbd22",
             borderColor: "#5c5c5c",
 
-            width: "57%",
+            width: "55%",
             marginTop: 10,
-            paddingVertical: cardReceived ? 5 : 3,
+            paddingVertical: 4.5,
 
             alignItems: "center",
           }}
-          onPress={() => setCardReceived((prevState) => !prevState)}
+          onPress={() => {
+            setParcelReceived(true);
+            props.shipping.delivered =
+              firebaseObj.firestore.FieldValue.serverTimestamp();
+
+            db.collection("transactions")
+              .doc(props.id)
+              .update({
+                ["shipping.delivered"]:
+                  firebaseObj.firestore.FieldValue.serverTimestamp(),
+              });
+          }}
         >
           <Text
             style={{
-              color: cardReceived ? "#121212" : "#5c5c5c",
+              color: "#121212",
               fontWeight: "700",
             }}
           >
-            {cardReceived ? "Card Has Been Received" : "Confirm Cards Received"}
+            Confirm parcel receive
           </Text>
         </TouchableOpacity>
-      </View>
+      ) : null}
     </View>
   );
 }

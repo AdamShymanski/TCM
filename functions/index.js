@@ -598,31 +598,36 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
           res.status(400).send(err);
         }
       });
-  } else if (event.type === "payment_intent.canceled") {
-    await admin
-      .firestore()
-      .collection("transactions")
-      .where("paymentIntent", "==", event.data.object.id)
-      .get()
-      .then((transactions) => {
-        const promise = new Promise((resolve, reject) => {
-          transactions.forEach(async (doc) => {
-            await admin
-              .firestore()
-              .collection("transactions")
-              .doc(doc.id)
-              .delete();
-          });
-          if (transactions.length - 1 === index) {
-            resolve();
-          }
-        });
+  }
+  // if (
+  //   event.type === "payment_intent.canceled" ||
+  //   event.type === "payment_intent.failed"
+  // ) {
+  //   await admin
+  //     .firestore()
+  //     .collection("transactions")
+  //     .where("paymentIntent", "==", event.data.object.id)
+  //     .get()
+  //     .then((transactions) => {
+  //       const promise = new Promise((resolve, reject) => {
+  //         transactions.forEach(async (doc) => {
+  //           await admin
+  //             .firestore()
+  //             .collection("transactions")
+  //             .doc(doc.id)
+  //             .delete();
+  //         });
+  //         if (transactions.length - 1 === index) {
+  //           resolve();
+  //         }
+  //       });
 
-        promise.then(() => {
-          res.status(200).send("success");
-        });
-      });
-  } else if (event.type === "account.updated") {
+  //       promise.then(() => {
+  //         res.status(200).send("success");
+  //       });
+  //     });
+  // }
+  if (event.type === "account.updated") {
     const accountData = event.data.object;
 
     if (accountData.requirements.pending_verification.length > 0) {
@@ -800,5 +805,26 @@ exports.validateOffersStatus = functions.pubsub
           });
         }
       });
+    return null;
+  });
+
+exports.deleteExpiredTransactions = functions.pubsub
+  .schedule("every 10 minutes")
+  .onRun((context) => {
+    let currentDate = new Date();
+    var pastDue = new Date(currentDate.getTime() - 600000);
+
+    admin
+      .firestore()
+      .collection("transactions")
+      .where("timestamp", "<", pastDue)
+      .where("status", "==", "unpaid")
+      .get()
+      .then(function (querySnapshot) {
+        querySnapshot.forEach(function (doc) {
+          doc.ref.delete();
+        });
+      });
+
     return null;
   });

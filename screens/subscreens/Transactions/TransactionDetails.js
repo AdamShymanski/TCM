@@ -20,6 +20,8 @@ import cart_up_icon from "../../../assets/cart_up.png";
 import { auth, fetchOwnerData, fetchPhotos } from "../../../authContext";
 import { Snackbar } from "react-native-paper";
 
+import { useNavigation } from "@react-navigation/native";
+
 export default function TransactionDetails({ route }) {
   const { props, offersArray, totalAmount } = route.params;
 
@@ -59,14 +61,6 @@ export default function TransactionDetails({ route }) {
 
   useEffect(() => {
     const resolvePromises = async () => {
-      // await db
-      //   .collection("users")
-      //   .doc(props.seller === auth.currentUser.uid ? props.buyer : props.seller)
-      //   .get()
-      //   .then((doc) => {
-      //     setVendor(doc.data());
-      //   });
-
       setVendor(
         await fetchOwnerData(
           props.seller === auth.currentUser.uid ? props.buyer : props.seller
@@ -89,6 +83,8 @@ export default function TransactionDetails({ route }) {
 
     resolvePromises();
   }, []);
+
+  const navigation = useNavigation();
 
   return (
     <ScrollView
@@ -189,8 +185,8 @@ export default function TransactionDetails({ route }) {
             <View
               style={{
                 justifyContent: "center",
-                marginLeft: 42,
-                marginRight: 54,
+                marginLeft: 30,
+                marginRight: 30,
               }}
             >
               <View style={{ flexDirection: "row", marginBottom: 22 }}>
@@ -313,6 +309,17 @@ export default function TransactionDetails({ route }) {
                   paddingHorizontal: 12,
 
                   backgroundColor: "#0082ff",
+                }}
+                onPress={() => {
+                  navigation.navigate("SellerStack", {
+                    screen: "OtherSellersOffers",
+                    params: {
+                      sellerId:
+                        props.seller === auth.currentUser.uid
+                          ? props.buyer
+                          : props.seller,
+                    },
+                  });
                 }}
               >
                 <Text
@@ -599,7 +606,21 @@ export default function TransactionDetails({ route }) {
               SENT
             </Text>
             <Text style={{ color: "#f4f4f4", marginLeft: 6, marginBottom: 6 }}>
-              {props.shipping.sent ? props.shipping.sent : "-"}
+              {props.shipping.sent ? "props.shipping.sent" : "-"}
+            </Text>
+            <Text
+              style={{
+                color: "#565656",
+                fontFamily: "Roboto_Medium",
+                fontSize: 12,
+
+                marginBottom: 4,
+              }}
+            >
+              DELIVERED
+            </Text>
+            <Text style={{ color: "#f4f4f4", marginLeft: 6, marginBottom: 6 }}>
+              {props.shipping.delivered ? "props.shipping.delivered" : "-"}
             </Text>
           </View>
         </View>
@@ -671,6 +692,7 @@ export default function TransactionDetails({ route }) {
       <View
         style={{
           marginRight: 12,
+          marginBottom: 18,
 
           paddingHorizontal: 12,
           paddingVertical: 10,
@@ -803,7 +825,7 @@ export default function TransactionDetails({ route }) {
         </Text>
       </View>
 
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={{
           flexDirection: "column",
           justifyContent: "center",
@@ -843,9 +865,9 @@ export default function TransactionDetails({ route }) {
         }}
       >
         <Text style={{ color: "#121212", fontWeight: "700" }}>
-          Confirm Cards Received
+          Confirm parcel receive
         </Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
       <Snackbar
         visible={snackbarState}
         duration={3000}

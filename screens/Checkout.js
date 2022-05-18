@@ -1013,6 +1013,7 @@ const getFooter = (
   offersState
 ) => {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
+
   const [totals, setTotals] = useState({
     cards: 0,
     shipping: 0,
@@ -1028,7 +1029,11 @@ const getFooter = (
 
       query({ offersState, shippingMethod, shippingAddress })
         .then((result) => {
-          initializePaymentSheet(result.data);
+          try {
+            initializePaymentSheet(result.data);
+          } catch (e) {
+            console.log(e);
+          }
         })
         .catch((err) => console.log(err));
     };
@@ -1078,24 +1083,21 @@ const getFooter = (
   }, [offersState]);
 
   const initializePaymentSheet = async (data) => {
+    const { paymentIntent, ephemeralKey, customer } = data;
+
+    let merchantName = auth.currentUser.displayName;
+
+    if (merchantName == null) {
+      merchantName = await fetchName();
+    }
+
     try {
-      const { paymentIntent, ephemeralKey, customer } = data;
-
-      let merchantName = auth.currentUser.displayName;
-
-      if (merchantName == null) {
-        merchantName = await fetchName();
-      }
-
-      const { error } = await initPaymentSheet({
+      initPaymentSheet({
+        googlePay: true,
         customerId: customer,
+        merchantDisplayName: merchantName,
         customerEphemeralKeySecret: ephemeralKey,
         paymentIntentClientSecret: paymentIntent,
-        // Set `allowsDelayedPaymentMethods` to true if your business can handle payment
-        //methods that complete payment after a delay, like SEPA Debit and Sofort.
-        allowsDelayedPaymentMethods: true,
-        googlePay: true,
-        merchantDisplayName: merchantName,
       });
     } catch (e) {
       console.log(e);
@@ -1118,7 +1120,6 @@ const getFooter = (
       });
     }
   };
-
   return (
     <View style={{ flex: 1 }}>
       <View

@@ -45,21 +45,6 @@ export default function Search({ props, setProps }) {
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    const resolvePromise = async () => {
-      setProps((prev) => ({ ...prev, loadingState: true }));
-
-      await fetchSavedOffersId(setSavedOffersId);
-      await fetchMostRecentOffers(setMostRecentOffers);
-
-      const doc = await db.collection("users").doc(auth.currentUser.uid).get();
-      setCountry(doc.data().country);
-
-      setProps((prev) => ({ ...prev, loadingState: false }));
-    };
-    resolvePromise();
-  }, []);
-
-  useEffect(() => {
     if (props.cardsData.length >= 1) {
       setProps((prevState) => ({
         ...prevState,
@@ -78,50 +63,26 @@ export default function Search({ props, setProps }) {
     if (props.loadingState && mostRecentOffers.length !== 0) setNoCards(true);
   }, [props.loadingState]);
 
-  // useEffect(() => {
-  //   setMostRecentOffers((prevState) => {
-  //     const output = prevState;
-
-  //     prevState.forEach(async (item, index) => {
-  //       let internationalShipping;
-  //       if (item.internationalShipping === undefined) {
-  //         await db
-  //           .collection("users")
-  //           .doc(item.owner)
-  //           .get()
-  //           .then((doc) => {
-  //             output.internationalShipping = doc.data()?.shippingMethods
-  //               ?.international
-  //               ? true
-  //               : false;
-  //           });
-  //         output.internationalShipping = internationalShipping;
-  //       }
-
-  //       item.internationalShipping;
-  //     });
-  //   });
-  // }, [mostRecentOffers]);
-
   useEffect(async () => {
     if (!isFocused) {
-      setSavedOffersId([]);
       setCartArray([]);
+      setOffersData([]);
+      setSavedOffersId([]);
+      setMostRecentOffers([]);
       setProps((prevState) => ({
         ...prevState,
         loadingState: true,
       }));
     }
     if (isFocused) {
-      await fetchSavedOffersId(setSavedOffersId, setProps);
-
       const doc = await db.collection("users").doc(auth.currentUser.uid).get();
+      setCountry(doc.data().country);
       setCartArray(doc.data().cart);
 
-      setProps((prevState) => ({
-        ...prevState,
-        loadingState: false,
-      }));
+      await fetchSavedOffersId(setSavedOffersId, setProps);
+      await fetchMostRecentOffers(setMostRecentOffers);
+
+      setProps((prev) => ({ ...prev, loadingState: false }));
     }
   }, [isFocused]);
 

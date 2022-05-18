@@ -311,10 +311,11 @@ export function CardYourOffers({ props, setModal, setId }) {
               <View
                 style={{
                   flexDirection: "row",
-                  justifyContent: "space-between",
                   alignItems: "center",
-                  paddingRight: 12,
+                  justifyContent: "space-between",
                   paddingLeft: 3,
+                  paddingRight: 12,
+
                   paddingBottom: 8,
                 }}
               >
@@ -322,6 +323,7 @@ export function CardYourOffers({ props, setModal, setId }) {
                   style={{
                     color: "#d6d6d6",
                     fontSize: 16,
+                    width: "80%",
 
                     fontWeight: "700",
                   }}
