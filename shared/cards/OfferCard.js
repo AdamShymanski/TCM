@@ -462,6 +462,7 @@ export default function OfferCard({
                   justifyContent: "space-between",
                   alignItems: "center",
                   paddingRight: 12,
+
                   paddingLeft: 3,
                   paddingBottom: 8,
                 }}
@@ -470,6 +471,7 @@ export default function OfferCard({
                   style={{
                     color: "#d6d6d6",
                     fontSize: 16,
+                    width: "80%",
 
                     fontWeight: "700",
                   }}

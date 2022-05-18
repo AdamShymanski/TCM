@@ -77,12 +77,12 @@ const prefix = Linking.makeUrl("/");
 
 if (__DEV__) {
 } else {
+  Sentry.init({
+    dsn: "https://6131440690cd436b8802bd5b1318e1a6@o1133377.ingest.sentry.io/6179878",
+    enableInExpoDevelopment: true,
+    debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
+  });
 }
-Sentry.init({
-  dsn: "https://6131440690cd436b8802bd5b1318e1a6@o1133377.ingest.sentry.io/6179878",
-  enableInExpoDevelopment: true,
-  debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
-});
 
 async function registerForPushNotificationsAsync() {
   let token;
@@ -1467,7 +1467,6 @@ export default function App() {
                     }}
                     onPress={() => {
                       auth.signOut();
-                      navigation.navigate("Welcome");
                     }}
                   >
                     <Text
@@ -1611,7 +1610,6 @@ export default function App() {
                       fontWeight: "700",
                       color: "#777777",
                     }}
-                    onPress={() => navigation.navigate("Welcome")}
                   >
                     {"Go back"}
                   </Text>
@@ -1642,7 +1640,7 @@ export default function App() {
                     borderColor: "#777777",
                     paddingHorizontal: 12,
                   }}
-                  onPress={() => navigation.navigate("Welcome")}
+                  onPress={() => auth.signOut()}
                 >
                   <Text
                     style={{

@@ -7,33 +7,10 @@ import {
   ActivityIndicator,
 } from "react-native";
 
-import * as Google from "expo-google-app-auth";
-import { googleReSignIn } from "../../authContext";
+import { db, firebaseObj } from "../../authContext";
 
-export default function AreYouSureModal({
-  setReauthenticationResult,
-  setModal,
-}) {
+export default function ConfirmSendingModal({ id, setModal }) {
   const [loadingIndicator, setLoadingIndicator] = useState(false);
-
-  const reSignIn = async () => {
-    try {
-      const result = await Google.logInAsync({
-        androidClientId:
-          "352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com",
-        androidStandaloneAppClientId: `352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com`,
-        scopes: ["profile", "email"],
-      });
-
-      return await googleReSignIn(result);
-    } catch (e) {
-      if (e.code == "auth/email-already-in-use") {
-        console.log("Duplicated emails has been detected");
-      } else {
-        console.log(e);
-      }
-    }
-  };
 
   return (
     <Modal
@@ -63,7 +40,7 @@ export default function AreYouSureModal({
           }}
         >
           <Text style={{ color: "#f4f4f4", fontSize: 26, fontWeight: "700" }}>
-            Are you sure?
+            Confirm Sending
           </Text>
           <Text
             style={{
@@ -73,8 +50,8 @@ export default function AreYouSureModal({
               marginTop: 10,
             }}
           >
-            If you choose to delete your account, you will not be able to
-            recover the lost data later.
+            If you have sent the package to the buyer click submit, the
+            transaction status will change to "In Transist".
           </Text>
           <View
             style={{
@@ -96,11 +73,16 @@ export default function AreYouSureModal({
               }}
               onPress={async () => {
                 setLoadingIndicator(true);
-                if (await reSignIn()) {
-                  setModal(false);
-                  setReauthenticationResult(true);
-                }
+                await db
+                  .collection("transactions")
+                  .doc(id)
+                  .update({
+                    ["shipping.sent"]:
+                      firebaseObj.firestore.FieldValue.serverTimestamp(),
+                  });
+
                 setLoadingIndicator(false);
+                setModal(null);
               }}
             >
               <Text
@@ -123,37 +105,37 @@ export default function AreYouSureModal({
                   marginLeft: 18,
                 }}
               />
-            ) : null}
-            <TouchableOpacity
-              style={{
-                width: 76,
-                height: 30,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-
-                backgroundColor: "transparent",
-                borderRadius: 3,
-                borderColor: "#5c5c5c",
-                borderWidth: 2,
-
-                marginRight: 22,
-              }}
-              onPress={() => {
-                setReauthenticationResult(false);
-                setModal(false);
-              }}
-            >
-              <Text
+            ) : (
+              <TouchableOpacity
                 style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#5c5c5c",
+                  width: 76,
+                  height: 30,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+
+                  backgroundColor: "transparent",
+                  borderRadius: 3,
+                  borderColor: "#5c5c5c",
+                  borderWidth: 2,
+
+                  marginRight: 22,
+                }}
+                onPress={() => {
+                  setModal(null);
                 }}
               >
-                Cancel
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#5c5c5c",
+                  }}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>

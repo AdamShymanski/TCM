@@ -27,8 +27,8 @@ export const storage = firebase.storage();
 export const functions = firebase.functions();
 
 // if (__DEV__) {
-//   firebase.functions().useEmulator("192.168.0.102", 5001);
-//   firebase.firestore().useEmulator("192.168.0.102", 8080);
+//   firebase.functions().useEmulator("192.168.0.103", 5001);
+//   firebase.firestore().useEmulator("192.168.0.103", 8080);
 // }
 
 //! CARDS

@@ -336,6 +336,7 @@ export function CardSellerProfile({
               <Text
                 style={{
                   color: "#d6d6d6",
+                  width: "80%",
                   fontSize: 16,
 
                   fontWeight: "700",

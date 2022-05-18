@@ -51,10 +51,10 @@ export default function Welcome() {
       <Image
         source={PTCGM}
         style={{
-          aspectRatio: 500 / 180,
+          aspectRatio: 1418 / 546,
           height: undefined,
-          width: '85%',
-          position: 'absolute',
+          width: "70%",
+          position: "absolute",
           top: 80,
         }}
       />

@@ -24,8 +24,8 @@ import { addCard, fetchCards, fetchMoreCards } from "../authContext";
 
 import pikachu from "../assets/pikachu.png";
 
-import SelectingCard from "../shared/Cards/SelectingCard";
 import PickerModal from "../shared/Modals/PickerModal";
+import SelectingCard from "../shared/Cards/SelectingCard";
 import { LanguagePickerModal } from "../shared/Modals/LanguagePickerModal";
 
 export default function AddCard() {
