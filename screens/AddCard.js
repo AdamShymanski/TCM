@@ -5,6 +5,7 @@ import { Formik, ErrorMessage } from "formik";
 
 import { MaterialIcons } from "@expo/vector-icons";
 import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
+
 import {
   View,
   TouchableOpacity,
@@ -292,6 +293,8 @@ export default function AddCard() {
   //state exclusively for Language Version
   const [submitClicked, setSubmitClicked] = useState(false);
   const [loadingIndicator, setLoadingIndicator] = useState(false);
+
+
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#1b1b1b", padding: 20 }}>

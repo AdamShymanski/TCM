@@ -11,7 +11,7 @@ import IconM from "react-native-vector-icons/MaterialIcons";
 import IconF from "react-native-vector-icons/Feather";
 
 import referral_program_icon from "../assets/referral_program.png";
-import ptcgm_logo from "../assets/images/ptcgm_logo.png";
+import tcm_logo from "../assets/TCM.png";
 
 export default function CustomHeader({ version, props, setProps }) {
   const searchForCard = async () => {
@@ -55,7 +55,7 @@ export default function CustomHeader({ version, props, setProps }) {
           }}
           style={{
             color: "#f4f4f4",
-            marginLeft: 16,
+            marginLeft: 6,
           }}
         />
         <View
@@ -100,7 +100,7 @@ export default function CustomHeader({ version, props, setProps }) {
           }}
           style={{
             color: "#f4f4f4",
-            marginLeft: 16,
+            marginLeft: 6,
           }}
         />
         <View
@@ -153,7 +153,7 @@ export default function CustomHeader({ version, props, setProps }) {
           }}
           style={{
             color: "#f4f4f4",
-            marginLeft: 16,
+            marginLeft: 6,
           }}
         />
         <View
@@ -202,7 +202,7 @@ export default function CustomHeader({ version, props, setProps }) {
           }}
           style={{
             color: "#f4f4f4",
-            marginLeft: 16,
+            marginLeft: 6,
           }}
         />
         <View
@@ -251,7 +251,7 @@ export default function CustomHeader({ version, props, setProps }) {
           }}
           style={{
             color: "#f4f4f4",
-            marginLeft: 16,
+            marginLeft: 6,
           }}
         />
         <View
@@ -300,7 +300,7 @@ export default function CustomHeader({ version, props, setProps }) {
           }}
           style={{
             color: "#f4f4f4",
-            marginLeft: 16,
+            marginLeft: 6,
           }}
         />
         <View
@@ -349,7 +349,7 @@ export default function CustomHeader({ version, props, setProps }) {
           }}
           style={{
             color: "#f4f4f4",
-            marginLeft: 16,
+            marginLeft: 6,
           }}
         />
         <View
@@ -398,7 +398,7 @@ export default function CustomHeader({ version, props, setProps }) {
           }}
           style={{
             color: "#f4f4f4",
-            marginLeft: 16,
+            marginLeft: 6,
           }}
         />
         <View
@@ -447,7 +447,7 @@ export default function CustomHeader({ version, props, setProps }) {
           }}
           style={{
             color: "#f4f4f4",
-            marginLeft: 16,
+            marginLeft: 6,
           }}
         />
         <View
@@ -491,7 +491,7 @@ export default function CustomHeader({ version, props, setProps }) {
           }}
           style={{
             color: "#f4f4f4",
-            marginLeft: 16,
+            marginLeft: 6,
           }}
         />
         <View
@@ -535,7 +535,7 @@ export default function CustomHeader({ version, props, setProps }) {
           }}
           style={{
             color: "#f4f4f4",
-            marginLeft: 16,
+            marginLeft: 6,
           }}
         />
         <View
@@ -584,7 +584,7 @@ export default function CustomHeader({ version, props, setProps }) {
           }}
           style={{
             color: "#f4f4f4",
-            marginLeft: 16,
+            marginLeft: 6,
           }}
         />
 
@@ -609,23 +609,23 @@ export default function CustomHeader({ version, props, setProps }) {
         <View
           style={{
             flexDirection: "row",
-            alignItems: "flex-end",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
           <Text
             style={{
               color: "#5C5C5C",
               fontWeight: "700",
-              fontSize: 12,
+              fontSize: 14,
               marginRight: 12,
-              marginBottom: 7,
             }}
           >
-            {"WELCOME TO"}
+            {"Welcome to"}
           </Text>
           <Image
-            source={ptcgm_logo}
-            style={{ aspectRatio: 478 / 192, width: undefined, height: 40 }}
+            source={tcm_logo}
+            style={{ aspectRatio: 640 / 315, width: undefined, height: 28 }}
           />
         </View>
       </View>
@@ -719,7 +719,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     position: "absolute",
-    left: 16,
+    left: 6,
     color: "#f4f4f4",
   },
   headerTitle: {

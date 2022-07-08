@@ -8,10 +8,10 @@ import {
   ActivityIndicator,
 } from "react-native";
 
-import CartObject from "../shared/Objects/CartObject";
 const { width } = Dimensions.get("window");
+import CartObject from "../shared/Objects/CartObject";
 
-import { fetchCart } from "../authContext";
+import { db, auth, fetchOwnerData } from "../authContext";
 
 import ZigzagLines from "react-native-zigzag-lines";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -19,13 +19,15 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useNavigation, useIsFocused } from "@react-navigation/native";
 
 export default function Cart({ route }) {
-  const [offersState, setOffersState] = useState([]);
+  const [cartState, setCartState] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [totalState, setTotalState] = useState({
     price: 0,
     sellers: 0,
     cards: 0,
   });
-  const [loading, setLoading] = useState(true);
+  const isFocused = useIsFocused();
+  const navigation = useNavigation();
 
   const calculateTotal = () => {
     let result = {
@@ -35,7 +37,7 @@ export default function Cart({ route }) {
     };
 
     try {
-      offersState?.forEach((item) => {
+      cartState.forEach((item) => {
         result.sellers += 1;
         if (item?.data.length > 0) {
           item.data.forEach((offer) => {
@@ -47,26 +49,65 @@ export default function Cart({ route }) {
 
       setTotalState(result);
     } catch (e) {
-      console.log(e);
+      // console.log(e);
     }
   };
 
-  const isFocused = useIsFocused();
-  const navigation = useNavigation();
-
   useEffect(async () => {
     if (!isFocused) {
-      setOffersState([]);
+      setCartState([]);
       setLoading(true);
     }
     if (isFocused) {
-      await fetchCart(setOffersState, setLoading);
+      try {
+        const promise = new Promise(async (resolve, reject) => {
+          const cartArr = [];
+          const doc = await db
+            .collection("users")
+            .doc(auth.currentUser.uid)
+            .get();
+
+          if (doc.data().cart.length > 0) {
+            doc.data().cart.forEach(async (item, index) => {
+              const card = await db.collection("offers").doc(item).get();
+              const owner = await fetchOwnerData(card.data().owner);
+
+              cartArr.push({
+                data: [{ ...card.data(), id: card.id }],
+                title: owner.nick,
+                uid: card.data().owner,
+              });
+
+              if (index + 1 == doc.data().cart.length) resolve(cartArr);
+            });
+          } else {
+            reject("no cart");
+          }
+        });
+
+        promise
+          .then((result) => {
+            setCartState(result);
+
+            setLoading(false);
+            calculateTotal();
+          })
+          .catch((e) => {
+            setCartState(e);
+            setLoading(false);
+            console.log(e);
+          });
+      } catch (e) {
+        console.log(e);
+      }
     }
   }, [isFocused]);
 
   useEffect(() => {
-    calculateTotal();
-  }, [offersState]);
+    if (cartState.length > 0) {
+      calculateTotal();
+    }
+  }, [cartState]);
 
   if (loading) {
     return (
@@ -81,16 +122,74 @@ export default function Cart({ route }) {
         <ActivityIndicator color={"#0082ff"} size={"large"} />
       </View>
     );
-  } else if (offersState.length > 0) {
+  } else if (cartState.length > 0) {
     return (
       <View style={{ flex: 1, backgroundColor: "#1B1B1B" }}>
         <SectionList
           style={{ width: "100%" }}
-          sections={offersState}
+          sections={[
+            {
+              data: [
+                {
+                  cardId: "neo4-61",
+                  condition: 9,
+                  description: "PSA 9.",
+                  id: "yyafoAYS0lQ8lHGvYQ0C",
+                  isGraded: true,
+                  languageVersion: "English",
+                  owner: "MVmhz0e2HFds3yIgscXxLRED8HE3",
+                  price: 65,
+                  status: "published",
+                  timestamp: {
+                    nanoseconds: 658000000,
+                    seconds: 1652905171,
+                  },
+                },
+                {
+                  cardId: "base2-58",
+                  condition: 10,
+                  description: "PSA 10. Mint.",
+                  id: "HtFlbcrhgPfiR6AffNJ2",
+                  isGraded: true,
+                  languageVersion: "English",
+                  owner: "MVmhz0e2HFds3yIgscXxLRED8HE3",
+                  price: 100,
+                  status: "published",
+                  timestamp: {
+                    nanoseconds: 388000000,
+                    seconds: 1652905566,
+                  },
+                },
+              ],
+              title: "John Doe",
+              uid: "MVmhz0e2HFds3yIgscXxLRED8HE3",
+            },
+            {
+              data: [
+                {
+                  cardId: "bw11-RC14",
+                  condition: 10,
+                  description: "Perfect condition. Graded by PSA.",
+                  id: "AwPacv081ZZLBZsiS396",
+                  isGraded: true,
+                  languageVersion: "Japanese",
+                  owner: "Uldn432HRXYcHPVCMnLQ9ik4GMr1",
+                  price: 414,
+                  status: "published",
+                  timestamp: {
+                    nanoseconds: 919000000,
+                    seconds: 1652906798,
+                  },
+                },
+              ],
+              title: "Marc Smith",
+              uid: "Uldn432HRXYcHPVCMnLQ9ik4GMr1",
+            },
+          ]}
           keyExtractor={(item, index) => item + index}
-          renderItem={({ item }) => (
-            <CartObject props={item} setOffers={setOffersState} />
-          )}
+          renderItem={({ item }) => {
+            return <CartObject props={item} setOffers={setCartState} />;
+          }}
           renderSectionHeader={({ section: { title } }) => (
             <View>
               <Text

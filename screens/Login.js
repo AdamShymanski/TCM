@@ -14,6 +14,8 @@ import { Snackbar, TextInput } from "react-native-paper";
 import { login, auth } from "../authContext";
 import { Formik, ErrorMessage } from "formik";
 
+import { useNavigation, CommonActions } from "@react-navigation/native";
+
 const reviewSchema = yup.object({
   email: yup
     .string("Wrong format!")
@@ -37,6 +39,8 @@ export default function Login() {
 
   const [loadingIndicator, setLoadingIndicator] = useState(false);
   const [modalLoadingIndicator, setModalLoadingIndicator] = useState(false);
+
+  const navigation = useNavigation();
 
   return (
     <View
@@ -84,8 +88,6 @@ export default function Login() {
               }}
               validationSchema={modalReviewSchema}
               onSubmit={async (values, actions) => {
-                console.log("submit");
-
                 setModalError(false);
                 setModalLoadingIndicator(true);
 
@@ -291,8 +293,18 @@ export default function Login() {
         validationSchema={reviewSchema}
         onSubmit={async (values, actions) => {
           setLoadingIndicator(true);
-          setError("");
-          await login(values.email, values.password, setError);
+
+          const condition = await login(
+            values.email,
+            values.password,
+            setError
+          );
+          if (condition) {
+            navigation.dispatch(
+              CommonActions.reset({ index: 0, routes: [{ name: "HomeStack" }] })
+            );
+          }
+
           setLoadingIndicator(false);
         }}
         style={{
@@ -405,7 +417,6 @@ export default function Login() {
                 marginBottom: 40,
                 alignItems: "center",
               }}
-              onPress={props.submitForm}
             >
               <TouchableOpacity
                 style={{

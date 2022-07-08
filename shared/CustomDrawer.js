@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Image, Text } from "react-native";
-import {
-  useTheme,
-  Title,
-  Caption,
-  Paragraph,
-  Drawer,
-} from "react-native-paper";
+import { View, StyleSheet, Image, Text, TouchableOpacity } from "react-native";
+import { Title, Caption, Paragraph, Drawer } from "react-native-paper";
 import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import IconM from "react-native-vector-icons/MaterialIcons";
 import IconF from "react-native-vector-icons/Feather";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+
+import GoogleButton from "../assets/google_button.png";
+import * as GoogleSignIn from "expo-google-sign-in";
+
+import { CommonActions } from "@react-navigation/native";
 
 import {
   db,
   auth,
+  firebaseObj,
   fetchOwnerData,
   checkForUnreadedMessages,
 } from "../authContext";
@@ -276,26 +275,198 @@ export default function CustomDrawer({ navigation }) {
     },
   });
 
+  const [authState, setAuthState] = useState(false);
+
   useEffect(() => {
-    const docListener = () => {
-      db.collection("users")
-        .doc(auth.currentUser.uid)
-        .onSnapshot((snapshot) => {
-          let countryCode;
+    auth.onAuthStateChanged(async (user) => {
+      setAuthState(user);
+      if (user) {
+        db.collection("users")
+          .doc(auth.currentUser.uid)
+          .onSnapshot((snapshot) => {
+            let countryCode;
 
-          countryCodes.forEach((item, i) => {
-            if (item.Name == snapshot.data().country) {
-              countryCode = countryCodes[i].Code.toLowerCase();
-            }
+            countryCodes.forEach((item, i) => {
+              if (item.Name == snapshot.data().country) {
+                countryCode = countryCodes[i].Code.toLowerCase();
+              }
+            });
+
+            setOwner({ countryCode: countryCode, ...snapshot.data() });
           });
+      }
+    });
 
-          setOwner({ countryCode: countryCode, ...snapshot.data() });
-          // setNotificationState(!snapshot.data().lastSupportMessageReaded);
-        });
+    const resolvePromises = async () => {
+      GoogleSignIn.initAsync();
     };
 
-    return docListener();
+    resolvePromises();
   }, []);
+
+  async function signInWithGoogleAsync() {
+    try {
+      await GoogleSignIn.askForPlayServicesAsync();
+      const { type, user } = await GoogleSignIn.signInAsync();
+      if (type === "success") {
+        // Create a new firebase credential with the token
+        const credential = firebaseObj.auth.GoogleAuthProvider.credential(
+          user.auth.idToken,
+          user.auth.accessToken
+        );
+
+        await auth.signInWithCredential(credential);
+
+        navigation.dispatch(
+          CommonActions.reset({ index: 0, routes: [{ name: "HomeStack" }] })
+        );
+      }
+    } catch ({ message }) {
+      alert("login: Error:" + message);
+    }
+  }
+
+  if (!authState) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#121212",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <View style={{ width: "80%", alignItems: "center" }}>
+          <Text
+            style={{
+              fontSize: 30,
+              color: "#f4f4f4",
+              fontWeight: "700",
+
+              marginBottom: 12,
+            }}
+          >
+            Welcome
+          </Text>
+          <TouchableOpacity
+            style={{
+              backgroundColor: "#0082ff",
+              width: "100%",
+              paddingVertical: 6,
+              alignItems: "center",
+              borderRadius: 4,
+            }}
+            onPress={() => {
+              navigation.navigate("WelcomeStack", { screen: "Login" });
+            }}
+          >
+            <Text
+              style={{
+                color: "#121212",
+                fontSize: 15,
+                fontWeight: "700",
+                marginLeft: 5,
+                marginRight: 12,
+              }}
+            >
+              Login
+            </Text>
+          </TouchableOpacity>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              width: "75%",
+              marginVertical: 10,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#5c5c5c",
+                width: "40%",
+                height: 3,
+                borderRadius: 2,
+              }}
+            />
+            <Text style={{ fontSize: 15, fontWeight: "700", color: "#777" }}>
+              or
+            </Text>
+            <View
+              style={{
+                backgroundColor: "#5c5c5c",
+                width: "40%",
+                height: 3,
+                borderRadius: 2,
+              }}
+            />
+          </View>
+          <TouchableOpacity
+            style={{
+              backgroundColor: "#0082ff",
+              width: "100%",
+              paddingVertical: 6,
+              alignItems: "center",
+              borderRadius: 4,
+            }}
+            onPress={() => {
+              navigation.navigate("WelcomeStack", { screen: "Register" });
+            }}
+          >
+            <Text
+              style={{
+                color: "#121212",
+                fontSize: 15,
+                fontWeight: "700",
+                marginLeft: 5,
+                marginRight: 12,
+              }}
+            >
+              Register
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              signInWithGoogleAsync();
+            }}
+            style={{ marginTop: 30 }}
+          >
+            <Image
+              source={GoogleButton}
+              style={{
+                width: "84%",
+                aspectRatio: 382 / 92,
+                height: undefined,
+              }}
+            />
+          </TouchableOpacity>
+          <Text
+            style={{
+              fontSize: 13,
+              color: "#5c5c5c",
+              fontFamily: "Roboto_Medium",
+              textAlign: "center",
+              marginTop: 14,
+            }}
+          >
+            to all features of the application{" "}
+          </Text>
+          <Text
+            style={{
+              fontSize: 13,
+              color: "#5c5c5c",
+
+              textAlign: "center",
+              fontWeight: "700",
+            }}
+          >
+            FOR FREE
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: "#121212" }}>
@@ -538,6 +709,57 @@ const styles = StyleSheet.create({
   },
   userInfoSection: {
     paddingLeft: 20,
+  },
+  title: {
+    fontSize: 18,
+    marginTop: 3,
+    fontWeight: "bold",
+    color: "#f4f4f4",
+    paddingLeft: 16,
+  },
+  caption: {
+    fontSize: 14,
+    lineHeight: 14,
+    color: "#5c5c5c",
+  },
+  row: {
+    marginTop: 20,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  section: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 15,
+  },
+  paragraph: {
+    fontWeight: "bold",
+    marginRight: 3,
+    color: "#f4f4f4",
+  },
+  drawerSection: {
+    marginTop: 15,
+  },
+  bottomDrawerSection: {
+    marginBottom: 10,
+    // borderTopColor: "#5c5c5c",
+    // borderTopWidth: 2,
+    backgroundColor: "#121212",
+  },
+  preference: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+});
+
+const styles2 = StyleSheet.create({
+  drawerContent: {
+    flex: 1,
+    color: "#121212",
+    flexDirection: "row",
+    alignItems: "flex-end",
   },
   title: {
     fontSize: 18,

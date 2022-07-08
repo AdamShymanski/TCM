@@ -10,11 +10,11 @@ import {
   LogBox,
 } from "react-native";
 
-import { StackActions, NavigationActions } from "react-navigation";
 import {
   useNavigation,
   useIsFocused,
   useRoute,
+  CommonActions,
 } from "@react-navigation/native";
 
 import {
@@ -254,8 +254,8 @@ const ShippingPage = ({
           return (
             <TouchableOpacity
               style={{
+                height: 150,
                 width: "48%",
-                height: undefined,
 
                 marginRight: index === 0 || 2 || 4 ? "4%" : "0%",
 
@@ -904,12 +904,20 @@ const EndPage = () => {
               //   ],
               // });
             });
-            if (navigation.canGoBack()) {
-              navigation.dispatch(StackActions.pop(1));
-            }
-            navigation.navigate("TransactionsStack", {
-              screen: "Transactions",
-            });
+
+            // if (navigation.canGoBack()) {
+            //   navigation.dispatch(StackActions.pop(1));
+            // }
+            // navigation.navigate("TransactionsStack", {
+            //   screen: "Transactions",
+            // });
+
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: "TransactionsStack" }],
+              })
+            );
           }}
         >
           <Text
@@ -966,7 +974,7 @@ const EndPage = () => {
             fontSize: 12,
           }}
         >
-          Founder of PTCGM - Adam Szymański
+          Founder of TCM - Adam Szymański
         </Text>
       </View>
     </View>

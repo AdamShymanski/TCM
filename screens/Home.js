@@ -1,6 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-import { View, Image, Text, TouchableOpacity } from "react-native";
+import {
+  View,
+  Image,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
+
+import {
+  fetchMoreMostRecentOffers,
+  fetchMostRecentOffers,
+} from "../authContext";
 
 import referral_background from "../assets/images/referral.png";
 import add_an_offer_background from "../assets/images/add.png";
@@ -8,8 +20,32 @@ import search_card from "../assets/images/search.png";
 
 import { useNavigation } from "@react-navigation/native";
 
+import CardMostRecent from "./../shared/Cards/CardMostRecent";
+
 export default function Home() {
   const navigation = useNavigation();
+
+  const [mostRecentOffers, setMostRecentOffers] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const resolvePromises = async () => {
+      if (mounted) {
+        await fetchMostRecentOffers(setMostRecentOffers);
+      }
+    };
+    resolvePromises();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // useEffect(() => {
+  //   console.log(mostRecentOffers);
+  // }, [mostRecentOffers]);
+
   return (
     <View
       style={{
@@ -241,40 +277,28 @@ export default function Home() {
             marginTop: 10,
           }}
         >
-          WHAT'S NEW?
+          RECENT OFFERS
         </Text>
-        <View style={{ marginLeft: 12, marginTop: 8 }}>
-          <Text
-            style={{
-              color: "#ADADAD",
-              fontFamily: "Roboto_Medium",
-              marginTop: 6,
-            }}
-          >
-            <Text style={{ color: "#05FD00", fontWeight: "700" }}>+{"  "}</Text>
-            Improved design of the offer cards
-          </Text>
-          <Text
-            style={{
-              color: "#ADADAD",
-              fontFamily: "Roboto_Medium",
-              marginTop: 6,
-            }}
-          >
-            <Text style={{ color: "#05FD00", fontWeight: "700" }}>+{"  "}</Text>
-            Improved shipping method selecting
-          </Text>
-          <Text
-            style={{
-              color: "#ADADAD",
-              fontFamily: "Roboto_Medium",
-              marginTop: 6,
-            }}
-          >
-            <Text style={{ color: "#05FD00", fontWeight: "700" }}>+{"  "}</Text>
-            Notifications on purchase/sale of your cards
-          </Text>
-        </View>
+        <FlatList
+          data={mostRecentOffers}
+          scrollEventThrottle={2000}
+          legacyImplementation={false}
+          showsHorizontalScrollIndicator={false}
+          style={{ marginTop: 8 }}
+          renderItem={({ item }) => {
+            return <CardMostRecent props={item} />;
+          }}
+          onEndReachedThreshold={0.8}
+          onEndReached={async ({ distanceFromEnd }) => {
+            if (distanceFromEnd >= 0) {
+              await fetchMoreMostRecentOffers(
+                mostRecentOffers,
+                setMostRecentOffers
+              );
+            }
+          }}
+          keyExtractor={(item, index) => index.toString()}
+        />
       </View>
     </View>
   );

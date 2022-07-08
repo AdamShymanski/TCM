@@ -3,12 +3,11 @@ const admin = require("firebase-admin");
 const functions = require("firebase-functions");
 
 const stripe = require("stripe")(
-  "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"
+  "sk_test_51KDXfNCVH1iPNeBrKw7YbGdP8IpIPZiQKrG6uKrrUSd3xVie1zH7EJe9uO5pdvnl8lgl17qhxB5Q9JM84WFr6Nqb00lWqb7G75"
 );
 
 //! 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
 //! sk_test_51KDXfNCVH1iPNeBrKw7YbGdP8IpIPZiQKrG6uKrrUSd3xVie1zH7EJe9uO5pdvnl8lgl17qhxB5Q9JM84WFr6Nqb00lWqb7G75
-
 const endpointSecret =
   "whsec_fe2b32369c4237e36bdacd1e74883ebebadde92f87c0eda852575649abee2e38";
 
@@ -191,7 +190,7 @@ exports.createStripeAccount = functions.https.onCall(async (data, context) => {
         mcc: "5947",
         name: context.auth.uid,
         product_description:
-          "PTCG Marketplace is platform for trading your Pokémon cards.",
+          "TCM is platform for trading your Pokémon cards.",
       },
       business_type: "individual",
     });

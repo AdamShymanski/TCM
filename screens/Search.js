@@ -75,11 +75,21 @@ export default function Search({ props, setProps }) {
       }));
     }
     if (isFocused) {
-      const doc = await db.collection("users").doc(auth.currentUser.uid).get();
-      setCountry(doc.data().country);
-      setCartArray(doc.data().cart);
+      if (auth.currentUser) {
+        const doc = await db
+          .collection("users")
+          .doc(auth.currentUser.uid)
+          .get();
+          
+        setCountry(doc.data().country);
+        setCartArray(doc.data().cart);
 
-      await fetchSavedOffersId(setSavedOffersId, setProps);
+        await fetchSavedOffersId(setSavedOffersId);
+      } else {
+        setCountry("United States");
+        setCartArray([]);
+      }
+
       await fetchMostRecentOffers(setMostRecentOffers);
 
       setProps((prev) => ({ ...prev, loadingState: false }));
