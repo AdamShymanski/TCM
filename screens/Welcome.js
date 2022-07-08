@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
-import PTCGM from '../assets/PTCGM.png';
-import GoogleButton from '../assets/google_button.png';
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View, Text, Image, TouchableOpacity } from "react-native";
+// import PTCGM from "../assets/PTCGM.png";
 
 import * as Google from 'expo-google-app-auth';
 import { googleSignIn } from '../authContext';
@@ -43,12 +42,13 @@ export default function Welcome() {
     <View
       style={{
         flex: 1,
-        flexDirectionL: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#1b1b1b',
-      }}>
-      <Image
+        flexDirectionL: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#1b1b1b",
+      }}
+    >
+      {/* <Image
         source={PTCGM}
         style={{
           aspectRatio: 1418 / 546,
@@ -57,7 +57,7 @@ export default function Welcome() {
           position: "absolute",
           top: 80,
         }}
-      />
+      /> */}
       <Text
         style={{
           fontWeight: '700',

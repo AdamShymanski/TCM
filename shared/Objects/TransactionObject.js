@@ -521,12 +521,12 @@ export default function TransactionObject({ props, setATN, setCS }) {
                 style={{
                   marginTop: 10,
                   paddingVertical: 5,
-                  alignSelf: "flex-start",
                   paddingHorizontal: 12,
 
-                  borderRadius: 3,
+                  borderRadius: 3.5,
                   backgroundColor: "#25DD21",
 
+                  alignSelf: "flex-start",
                   alignItems: "center",
                 }}
                 onPress={() => {
@@ -975,15 +975,25 @@ export default function TransactionObject({ props, setATN, setCS }) {
       {!parcelReceived && props.shipping.sent ? (
         <TouchableOpacity
           style={{
-            borderRadius: 4,
+            // borderRadius: 4,
 
-            backgroundColor: "#2fbd22",
-            borderColor: "#5c5c5c",
+            // backgroundColor: "#2fbd22",
+            // borderColor: "#5c5c5c",
 
-            width: "55%",
+            // width: "55%",
+            // marginTop: 10,
+            // paddingVertical: 4.5,
+
+            // alignItems: "center",
+
             marginTop: 10,
-            paddingVertical: 4.5,
+            paddingVertical: 5,
+            paddingHorizontal: 12,
 
+            borderRadius: 3.5,
+            backgroundColor: "#25DD21",
+
+            alignSelf: "flex-start",
             alignItems: "center",
           }}
           onPress={() => {
@@ -1003,6 +1013,7 @@ export default function TransactionObject({ props, setATN, setCS }) {
             style={{
               color: "#121212",
               fontWeight: "700",
+              fontSize: 11,
             }}
           >
             Confirm parcel receive

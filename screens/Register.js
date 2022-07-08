@@ -11,8 +11,10 @@ import { TextInput } from "react-native-paper";
 import { Formik, ErrorMessage } from "formik";
 import * as yup from "yup";
 
-import { register, functions } from "../authContext";
+import { register } from "../authContext";
 import { CountryPickerModal } from "../shared/Modals/CountryPickerModal";
+
+import { useNavigation, CommonActions } from "@react-navigation/native";
 
 const strongPasswordRegEx =
   /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{7,}$/;
@@ -60,6 +62,8 @@ export default function Register() {
 
   const [error, setError] = useState("");
   const [loadingIndicator, setLoadingIndicator] = useState(false);
+
+  const navigation = useNavigation();
 
   return (
     <ScrollView style={{ backgroundColor: "#1b1b1b", flex: 1 }}>
@@ -135,6 +139,10 @@ export default function Register() {
             values.nick,
             values.country,
             setError
+          );
+
+          navigation.dispatch(
+            CommonActions.reset({ index: 0, routes: [{ name: "HomeStack" }] })
           );
         }}
         style={{

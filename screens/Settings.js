@@ -827,7 +827,7 @@ export default function Settings() {
                   backgroundColor: "#0082FF",
                 }}
                 onPress={async () => {
-                  auth.signOut();
+                  navigation.navigate("WelcomeStack", { screen: "SignOut" });
                 }}
               >
                 <Text

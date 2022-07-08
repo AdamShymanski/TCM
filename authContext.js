@@ -27,8 +27,8 @@ export const storage = firebase.storage();
 export const functions = firebase.functions();
 
 // if (__DEV__) {
-//   firebase.functions().useEmulator("192.168.0.103", 5001);
-//   firebase.firestore().useEmulator("192.168.0.103", 8080);
+//   firebase.functions().useEmulator("192.168.0.104", 5001);
+//   firebase.firestore().useEmulator("192.168.0.104", 8080);
 // }
 
 //! CARDS
@@ -582,13 +582,15 @@ export async function fetchPhotos(offerId) {
     const path = "cards/" + `${offerId}/`;
 
     for (let i = 0; i < 3; i++) {
-      var pathReference = storage.ref(path + i);
+      const pathReference = storage.ref(path + i);
 
       try {
         await pathReference.getDownloadURL().then((url) => {
           pathsArray.push(url);
         });
-      } catch (error) {}
+      } catch (error) {
+        // console.log(error);
+      }
     }
 
     return pathsArray;
@@ -663,7 +665,7 @@ export async function fetchOffers(id, filterParams, setOffers) {
       }
 
       const snapshot = await docArr.get();
-      snapshot.forEach((doc) => {
+      snapfetchOwnerDatasoldshot.forEach((doc) => {
         let offers = doc.data();
         offers.id = doc.id;
 
@@ -966,11 +968,6 @@ export async function fetchOwnerData(
         savedOffers = doc.data()?.savedOffers;
 
         cart = doc.data()?.cart ? doc.data()?.cart : [];
-        sold = doc.data()?.sold;
-        rating = doc.data()?.rating;
-        visits = doc.data()?.visits;
-        bought = doc.data()?.bought;
-
         sellerProfile = doc.data()?.sellerProfile;
 
         if (sellerProfile === undefined) {
@@ -1046,69 +1043,77 @@ export async function reauthenticate(password) {
 export async function login(email, password, setError) {
   try {
     await auth.signInWithEmailAndPassword(email.trim(), password.trim());
+    return true;
   } catch (error) {
     const errorCode = error.code;
     const errorMessage = error.message;
     console.log(errorCode, errorMessage);
     setError("Wrong Credentials!");
+    return false;
   }
 }
 export async function register(email, password, nick, country, setError) {
-  await auth
-    .createUserWithEmailAndPassword(email, password)
-    .then(async (userCredential) => {
-      const user = userCredential.user;
-      user.updateProfile({
-        displayName: nick,
-      });
-
-      await db
-        .collection("users")
-        .doc(user.uid)
-        .set({
-          nick: nick.trim(),
-          country: country.trim(),
-          discounts: {
-            referralProgram: [],
-            compensation: [],
-          },
-          addresses: [],
-          sellerProfile: {
-            status: "unset",
-            rating: [],
-            shippingMethods: {
-              domestic: [],
-              international: [],
-            },
-            statistics: {
-              purchases: 0,
-              sales: 0,
-              views: 0,
-              numberOfOffers: 0,
-            },
-          },
-          cart: [],
-          stripe: {
-            vendorId: null,
-            merchantId: null,
-          },
-          notificationToken: null,
-          savedOffers: [],
-          notificationToken: null,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+  try {
+    await auth
+      .createUserWithEmailAndPassword(email, password)
+      .then(async (userCredential) => {
+        const user = userCredential.user;
+        user.updateProfile({
+          displayName: nick,
         });
 
-      await login(email.trim(), password.trim());
-    })
-    .catch((error) => {
-      const errorMessage = error.message;
-      if (
-        errorMessage ===
-        "The email address is already in use by another account."
-      ) {
-        setError("Email has been already used.");
-      }
-    });
+        await db
+          .collection("users")
+          .doc(user.uid)
+          .set({
+            nick: nick.trim(),
+            country: country.trim(),
+            discounts: {
+              referralProgram: [],
+              compensation: [],
+            },
+            addresses: [],
+            sellerProfile: {
+              status: "unset",
+              rating: [],
+              shippingMethods: {
+                domestic: [],
+                international: [],
+              },
+              statistics: {
+                purchases: 0,
+                sales: 0,
+                views: 0,
+                numberOfOffers: 0,
+              },
+            },
+            cart: [],
+            stripe: {
+              vendorId: null,
+              merchantId: null,
+            },
+            notificationToken: null,
+            savedOffers: [],
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+
+        await login(email.trim(), password.trim());
+      })
+      .catch((error) => {
+        const errorMessage = error.message;
+        if (
+          errorMessage ===
+          "The email address is already in use by another account."
+        ) {
+          setError("Email has been already used.");
+        }
+      });
+
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
 }
 export async function deleteAccount() {
   try {
@@ -1274,57 +1279,69 @@ export async function fetchUsersCards() {
 }
 
 //! CART
-export async function fetchCart(setOffers, setLoading) {
+export async function fetchCart() {
   try {
     const doc = await db.collection("users").doc(auth.currentUser.uid).get();
 
-    const outputArray = [];
-    const arrLength = doc.data().cart.length;
+    const cartLength = doc.data().cart.length;
 
-    if (arrLength === 0 || arrLength === undefined || null) {
-      setOffers(false);
-      setLoading(false);
-    } else {
-      const checkSeller = (name) => {
-        let result = false;
-        outputArray.forEach((item) => {
-          if (item.title == name) result = true;
+    const promise = new Promise((resolve, reject) => {
+      if (cartLength == 0) {
+        reject("no elements in users cart");
+      }
+
+      let outputArray = [];
+
+      // const checkSeller = (name) => {
+      //   let result = false;
+
+      //   outputArray.forEach((item) => {
+      //     if (item.title == name) result = true;
+      //   });
+
+      //   return result;
+      // };
+
+      doc.data().cart.forEach(async (item, index) => {
+        const card = await db.collection("offers").doc(item).get();
+        const owner = await fetchOwnerData(card.data().owner);
+
+        outputArray.push({
+          data: [{ ...card.data(), id: card.id }],
+          title: owner.nick,
+          uid: card.data().owner,
         });
-        return result;
-      };
 
-      const pushOfferToArray = (name, offer) => {
-        outputArray.forEach((item, i) => {
-          if (item.title == name) outputArray[i].data.push(offer);
-        });
-      };
+        // if (card.data().status === "published") {
+        //   if (outputArray.length === 0) {
+        //     outputArray.push({
+        //       data: [{ ...card.data(), id: card.id }],
+        //       title: owner.nick,
+        //       uid: card.data().owner,
+        //     });
+        //   } else {
+        //     if (!checkSeller(owner.nick)) {
+        //       outputArray.forEach((item, i) => {
+        //         if (item.title == owner.nick) {
+        //           outputArray[i].data.push({ ...card.data(), id: card.id });
+        //         }
+        //       });
+        //     } else {
+        //       outputArray.push({
+        //         data: [{ ...card.data(), id: card.id }],
+        //         title: owner.nick,
+        //         uid: card.data().owner,
+        //       });
+        //     }
+        //   }
+        // }
 
-      const promise = new Promise((resolve, reject) => {
-        doc.data().cart.forEach(async (item, index) => {
-          const card = await db.collection("offers").doc(item).get();
-          const owner = await fetchOwnerData(card.data().owner);
-
-          if (card.data().status === "published") {
-            if (checkSeller(owner.nick)) {
-              pushOfferToArray(owner.nick, { ...card.data(), id: card.id });
-            } else {
-              let obj = {
-                data: [{ ...card.data(), id: card.id }],
-                title: owner.nick,
-                uid: card.data().owner,
-              };
-              outputArray.push(obj);
-            }
-          }
-
-          if (index === arrLength - 1) resolve();
-        });
+        if (index + 1 == cartLength) {
+          resolve(outputArray);
+        }
       });
-      await promise;
-
-      setOffers(outputArray);
-      setLoading(false);
-    }
+    });
+    return promise;
   } catch (error) {
     console.log(error);
   }

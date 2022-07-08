@@ -124,7 +124,7 @@ const Thanks = () => {
             fontSize: 12,
           }}
         >
-          Founder of PTCGM - Adam Szymański
+          Founder of TCM - Adam Szymański
         </Text>
       </View>
     </View>

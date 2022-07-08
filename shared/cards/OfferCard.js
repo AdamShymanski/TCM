@@ -143,11 +143,15 @@ export default function OfferCard({
   const clickSave = async () => {
     if (!isSaved) {
       try {
-        if (props.owner !== auth.currentUser.uid) {
-          setSaveOffer(true);
-          saveOffer(auth.currentUser.uid, props.id);
+        if (!auth.currentUser) {
+          setSnackbar("You have to be signed in");
         } else {
-          setSnackbar("You can't save your own offer");
+          if (props.owner !== auth.currentUser.uid) {
+            setSaveOffer(true);
+            saveOffer(auth.currentUser.uid, props.id);
+          } else {
+            setSnackbar("You can't save your own offer");
+          }
         }
       } catch (err) {
         console.log(err);
@@ -183,10 +187,14 @@ export default function OfferCard({
         color={"#0082ff"}
         size={nameOfCard ? 26 : 29}
         onPress={() => {
-          if (ownerId === auth.currentUser.uid) {
-            setSnackbar("You can't save your own offer");
+          if (!auth.currentUser) {
+            setSnackbar("You have to be signed in");
           } else {
-            clickSave();
+            if (ownerId === auth.currentUser.uid) {
+              setSnackbar("You can't save your own offer");
+            } else {
+              clickSave();
+            }
           }
         }}
       />
@@ -241,15 +249,19 @@ export default function OfferCard({
           justifyContent: "center",
         }}
         onPress={() => {
-          if (props.owner !== auth.currentUser.uid) {
-            if (shippingImposible) {
-              setSnackbar("Shipping is imposible for this item");
-            } else {
-              setCartState(true);
-              addToCart(props.id);
-            }
+          if (!auth.currentUser) {
+            setSnackbar("You have to be signed in to proceed further");
           } else {
-            setSnackbar("You can't add your own offer to cart");
+            if (props.owner !== auth.currentUser.uid) {
+              if (shippingImposible) {
+                setSnackbar("Shipping is imposible for this item");
+              } else {
+                setCartState(true);
+                addToCart(props.id);
+              }
+            } else {
+              setSnackbar("You can't add your own offer to cart");
+            }
           }
         }}
       >
@@ -371,13 +383,17 @@ export default function OfferCard({
             </View>
             <TouchableOpacity
               onPress={() => {
-                if (ownerId !== auth.currentUser.uid) {
-                  navigation.navigate("SellerStack", {
-                    screen: "OtherSellersOffers",
-                    params: { sellerId: ownerId },
-                  });
+                if (!auth.currentUser) {
+                  setSnackbar("You have to be signed in");
                 } else {
-                  setSnackbar("You can't go to your own profile");
+                  if (ownerId !== auth.currentUser.uid) {
+                    navigation.navigate("SellerStack", {
+                      screen: "OtherSellersOffers",
+                      params: { sellerId: ownerId },
+                    });
+                  } else {
+                    setSnackbar("You can't go to your own profile");
+                  }
                 }
               }}
             >
@@ -647,25 +663,29 @@ export default function OfferCard({
                   justifyContent: "center",
                 }}
                 onPress={() => {
-                  if (props.owner !== auth.currentUser.uid) {
-                    if (shippingImposible) {
-                      setSnackbar("Shipping is imposible for this item");
-                    } else {
-                      navigation.navigate("CartStack", {
-                        screen: "Checkout",
-                        params: {
-                          instantBuy: [
-                            {
-                              data: [props],
-                              title: owner.nick,
-                              uid: props.owner,
-                            },
-                          ],
-                        },
-                      });
-                    }
+                  if (!auth.currentUser) {
+                    setSnackbar("You have to be signed in to proceed further");
                   } else {
-                    setSnackbar("You can't buy your own item");
+                    if (props.owner !== auth.currentUser.uid) {
+                      if (shippingImposible) {
+                        setSnackbar("Shipping is imposible for this item");
+                      } else {
+                        navigation.navigate("CartStack", {
+                          screen: "Checkout",
+                          params: {
+                            instantBuy: [
+                              {
+                                data: [props],
+                                title: owner.nick,
+                                uid: props.owner,
+                              },
+                            ],
+                          },
+                        });
+                      }
+                    } else {
+                      setSnackbar("You can't buy your own item");
+                    }
                   }
                 }}
               >
@@ -793,13 +813,17 @@ export default function OfferCard({
             </View>
             <TouchableOpacity
               onPress={() => {
-                if (ownerId !== auth.currentUser.uid) {
-                  navigation.navigate("SellerStack", {
-                    screen: "OtherSellersOffers",
-                    params: { sellerId: ownerId },
-                  });
+                if (!auth.currentUser) {
+                  setSnackbar("You have to be signed in to proceed further");
                 } else {
-                  setSnackbar("You can't go to your own profile");
+                  if (ownerId !== auth.currentUser.uid) {
+                    navigation.navigate("SellerStack", {
+                      screen: "OtherSellersOffers",
+                      params: { sellerId: ownerId },
+                    });
+                  } else {
+                    setSnackbar("You can't go to your own profile");
+                  }
                 }
               }}
             >
@@ -1047,17 +1071,21 @@ export default function OfferCard({
                   justifyContent: "center",
                 }}
                 onPress={() => {
-                  if (props.owner !== auth.currentUser.uid) {
-                    if (shippingImposible) {
-                      setSnackbar("Shipping is imposible for this item");
-                    } else {
-                      navigation.navigate("CartStack", {
-                        screen: "Checkout",
-                        params: { instantBuy: props },
-                      });
-                    }
+                  if (!auth.currentUser) {
+                    setSnackbar("You have to be signed in to proceed further");
                   } else {
-                    setSnackbar("You can't buy your own item");
+                    if (props.owner !== auth.currentUser.uid) {
+                      if (shippingImposible) {
+                        setSnackbar("Shipping is imposible for this item");
+                      } else {
+                        navigation.navigate("CartStack", {
+                          screen: "Checkout",
+                          params: { instantBuy: props },
+                        });
+                      }
+                    } else {
+                      setSnackbar("You can't buy your own item");
+                    }
                   }
                 }}
               >

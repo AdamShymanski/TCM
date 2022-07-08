@@ -12,29 +12,30 @@ import { LogBox } from "react-native";
 
 import Buy from "./screens/Buy";
 import Chat from "./screens/Chat";
+import Cart from "./screens/Cart";
 import Home from "./screens/Home.js";
 import Thanks from "./screens/Thanks";
-import Cart from "./screens/Cart";
+import Search from "./screens/Search";
 import Login from "./screens/Login.js";
+import SignOut from "./screens/SignOut";
+import Checkout from "./screens/Checkout";
 import AddCard from "./screens/AddCard.js";
-import Welcome from "./screens/Welcome.js";
+// import Welcome from "./screens/Welcome.js";
 import StartChat from "./screens/StartChat";
 import EditCard from "./screens/EditCard.js";
 import Settings from "./screens/Settings.js";
 import Register from "./screens/Register.js";
 import SupportChat from "./screens/SupportChat";
 import YourOffers from "./screens/YourOffers.js";
+import Transactions from "./screens/Transactions";
 import ImageBrowser from "./screens/ImageBrowser";
 import SavedOffers from "./screens/SavedOffers.js";
 import SellerProfile from "./screens/SellerProfile";
-import OtherSellersOffers from "./screens/OtherSellersOffers";
+import Rating from "./screens/subscreens/Seller/Rating";
 import DeletingAccount from "./screens/DeletingAccount";
 import ChatConversations from "./screens/ChatConverstations";
+import OtherSellersOffers from "./screens/OtherSellersOffers";
 import FinishGoogleRegister from "./screens/FinishGoogleRegister";
-import Search from "./screens/Search";
-import Rating from "./screens/subscreens/Seller/Rating";
-import Checkout from "./screens/Checkout";
-import Transactions from "./screens/Transactions";
 
 import AddShippingMethod from "./screens/subscreens/Seller/AddShippingMethod";
 import EditShippingMethod from "./screens/subscreens/Seller/EditShippingMethod";
@@ -45,7 +46,6 @@ import Checkout_AddAddress from "./screens/subscreens/Checkout/Checkout_AddAddre
 
 import History from "./screens/subscreens/Seller/History";
 import ReferralProgram from "./screens/ReferralProgram";
-import StripeCheckout from "./screens/StripeCheckout";
 
 import WorkInProgress from "./screens/WorkInProgress";
 
@@ -1314,13 +1314,12 @@ function TransactionsStack() {
 
 export default function App() {
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(null);
   const [finishRegisterProcess, setFinishRegisterProcess] = useState(null);
 
   const responseListener = useRef();
   const notificationListener = useRef();
-  const [expoPushToken, setExpoPushToken] = useState(null);
 
+  const [expoPushToken, setExpoPushToken] = useState(null);
   const [notification, setNotification] = useState(false);
 
   LogBox.ignoreLogs([
@@ -1353,8 +1352,6 @@ export default function App() {
           .doc(auth.currentUser.uid)
           .get();
 
-        setCurrentUser(user);
-
         if (!usersDoc.exists) {
           setFinishRegisterProcess(true);
         } else {
@@ -1375,8 +1372,6 @@ export default function App() {
 
           // This listener is fired whenever a notification is received while the app is foregrounded
         }
-      } else {
-        setCurrentUser(null);
       }
 
       Notifications.setNotificationHandler({
@@ -1426,6 +1421,7 @@ export default function App() {
     };
 
     resolvePromises();
+
     return () => {
       Linking.removeEventListener("url");
       Notifications.removeNotificationSubscription(
@@ -1436,9 +1432,146 @@ export default function App() {
     };
   }, []);
 
+  function WelcomeStack() {
+    return (
+      <Stack.Navigator>
+        {/* <Stack.Screen
+          options={{
+            headerShown: false,
+          }}
+          name="Welcome"
+          children={() => <Welcome setUserName={setFinishRegisterProcess} />}
+        /> */}
+        <Stack.Screen
+          options={({ navigation, route }) => ({
+            headerLeft: () => (
+              <TouchableOpacity
+                style={{
+                  borderRadius: 3,
+                  marginLeft: 22,
+
+                  height: 30,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderWidth: 2,
+                  borderColor: "#777777",
+                  paddingHorizontal: 12,
+                }}
+                onPress={() => navigation.goBack()}
+              >
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#777777",
+                  }}
+                >
+                  {"Go back"}
+                </Text>
+              </TouchableOpacity>
+            ),
+            headerTintColor: "#121212",
+            headerTitle: "",
+            headerStyle: {
+              backgroundColor: "#121212",
+            },
+          })}
+          name="Register"
+          component={Register}
+        />
+        <Stack.Screen
+          options={({ navigation, route }) => ({
+            headerLeft: () => (
+              <TouchableOpacity
+                style={{
+                  borderRadius: 3,
+                  marginLeft: 22,
+
+                  height: 30,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderWidth: 2,
+                  borderColor: "#777777",
+                  paddingHorizontal: 12,
+                }}
+                onPress={() => navigation.goBack()}
+              >
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#777777",
+                  }}
+                >
+                  {"Go back"}
+                </Text>
+              </TouchableOpacity>
+            ),
+            headerTintColor: "#121212",
+            headerTitle: "",
+            headerStyle: {
+              backgroundColor: "#121212",
+            },
+          })}
+          name="Login"
+          component={Login}
+        />
+        <Stack.Screen
+          options={({ navigation, route }) => ({
+            headerLeft: () => (
+              <TouchableOpacity
+                style={{
+                  borderRadius: 3,
+                  marginLeft: 22,
+
+                  height: 30,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderWidth: 2,
+                  borderColor: "#777777",
+                  paddingHorizontal: 12,
+                }}
+                onPress={() => auth.signOut()}
+              >
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#777777",
+                  }}
+                >
+                  {"Go back"}
+                </Text>
+              </TouchableOpacity>
+            ),
+            headerTintColor: "#121212",
+            headerTitle: "",
+            headerStyle: {
+              backgroundColor: "#121212",
+            },
+          })}
+          name="FinishGoogleRegister"
+          children={() => (
+            <FinishGoogleRegister
+              setFinishRegisterProcess={setFinishRegisterProcess}
+            />
+          )}
+        />
+        <Stack.Screen
+          options={{ headerShown: false }}
+          name="SignOut"
+          component={SignOut}
+        />
+      </Stack.Navigator>
+    );
+  }
+
   if (loading) {
     return <View />;
-  } else if (currentUser) {
+  } else if (true) {
     if (finishRegisterProcess) {
       return (
         <NavigationContainer>
@@ -1520,10 +1653,6 @@ export default function App() {
                 component={ReferralProgramStack}
               />
               <Drawer.Screen
-                name="StripeCheckoutStack"
-                component={StripeCheckout}
-              />
-              <Drawer.Screen
                 name="SavedOffersStack"
                 component={SavedOffersStack}
               />
@@ -1532,6 +1661,7 @@ export default function App() {
                 name="DeletingAccount"
                 component={DeletingAccount}
               />
+              <Drawer.Screen name="WelcomeStack" component={WelcomeStack} />
             </Drawer.Navigator>
           </NavigationContainer>
         </StripeProvider>
@@ -1670,21 +1800,4 @@ export default function App() {
       </NavigationContainer>
     );
   }
-}
-
-{
-  /* {adBanerState ? (
-              <AdMobBanner
-                bannerSize="smartBannerPortrait"
-                adUnitID="ca-app-pub-2637485113454186/2096785031"
-                servePersonalizedAds // true or false
-                onAdViewDidReceiveAd={() => {
-                  setAdBannerState(true);
-                }}
-                onDidFailToReceiveAdWithError={(error) => {
-                  setAdBannerState(false);
-                }}
-                //detect when add is loaded
-              />
-            ) : null} */
 }

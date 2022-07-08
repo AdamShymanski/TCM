@@ -4,7 +4,8 @@
     "name": "PTCG Marketplace",
     "scheme": "ptcgm",
     "slug": "ptcg_marketplace",
-    "version": "23",
+    "version": "1.25.0",
+
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -26,9 +27,9 @@
       "package": "app.ptcg.marketplace",
 
       "googleServicesFile": "./google-services.json",
-      "versionCode": 23,
       "userInterfaceStyle": "dark",
       "permissions": [],
+      "versionCode": 1250,
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-2637485113454186~8246765572"
       }
@@ -39,7 +40,7 @@
         "expo-media-library",
         {
           "photosPermission": "The app accesses your photos to let you upload photos of cards.",
-          "savePhotosPermission": "The app accesses your photos to let you upload photos of cards.",
+          "savePhotosPermission": "The app accesses your photos to let you upload photos of cards."
         }
       ]
     ]
