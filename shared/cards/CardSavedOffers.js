@@ -11,8 +11,6 @@ import {
   Modal,
 } from "react-native";
 
-import { Snackbar } from "react-native-paper";
-
 import IconIO from "react-native-vector-icons/Ionicons";
 import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
 import IconM from "react-native-vector-icons/MaterialIcons";
@@ -23,15 +21,15 @@ import cart_check from "./../../assets/cart_check.png";
 import SellerDetailsBar from "../SellerDetailsBar";
 
 import {
+  fetchPhotos,
+  fetchCardsName,
+  fetchOwnerData,
+  unsaveOffer,
   auth,
   addToCart,
-  fetchPhotos,
-  unsaveOffer,
-  fetchOwnerData,
-  fetchCardsName,
 } from "../../authContext";
 
-export function CardSavedOffers({ props, cartArray, userCountry }) {
+export function CardSavedOffers({ props, cartArray }) {
   let cardPhotos = [];
 
   const [loadingState, setLoading] = useState(true);
@@ -52,9 +50,6 @@ export function CardSavedOffers({ props, cartArray, userCountry }) {
     },
   });
 
-  const [snackbarState, setSnackbar] = useState(false);
-  const [shippingImposible, setShippingImposible] = useState(false);
-
   const navigation = useNavigation();
 
   const [photosArray, setPhotosArray] = useState([
@@ -73,18 +68,12 @@ export function CardSavedOffers({ props, cartArray, userCountry }) {
     const resolvePromises = async () => {
       if (mounted) {
         cardPhotos = await fetchPhotos(props.id);
+        setOwner(await fetchOwnerData(props.owner));
         setPhotosArray(fillPhotosArray(cardPhotos));
-
         cartArray.forEach((item) => {
           if (item === props.id) setCartState(true);
         });
-
         setPokemonName(await fetchCardsName(props.cardId));
-
-        setOwner(
-          await fetchOwnerData(props.owner, userCountry, setShippingImposible)
-        );
-
         setLoading(false);
       }
     };
@@ -104,7 +93,7 @@ export function CardSavedOffers({ props, cartArray, userCountry }) {
   const renderCartButton = () => {
     if (cartState) {
       return (
-        <View
+        <TouchableOpacity
           style={{
             width: 100,
             paddingVertical: 4.5,
@@ -129,7 +118,7 @@ export function CardSavedOffers({ props, cartArray, userCountry }) {
             In Cart
           </Text>
           <Image source={cart_check} style={{ width: 19, height: 19 }} />
-        </View>
+        </TouchableOpacity>
       );
     }
 
@@ -149,16 +138,8 @@ export function CardSavedOffers({ props, cartArray, userCountry }) {
           justifyContent: "center",
         }}
         onPress={() => {
-          if (props.owner !== auth.currentUser.uid) {
-            if (shippingImposible) {
-              setSnackbar("Shipping is imposible for this item");
-            } else {
-              setCartState(true);
-              addToCart(props.id);
-            }
-          } else {
-            setSnackbar("You can't add your own offer to cart");
-          }
+          setCartState(true);
+          addToCart(props.id);
         }}
       >
         <Text
@@ -250,7 +231,7 @@ export function CardSavedOffers({ props, cartArray, userCountry }) {
           />
         </Modal>
 
-        <View style={{ marginTop: 20 }}>
+        <View style={{ marginVertical: 20 }}>
           <View
             style={{
               position: "relative",
@@ -285,8 +266,8 @@ export function CardSavedOffers({ props, cartArray, userCountry }) {
             <TouchableOpacity
               onPress={() => {
                 if (props.owner !== auth.currentUser.uid) {
-                  navigation.navigate("SellerStack", {
-                    screen: "OtherSellersOffers",
+                  navigation.navigate("Sellers", {
+                    screen: "SellerProfile",
                     params: { sellerId: props.owner },
                   });
                 }
@@ -380,7 +361,6 @@ export function CardSavedOffers({ props, cartArray, userCountry }) {
                 <Text
                   style={{
                     color: "#d6d6d6",
-                    width: "80%",
                     fontSize: 16,
 
                     fontWeight: "700",
@@ -497,34 +477,26 @@ export function CardSavedOffers({ props, cartArray, userCountry }) {
               paddingBottom: 9,
             }}
           >
-            <View
+            <Text
               style={{
-                paddingVertical: 6,
                 paddingHorizontal: 10,
-
-                borderRadius: 4,
+                paddingVertical: 6,
                 backgroundColor: "#121212",
-
+                borderRadius: 4,
+                color: "#f4f4f4",
+                fontWeight: "700",
+                fontSize: 18,
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <View style={{ marginRight: 6 }}>
-                <IconMI name={"tag"} color={"#0082ff"} size={22} />
-              </View>
-              <Text
-                style={{ fontSize: 18, fontWeight: "700", color: "#f4f4f4" }}
-              >
-                {props.price.toFixed(2)}
+              <Text style={{ color: "#0082ff", fontSize: 14 }}>
+                {"Price    "}
               </Text>
-
-              <Text
-                style={{ color: "#CDCDCD", fontSize: 14, fontWeight: "700" }}
-              >
-                {"  USD"}
-              </Text>
-            </View>
+              {props.price.toFixed(2)}
+              <Text style={{ color: "#CDCDCD", fontSize: 14 }}>{"  USD"}</Text>
+            </Text>
 
             <View
               style={{
@@ -547,18 +519,7 @@ export function CardSavedOffers({ props, cartArray, userCountry }) {
                   justifyContent: "center",
                 }}
                 onPress={() => {
-                  if (props.owner !== auth.currentUser.uid) {
-                    if (shippingImposible) {
-                      setSnackbar("Shipping is imposible for this item");
-                    } else {
-                      navigation.navigate("CartStack", {
-                        screen: "Checkout",
-                        params: { instantBuy: props },
-                      });
-                    }
-                  } else {
-                    setSnackbar("You can't buy your own item");
-                  }
+                  navigation.navigate("Cart", { screen: "Checkout" });
                 }}
               >
                 <Text
@@ -581,17 +542,6 @@ export function CardSavedOffers({ props, cartArray, userCountry }) {
             </View>
           </View>
         </View>
-        <Snackbar
-          visible={snackbarState}
-          duration={2000}
-          onDismiss={() => setSnackbar(false)}
-          action={{
-            label: "",
-            onPress: () => {},
-          }}
-        >
-          {snackbarState}
-        </Snackbar>
       </View>
     );
   } else {
@@ -604,7 +554,6 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     width: "92%",
     marginLeft: "4%",
-    marginBottom: 20,
   },
   cardContent: {
     marginVertical: 20,
