@@ -1,7 +1,7 @@
 {
   "expo": {
     "userInterfaceStyle": "dark",
-    "name": "PTCG Marketplace",
+    "name": "TCM",
     "scheme": "ptcgm",
     "slug": "ptcg_marketplace",
     "version": "1.25.0",
