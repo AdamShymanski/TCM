@@ -74,7 +74,7 @@ export default function Settings_AddAddress() {
           firstName: "",
           lastName: "",
           zipCode: "",
-          country: "",
+          country: route.params.country,
           state: "",
           city: "",
           streetAddress1: "",
@@ -325,6 +325,7 @@ export default function Settings_AddAddress() {
                     setCountryPickerState(true);
                     setCountryInputTouched(true);
                   }}
+                  disabled={true}
                 >
                   <TextInput
                     mode={"outlined"}

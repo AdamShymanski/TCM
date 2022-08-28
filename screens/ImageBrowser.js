@@ -48,9 +48,9 @@ const ImageBrowserScreen = ({ route }) => {
   const _processImageAsync = async (uri) => {
     const file = await ImageManipulator.manipulateAsync(
       uri,
-      [{ resize: { height: 1600, width: 1200 } }],
+      [{ resize: { height: 1600 } }],
 
-      { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG }
+      { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
     );
     return file;
   };

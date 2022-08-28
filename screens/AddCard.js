@@ -32,8 +32,10 @@ import { LanguagePickerModal } from "../shared/Modals/LanguagePickerModal";
 export default function AddCard() {
   const navigation = useNavigation();
 
+  // const conditionRegEx = /^\b([1-9]|10)\b$/g;
+
   const priceRegEx = /^\d+([.,]\d{1,2})?$/g;
-  const conditionRegEx = /^\b([1-9]|10)\b$/g;
+  const xRegEx = /^\d{0,2}(\.\d{1})?/g;
 
   const reviewSchema = yup.object({
     price: yup
@@ -43,12 +45,22 @@ export default function AddCard() {
       .max(12, "Price is too long!"),
     condition: yup
       .string("Wrong format!")
-      .matches(conditionRegEx, "Wrong format!")
+      .test("range-test", "Wrong range!", function (value) {
+        if (value >= 1 && value <= 10) {
+          if (value % 1 == 0) {
+            return true;
+          } else if ((value - 0.5) % 1 == 0) {
+            return true;
+          } else {
+            return false;
+          }
+        } else return false;
+      })
       .required("Condition is required!")
-      .max(2, "Wrong format"),
+      .max(3, "Wrong format!"),
     languageVersion: yup
       .string("Wrong format!")
-      .required("Language Version is required!")
+      .required("Language version is required!")
       .min(4, "Wrong format"),
     description: yup
       .string("Wrong format!")
@@ -293,8 +305,6 @@ export default function AddCard() {
   //state exclusively for Language Version
   const [submitClicked, setSubmitClicked] = useState(false);
   const [loadingIndicator, setLoadingIndicator] = useState(false);
-
-
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#1b1b1b", padding: 20 }}>
@@ -839,7 +849,7 @@ export default function AddCard() {
                   },
                 }}
               />
-              <ErrorMessage component="div" name="condition">
+              {/* <ErrorMessage component="div" name="condition">
                 {!gradingSwitch ? (
                   (msg) => (
                     <Text
@@ -860,6 +870,25 @@ export default function AddCard() {
                   )
                 ) : (
                   <View />
+                )}
+              </ErrorMessage> */}
+              <ErrorMessage component="div" name="condition">
+                {(msg) => (
+                  <Text
+                    style={{
+                      width: "70%",
+                      marginTop: 8,
+                      height: 20,
+                      marginBottom: 14,
+                      flexDirection: "row",
+                      justifyContent: "flex-end",
+                      display: "flex",
+                      color: "#b40424",
+                      fontWeight: "700",
+                    }}
+                  >
+                    {msg}
+                  </Text>
                 )}
               </ErrorMessage>
             </View>
@@ -962,6 +991,7 @@ export default function AddCard() {
                   }
                 }}
                 type={"submit"}
+                disabled={loadingIndicator}
               >
                 <Text
                   style={{

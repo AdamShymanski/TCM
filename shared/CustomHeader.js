@@ -32,8 +32,9 @@ export default function CustomHeader({ version, props, setProps }) {
   };
 
   const navigation = useNavigation();
-  const [inputPlaceholder, setInputPlaceholder] =
-    useState("ID or Name of Card");
+  const [inputPlaceholder, setInputPlaceholder] = useState(
+    "Card number or Name"
+  );
 
   if (version == "workInProgress") {
     return (
@@ -674,7 +675,7 @@ export default function CustomHeader({ version, props, setProps }) {
               }));
             }}
             onBlur={() => {
-              setInputPlaceholder("ID or Name of Card");
+              setInputPlaceholder("Card number or Name");
               setProps((prevState) => ({
                 ...prevState,
                 inputFocusState: false,

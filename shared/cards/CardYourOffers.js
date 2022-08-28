@@ -22,12 +22,6 @@ import { fetchPhotos, fetchCardsName } from "../../authContext";
 import { useNavigation } from "@react-navigation/native";
 
 export function CardYourOffers({ props, setModal, setId }) {
-  const condition = props.condition;
-  const description = props.description;
-  const price = props.price;
-  const languageVersion = props.languageVersion;
-  const status = props.status;
-
   const [loadingState, setLoading] = useState(true);
   const [imageViewerState, setImageViewer] = useState(false);
   const [photosArray, setPhotosArray] = useState([
@@ -247,7 +241,6 @@ export function CardYourOffers({ props, setModal, setId }) {
                     borderWidth: 2,
                     borderColor: "#777777",
                     paddingHorizontal: 12,
-                    paddingVertical: 8,
                   }}
                   onPress={() => setImageViewer(false)}
                 >
@@ -265,7 +258,7 @@ export function CardYourOffers({ props, setModal, setId }) {
             )}
           />
         </Modal>
-        {returnStatus(status)}
+        {returnStatus(props.status)}
         <View>
           <View
             style={{
@@ -358,7 +351,7 @@ export function CardYourOffers({ props, setModal, setId }) {
                       fontSize: 16,
                     }}
                   >
-                    {condition}
+                    {props.condition}
                   </Text>
                 </View>
 
@@ -386,7 +379,7 @@ export function CardYourOffers({ props, setModal, setId }) {
                       fontSize: 12.5,
                     }}
                   >
-                    {languageVersion}
+                    {props.languageVersion}
                   </Text>
                 </View>
               </View>
@@ -415,7 +408,7 @@ export function CardYourOffers({ props, setModal, setId }) {
                       fontSize: 12,
                     }}
                   >
-                    {description}
+                    {props.description}
                   </Text>
                 </View>
               </View>
@@ -456,7 +449,7 @@ export function CardYourOffers({ props, setModal, setId }) {
               <Text
                 style={{ fontSize: 18, fontWeight: "700", color: "#f4f4f4" }}
               >
-                {price.toFixed(2)}
+                {props.price.toFixed(2)}
               </Text>
 
               <Text

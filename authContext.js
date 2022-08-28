@@ -27,8 +27,8 @@ export const storage = firebase.storage();
 export const functions = firebase.functions();
 
 // if (__DEV__) {
-//   firebase.functions().useEmulator("192.168.0.104", 5001);
-//   firebase.firestore().useEmulator("192.168.0.104", 8080);
+//   firebase.functions().useEmulator("192.168.0.105", 5001);
+//   firebase.firestore().useEmulator("192.168.0.105", 8080);
 // }
 
 //! CARDS
@@ -570,6 +570,9 @@ export async function deleteCard(id) {
     await handleOtherChanges();
 
     await db.collection("offers").doc(id).delete();
+
+    const desertRef = storageRef.child(`cards/${id}`);
+    await desertRef.delete();
   } catch (error) {
     console.log(error);
   }
@@ -1200,12 +1203,55 @@ export async function googleReSignIn(result) {
     return false;
   }
 }
-export async function updateUserData(outValues) {
+export async function updateUserData(outValues, initValues, setAddressesArray) {
   try {
-    await db
-      .collection("users")
-      .doc(auth.currentUser.uid)
-      .update({ nick: outValues.nick, country: outValues.country });
+    if (initValues.country != outValues.country) {
+      setAddressesArray([]);
+
+      if (initValues.nick != outValues.nick) {
+        await db
+          .collection("users")
+          .doc(auth.currentUser.uid)
+          .update({ nick: outValues.nick, country: outValues.country });
+      } else {
+        await db
+          .collection("users")
+          .doc(auth.currentUser.uid)
+          .update({ country: outValues.country });
+      }
+
+      //fetch all users addresses, and push them to arr
+
+      const result = await db
+        .collection("users")
+        .doc(auth.currentUser.uid)
+        .get();
+
+      result.data().addresses.forEach(async (doc) => {
+        await db
+          .collection("users")
+          .doc(auth.currentUser.uid)
+          .update({
+            addresses: firebase.firestore.FieldValue.arrayRemove(doc),
+          });
+
+        doc.country = outValues.country;
+
+        setAddressesArray((prev) => [...prev, doc]);
+
+        await db
+          .collection("users")
+          .doc(auth.currentUser.uid)
+          .update({
+            addresses: firebase.firestore.FieldValue.arrayUnion(doc),
+          });
+      });
+    } else {
+      await db
+        .collection("users")
+        .doc(auth.currentUser.uid)
+        .update({ nick: outValues.nick });
+    }
   } catch (error) {
     console.log(error);
   }
@@ -1237,6 +1283,45 @@ export async function editAddress(oldObj, newObj) {
           .update({
             addresses: firebase.firestore.FieldValue.arrayUnion(newObj),
           });
+      });
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+export async function sendVerificationEmail(email, newObj) {
+  try {
+    const actionCodeSettings = {
+      // URL you want to redirect back to. The domain (www.example.com) for this
+      // URL must be in the authorized domains list in the Firebase Console.
+      url: "https://www.example.com/finishSignUp?cartId=1234",
+      // This must be true.
+      handleCodeInApp: true,
+      iOS: {
+        bundleId: "com.example.ios",
+      },
+      android: {
+        packageName: "com.example.android",
+        installApp: true,
+        minimumVersion: "12",
+      },
+      dynamicLinkDomain: "example.page.link",
+    };
+
+    firebase
+      .auth()
+      .sendSignInLinkToEmail(email, actionCodeSettings)
+      .then(() => {
+        // The link was successfully sent. Inform the user.
+        // Save the email locally so you don't need to ask the user for it again
+        // if they open the link on the same device.
+        window.localStorage.setItem("emailForSignIn", email);
+        // ...
+      })
+      .catch((error) => {
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        // ...
       });
   } catch (error) {
     console.log(error);
@@ -1281,66 +1366,48 @@ export async function fetchUsersCards() {
 //! CART
 export async function fetchCart() {
   try {
-    const doc = await db.collection("users").doc(auth.currentUser.uid).get();
+    const promise = new Promise(async (resolve, reject) => {
+      const cartArr = [];
+      const doc = await db.collection("users").doc(auth.currentUser.uid).get();
 
-    const cartLength = doc.data().cart.length;
+      if (doc.data().cart.length > 0) {
+        // count sellers
 
-    const promise = new Promise((resolve, reject) => {
-      if (cartLength == 0) {
-        reject("no elements in users cart");
-      }
+        doc.data().cart.forEach(async (item, index) => {
+          const card = await db.collection("offers").doc(item).get();
 
-      let outputArray = [];
+          const owner = await fetchOwnerData(card.data().owner);
 
-      // const checkSeller = (name) => {
-      //   let result = false;
+          if (card.data().status === "published") {
+            const res = cartArr.find((item) => {
+              if (item.uid === card.data().owner) {
+                item.data.push({ ...card.data(), id: card.id });
+                return true;
+              }
+            });
 
-      //   outputArray.forEach((item) => {
-      //     if (item.title == name) result = true;
-      //   });
+            if (!res) {
+              cartArr.push({
+                data: [{ ...card.data(), id: card.id }],
+                title: owner.nick,
+                uid: card.data().owner,
+              });
+            }
+          }
 
-      //   return result;
-      // };
-
-      doc.data().cart.forEach(async (item, index) => {
-        const card = await db.collection("offers").doc(item).get();
-        const owner = await fetchOwnerData(card.data().owner);
-
-        outputArray.push({
-          data: [{ ...card.data(), id: card.id }],
-          title: owner.nick,
-          uid: card.data().owner,
+          if (index + 1 == doc.data().cart.length) {
+            if (cartArr.length > 0) {
+              resolve(cartArr);
+            } else {
+              reject(false);
+            }
+          }
         });
-
-        // if (card.data().status === "published") {
-        //   if (outputArray.length === 0) {
-        //     outputArray.push({
-        //       data: [{ ...card.data(), id: card.id }],
-        //       title: owner.nick,
-        //       uid: card.data().owner,
-        //     });
-        //   } else {
-        //     if (!checkSeller(owner.nick)) {
-        //       outputArray.forEach((item, i) => {
-        //         if (item.title == owner.nick) {
-        //           outputArray[i].data.push({ ...card.data(), id: card.id });
-        //         }
-        //       });
-        //     } else {
-        //       outputArray.push({
-        //         data: [{ ...card.data(), id: card.id }],
-        //         title: owner.nick,
-        //         uid: card.data().owner,
-        //       });
-        //     }
-        //   }
-        // }
-
-        if (index + 1 == cartLength) {
-          resolve(outputArray);
-        }
-      });
+      } else {
+        reject("no cart");
+      }
     });
+
     return promise;
   } catch (error) {
     console.log(error);
@@ -1449,7 +1516,8 @@ export async function fetchMostRecentOffers(setMostRecentOffers) {
     await db
       .collection("offers")
       .orderBy("timestamp", "desc")
-      .limit(4)
+      .where("status", "==", "published")
+      .limit(10)
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach(async (doc) => {
@@ -1476,6 +1544,7 @@ export async function fetchMoreMostRecentOffers(
     await db
       .collection("offers")
       .orderBy("timestamp", "desc")
+      .where("status", "==", "published")
       .startAfter(lastVisible)
       .limit(4)
       .get()

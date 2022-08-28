@@ -82,7 +82,9 @@ export default function Checkout({ pageState, setPage }) {
       if (instantBuy) {
         setOffersState(instantBuy);
       } else {
-        await fetchCart(setOffersState, () => {});
+        await fetchCart().then((cart) => {
+          setOffersState(cart);
+        });
       }
 
       // fetch id's of owners of cards in users cart
@@ -114,7 +116,6 @@ export default function Checkout({ pageState, setPage }) {
   useEffect(() => {
     if (shippingAddress) {
       const shippingMethodsArray = [];
-
       const promise = new Promise((resolve, reject) => {
         offersState.forEach(async (obj, index) => {
           const owner = await db.collection("users").doc(obj.uid).get();
@@ -214,8 +215,8 @@ const ShippingPage = ({
     }
 
     //check if user selected address
-    if (!shippingAddress) {
-      error = `Select shipping address`;
+    if (shippingAddress.empty) {
+      error = `Add a shipping address`;
     }
 
     setLoadingIndicator(false);

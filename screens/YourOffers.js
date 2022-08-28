@@ -204,6 +204,7 @@ export default function YourOffers() {
                 marginBottom: 6,
                 borderRadius: 4,
               }}
+              disabled={activityIndicator}
               onPress={() => {
                 const query = functions.httpsCallable("linkStripeAccount");
 
@@ -315,6 +316,7 @@ export default function YourOffers() {
                 marginBottom: 6,
                 borderRadius: 4,
               }}
+              disabled={activityIndicator}
               onPress={() => {
                 const query = functions.httpsCallable("createStripeAccount");
 

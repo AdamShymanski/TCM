@@ -18,40 +18,76 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 import { useNavigation, useIsFocused } from "@react-navigation/native";
 
+// [
+//   {
+//     data: [
+//       {
+//         cardId: "neo4-61",
+//         condition: 9,
+//         description: "PSA 9.",
+//         id: "yyafoAYS0lQ8lHGvYQ0C",
+//         isGraded: true,
+//         languageVersion: "English",
+//         owner: "MVmhz0e2HFds3yIgscXxLRED8HE3",
+//         price: 65,
+//         status: "published",
+//         timestamp: {
+//           nanoseconds: 658000000,
+//           seconds: 1652905171,
+//         },
+//       },
+//       {
+//         cardId: "base2-58",
+//         condition: 10,
+//         description: "PSA 10. Mint.",
+//         id: "HtFlbcrhgPfiR6AffNJ2",
+//         isGraded: true,
+//         languageVersion: "English",
+//         owner: "MVmhz0e2HFds3yIgscXxLRED8HE3",
+//         price: 100,
+//         status: "published",
+//         timestamp: {
+//           nanoseconds: 388000000,
+//           seconds: 1652905566,
+//         },
+//       },
+//     ],
+//     title: "John Doe",
+//     uid: "MVmhz0e2HFds3yIgscXxLRED8HE3",
+//   },
+//   {
+//     data: [
+//       {
+//         cardId: "bw11-RC14",
+//         condition: 10,
+//         description: "Perfect condition. Graded by PSA.",
+//         id: "AwPacv081ZZLBZsiS396",
+//         isGraded: true,
+//         languageVersion: "Japanese",
+//         owner: "Uldn432HRXYcHPVCMnLQ9ik4GMr1",
+//         price: 414,
+//         status: "published",
+//         timestamp: {
+//           nanoseconds: 919000000,
+//           seconds: 1652906798,
+//         },
+//       },
+//     ],
+//     title: "Marc Smith",
+//     uid: "Uldn432HRXYcHPVCMnLQ9ik4GMr1",
+//   },
+// ]
+
 export default function Cart({ route }) {
   const [cartState, setCartState] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalState, setTotalState] = useState({
+    sellers: [],
     price: 0,
-    sellers: 0,
     cards: 0,
   });
   const isFocused = useIsFocused();
   const navigation = useNavigation();
-
-  const calculateTotal = () => {
-    let result = {
-      price: 0,
-      sellers: 0,
-      cards: 0,
-    };
-
-    try {
-      cartState.forEach((item) => {
-        result.sellers += 1;
-        if (item?.data.length > 0) {
-          item.data.forEach((offer) => {
-            result.cards += 1;
-            result.price += offer.price;
-          });
-        }
-      });
-
-      setTotalState(result);
-    } catch (e) {
-      // console.log(e);
-    }
-  };
 
   useEffect(async () => {
     if (!isFocused) {
@@ -60,6 +96,12 @@ export default function Cart({ route }) {
     }
     if (isFocused) {
       try {
+        let val = {
+          sellers: [],
+          price: 0,
+          cards: 0,
+        };
+
         const promise = new Promise(async (resolve, reject) => {
           const cartArr = [];
           const doc = await db
@@ -70,15 +112,39 @@ export default function Cart({ route }) {
           if (doc.data().cart.length > 0) {
             doc.data().cart.forEach(async (item, index) => {
               const card = await db.collection("offers").doc(item).get();
+
+              val.price += card.data().price;
+              val.cards++;
+              if (!val.sellers.includes(card.data().owner)) {
+                val.sellers.push(card.data().owner);
+              }
+
               const owner = await fetchOwnerData(card.data().owner);
 
-              cartArr.push({
-                data: [{ ...card.data(), id: card.id }],
-                title: owner.nick,
-                uid: card.data().owner,
-              });
+              if (card.data().status === "published") {
+                const res = cartArr.find((item) => {
+                  if (item.uid === card.data().owner) {
+                    item.data.push({ ...card.data(), id: card.id });
+                    return true;
+                  }
+                });
 
-              if (index + 1 == doc.data().cart.length) resolve(cartArr);
+                if (!res) {
+                  cartArr.push({
+                    data: [{ ...card.data(), id: card.id }],
+                    title: owner.nick,
+                    uid: card.data().owner,
+                  });
+                }
+              }
+
+              if (index + 1 == doc.data().cart.length) {
+                if (cartArr.length > 0) {
+                  resolve(cartArr);
+                } else {
+                  reject(false);
+                }
+              }
             });
           } else {
             reject("no cart");
@@ -88,12 +154,11 @@ export default function Cart({ route }) {
         promise
           .then((result) => {
             setCartState(result);
-
             setLoading(false);
-            calculateTotal();
+            setTotalState(val);
           })
           .catch((e) => {
-            setCartState(e);
+            setCartState([]);
             setLoading(false);
             console.log(e);
           });
@@ -102,12 +167,6 @@ export default function Cart({ route }) {
       }
     }
   }, [isFocused]);
-
-  useEffect(() => {
-    if (cartState.length > 0) {
-      calculateTotal();
-    }
-  }, [cartState]);
 
   if (loading) {
     return (
@@ -127,65 +186,7 @@ export default function Cart({ route }) {
       <View style={{ flex: 1, backgroundColor: "#1B1B1B" }}>
         <SectionList
           style={{ width: "100%" }}
-          sections={[
-            {
-              data: [
-                {
-                  cardId: "neo4-61",
-                  condition: 9,
-                  description: "PSA 9.",
-                  id: "yyafoAYS0lQ8lHGvYQ0C",
-                  isGraded: true,
-                  languageVersion: "English",
-                  owner: "MVmhz0e2HFds3yIgscXxLRED8HE3",
-                  price: 65,
-                  status: "published",
-                  timestamp: {
-                    nanoseconds: 658000000,
-                    seconds: 1652905171,
-                  },
-                },
-                {
-                  cardId: "base2-58",
-                  condition: 10,
-                  description: "PSA 10. Mint.",
-                  id: "HtFlbcrhgPfiR6AffNJ2",
-                  isGraded: true,
-                  languageVersion: "English",
-                  owner: "MVmhz0e2HFds3yIgscXxLRED8HE3",
-                  price: 100,
-                  status: "published",
-                  timestamp: {
-                    nanoseconds: 388000000,
-                    seconds: 1652905566,
-                  },
-                },
-              ],
-              title: "John Doe",
-              uid: "MVmhz0e2HFds3yIgscXxLRED8HE3",
-            },
-            {
-              data: [
-                {
-                  cardId: "bw11-RC14",
-                  condition: 10,
-                  description: "Perfect condition. Graded by PSA.",
-                  id: "AwPacv081ZZLBZsiS396",
-                  isGraded: true,
-                  languageVersion: "Japanese",
-                  owner: "Uldn432HRXYcHPVCMnLQ9ik4GMr1",
-                  price: 414,
-                  status: "published",
-                  timestamp: {
-                    nanoseconds: 919000000,
-                    seconds: 1652906798,
-                  },
-                },
-              ],
-              title: "Marc Smith",
-              uid: "Uldn432HRXYcHPVCMnLQ9ik4GMr1",
-            },
-          ]}
+          sections={cartState}
           keyExtractor={(item, index) => item + index}
           renderItem={({ item }) => {
             return <CartObject props={item} setOffers={setCartState} />;
@@ -255,7 +256,7 @@ export default function Cart({ route }) {
             <Text style={{ fontFamily: "Roboto_Regular", color: "#7C7C7C" }}>
               from
             </Text>{" "}
-            {totalState.sellers} seller
+            {totalState.sellers.length} seller
           </Text>
           <TouchableOpacity
             style={{

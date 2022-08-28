@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Image, Text, TouchableOpacity } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Image,
+  Text,
+  TouchableOpacity,
+  Linking,
+} from "react-native";
 import { Title, Caption, Paragraph, Drawer } from "react-native-paper";
 import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 
@@ -688,7 +695,7 @@ export default function CustomDrawer({ navigation }) {
             labelStyle={{ color: "#f4f4f4" }}
             label="Terms & Conditions"
             onPress={() => {
-              // navigation.navigate("TermsConditionsStack");
+              Linking.openURL("https://tcmarket.place/customer-service/");
             }}
           />
         </Drawer.Section>
