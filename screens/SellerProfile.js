@@ -9,7 +9,6 @@ import {
   Image,
   ActivityIndicator,
   Linking,
-  SafeAreaView,
 } from "react-native";
 
 import Stripe_logo from "../assets/Stripe_logo.png";
@@ -206,6 +205,7 @@ export default function SellerProfile() {
                 alignSelf: "flex-start",
                 justifyContent: "space-between",
               }}
+              disabled={UADLoading}
               onPress={() => {
                 setUADLoading(true);
                 const query = functions.httpsCallable("linkStripeAccount");
@@ -537,6 +537,7 @@ export default function SellerProfile() {
                   marginBottom: 6,
                   borderRadius: 4,
                 }}
+                disabled={activityIndicator}
                 onPress={() => {
                   const query = functions.httpsCallable("createStripeAccount");
 

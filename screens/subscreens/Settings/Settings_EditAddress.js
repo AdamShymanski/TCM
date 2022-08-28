@@ -8,13 +8,7 @@ import { CountryPickerModal } from "../../../shared/Modals/CountryPickerModal";
 import { Formik, ErrorMessage } from "formik";
 import * as yup from "yup";
 
-import {
-  db,
-  auth,
-  firebaseObj,
-  editAddress,
-  deleteAddress,
-} from "../../../authContext";
+import { db, auth, editAddress, deleteAddress } from "../../../authContext";
 
 import { useNavigation, useRoute } from "@react-navigation/native";
 
@@ -334,6 +328,7 @@ export default function Settings_EditAddress() {
               <View style={{ width: "50%" }}>
                 <TouchableOpacity
                   style={{ width: "100%" }}
+                  disabled={true}
                   onPress={() => {
                     setCountryPickerState(true);
                     setCountryInputTouched(true);

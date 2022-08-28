@@ -2,9 +2,9 @@
   "expo": {
     "userInterfaceStyle": "dark",
     "name": "TCM",
-    "scheme": "ptcgm",
+    "scheme": "tcm",
     "slug": "ptcg_marketplace",
-    "version": "1.25.0",
+    "version": "1.27.0",
 
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -28,7 +28,7 @@
       "googleServicesFile": "./google-services.json",
       "userInterfaceStyle": "dark",
       "permissions": [],
-      "versionCode": 1250,
+      "versionCode": 1270,
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-2637485113454186~8246765572"
       }

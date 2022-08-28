@@ -189,8 +189,7 @@ exports.createStripeAccount = functions.https.onCall(async (data, context) => {
       business_profile: {
         mcc: "5947",
         name: context.auth.uid,
-        product_description:
-          "TCM is platform for trading your Pokémon cards.",
+        product_description: "TCM is platform for trading your Pokémon cards.",
       },
       business_type: "individual",
     });
@@ -206,8 +205,8 @@ exports.createStripeAccount = functions.https.onCall(async (data, context) => {
 
     var accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: "https://ptcgmarketplace.com/returnToApp",
-      return_url: "https://ptcgmarketplace.com/returnToApp",
+      refresh_url: "https://tcmarket.place/return-to-the-app/",
+      return_url: "https://tcmarket.place/return-to-the-app/",
       type: "account_onboarding",
     });
   }
@@ -224,8 +223,8 @@ exports.linkStripeAccount = functions.https.onCall(async (data, context) => {
 
   const accountLink = await stripe.accountLinks.create({
     account: doc.data().stripe.vendorId,
-    refresh_url: "https://ptcgmarketplace.com/returnToApp",
-    return_url: "https://ptcgmarketplace.com/returnToApp",
+    refresh_url: "https://tcmarket.place/return-to-the-app/",
+    return_url: "https://tcmarket.place/return-to-the-app/",
     type: "account_onboarding",
   });
 
@@ -543,7 +542,7 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
                 .collection("transactions")
                 .doc(doc.id)
                 .get()
-                .then((transactionDoc) => {
+                .then(async (transactionDoc) => {
                   transactionDoc.data().offers.forEach(async (offer) => {
                     await admin
                       .firestore()
@@ -553,6 +552,17 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
 
                     await handleCardDeletion(offer.id);
                   });
+
+                  await admin
+                    .firestore()
+                    .collection("users")
+                    .doc(doc.data().seller)
+                    .update({
+                      ["sellerProfile.statistics.numberOfOffers"]:
+                        admin.firestore.FieldValue.increment(
+                          -transactionDoc.data().offers.length
+                        ),
+                    });
                 });
 
               //fetch destination id
@@ -572,7 +582,20 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
                 .firestore()
                 .collection("users")
                 .doc(doc.data().buyer)
-                .update({ cart: [] });
+                .update({
+                  cart: [],
+                  ["sellerProfile.statistics.purchases"]:
+                    admin.firestore.FieldValue.increment(1),
+                });
+
+              await admin
+                .firestore()
+                .collection("users")
+                .doc(doc.data().seller)
+                .update({
+                  ["sellerProfile.statistics.sales"]:
+                    admin.firestore.FieldValue.increment(1),
+                });
 
               await stripe.transfers.create({
                 amount:

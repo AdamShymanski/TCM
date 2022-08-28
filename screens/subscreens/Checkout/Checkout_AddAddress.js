@@ -3,19 +3,16 @@ import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { ActivityIndicator, TextInput } from "react-native-paper";
 
-import { CountryPickerModal } from "../../../shared/Modals/CountryPickerModal";
-
 import { Formik, ErrorMessage } from "formik";
 import * as yup from "yup";
 
-import { db, auth, firebaseObj } from "../../../authContext";
+import { db, auth, firebaseObj, fetchUserData } from "../../../authContext";
 
 import { useNavigation } from "@react-navigation/native";
 
 export default function Checkout_AddAddress() {
   const [loadingIndicator, setLoadingIndicator] = useState(false);
-  const [countryPickerState, setCountryPickerState] = useState("");
-  const [countryInputTouched, setCountryInputTouched] = useState(false);
+  const [country, setCountry] = useState("Loading...");
 
   const [error, setError] = useState("");
 
@@ -35,6 +32,14 @@ export default function Checkout_AddAddress() {
   });
 
   const navigation = useNavigation();
+
+  useEffect(() => {
+    const resolvePromises = async () => {
+      const result = await fetchUserData();
+      setCountry(result.country);
+    };
+    resolvePromises();
+  }, []);
 
   return (
     <ScrollView style={{ backgroundColor: "#1b1b1b", flex: 1 }}>
@@ -73,7 +78,7 @@ export default function Checkout_AddAddress() {
           firstName: "",
           lastName: "",
           zipCode: "",
-          country: "",
+          country: country,
           state: "",
           city: "",
           streetAddress1: "",
@@ -142,14 +147,6 @@ export default function Checkout_AddAddress() {
               height: "100%",
             }}
           >
-            {countryPickerState ? (
-              <CountryPickerModal
-                setValue={(value) => {
-                  props.setFieldValue("country", value);
-                }}
-                setVisible={setCountryPickerState}
-              />
-            ) : null}
             <View
               style={{
                 width: "90%",
@@ -316,16 +313,10 @@ export default function Checkout_AddAddress() {
                 </ErrorMessage>
               </View>
               <View style={{ width: "50%" }}>
-                <TouchableOpacity
-                  style={{ width: "100%" }}
-                  onPress={() => {
-                    setCountryPickerState(true);
-                    setCountryInputTouched(true);
-                  }}
-                >
+                <TouchableOpacity style={{ width: "100%" }} disabled={true}>
                   <TextInput
                     mode={"outlined"}
-                    value={props.values.country}
+                    value={country}
                     onChangeText={props.handleChange("country")}
                     label="Country"
                     outlineColor={props.errors.country ? "#b40424" : "#5c5c5c"}

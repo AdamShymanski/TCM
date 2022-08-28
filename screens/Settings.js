@@ -121,11 +121,11 @@ export default function Settings() {
           await changeEmail();
         } else if (actionType == "updateUser") {
           setFormChanged(false);
+          await updateUserData(userData, initValues, setAddressesArray);
           setInitValues({
             nick: userData.nick,
             country: userData.country,
           });
-          await updateUserData(userData);
         }
 
         setModal(false);
@@ -194,38 +194,6 @@ export default function Settings() {
       alert("login: Error:" + message);
     }
   }
-
-  // async function reSignInWsithGoogleAsync(action) {
-  //   try {
-  //     if (action === "deleteAccount") {
-  //       navigation.navigate("DeletingAccount");
-  //     }
-  //     //352773112597-2s89t2icc0hfk1tquuvj354s0aig0jq2.apps.googleusercontent.com
-  //     //352773112597-5hpaljq5qchg3044oh2agh10pvebg47v.apps.googleusercontent.com
-  //     const result = await GoogleSignIn.logInAsync({
-  //       androidClientId:
-  //         "442180761659-d8gpds50nqm1464ftuqufa972ppl2iti.apps.googleusercontent.com",
-  //       androidStandaloneAppClientId: `442180761659-d8gpds50nqm1464ftuqufa972ppl2iti.apps.googleusercontent.com`,
-  //       scopes: ["profile", "email"],
-  //     });
-
-  //     if (result.type === "success" && (await googleReSignIn(result))) {
-  //       if (action === "deleteAccount") {
-  //         await deleteAccount();
-  //       } else {
-  //         await updateUserData(userData);
-  //       }
-  //     } else {
-  //       return { cancelled: true };
-  //     }
-  //   } catch (e) {
-  //     if (e.code == "auth/email-already-in-use") {
-  //       console.log("Duplicated emails has been detected");
-  //     } else {
-  //       console.log(e);
-  //     }
-  //   }
-  // }
 
   if (loading) {
     return (
@@ -665,6 +633,7 @@ export default function Settings() {
                     onPress={() => {
                       navigation.navigate("SettingsStack", {
                         screen: "Settings_AddAddress",
+                        params: { country: userData.country },
                       });
                     }}
                   >

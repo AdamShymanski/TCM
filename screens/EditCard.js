@@ -17,17 +17,23 @@ import {
 } from "react-native";
 import { Checkbox, TextInput } from "react-native-paper";
 
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { fetchBigCards, fetchMoreBigCards, editCard } from "../authContext";
 
 import pikachu from "../assets/pikachu.png";
 import PickerModal from "../shared/Modals/PickerModal";
 
-export default function EditCard({ route }) {
+export default function EditCard() {
   const navigation = useNavigation();
+  const route = useRoute();
+
+  console.log(route.params.props.condition);
+
+  // const conditionRegEx = /^\b([1-9]|10)\b$/;
+  // .matches(xRegEx, "Wrong format!")
 
   const priceRegEx = /^\d{1,3}(?:[.,]\d{2})*(?:[.,]\d{2})*$/g;
-  const gradeRegEx = /^[1-9]|10*$/g;
+  const xRegEx = /^\d{0,2}(\.\d{1,2})?/g;
 
   const reviewSchema = yup.object({
     price: yup
@@ -37,12 +43,22 @@ export default function EditCard({ route }) {
       .max(12, "Price is too long!"),
     condition: yup
       .string("Wrong format!")
-      .matches(gradeRegEx, "Wrong format!")
+      .test("range-test", "Wrong range!", function (value) {
+        if (value >= 1 && value <= 10) {
+          if (value % 1 == 0) {
+            return true;
+          } else if ((value - 0.5) % 1 == 0) {
+            return true;
+          } else {
+            return false;
+          }
+        } else return false;
+      })
       .required("Condition is required!")
-      .max(2, "Wrong format"),
+      .max(3, "Wrong format!"),
     languageVersion: yup
       .string("Wrong format!")
-      .required("Language Version is required!")
+      .required("Language version is required!")
       .min(4, "Wrong format"),
     description: yup
       .string("Wrong format!")
@@ -217,7 +233,6 @@ export default function EditCard({ route }) {
     );
     setPageNumber(2);
   };
-
   const stateHandler = (variant) => {
     if (variant == "pikachu") {
       if (loadingState) return false;
@@ -245,7 +260,6 @@ export default function EditCard({ route }) {
       return false;
     }
   };
-
   const closeModal = () => {
     setModal(false);
     setNativeInputValue("");
@@ -434,7 +448,7 @@ export default function EditCard({ route }) {
         </View>
       </Modal>
       <View>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={{
             borderRadius: 4,
             marginRight: 16,
@@ -465,17 +479,17 @@ export default function EditCard({ route }) {
             color="#121212"
             style={{ marginLeft: 10 }}
           />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <Text
           style={{
             marginTop: 10,
-            marginLeft: 12,
+            marginLeft: 0,
             fontSize: 14,
             fontWeight: "700",
             color: "#4c4c4c",
           }}
         >
-          You must pick at least one photo
+          In order to change photos, please create new offer
         </Text>
       </View>
       <Formik
@@ -540,7 +554,7 @@ export default function EditCard({ route }) {
             route.params.setModal(false);
             navigation.goBack();
           }
-          
+
           setLoadingIndicator(false);
         }}
       >
@@ -756,7 +770,7 @@ export default function EditCard({ route }) {
               <TextInput
                 autoCapitalize="none"
                 mode={"outlined"}
-                value={props.values.condition}
+                value={props.values.condition.toString()}
                 onChangeText={props.handleChange("condition")}
                 label="Condition (from 1 to 10)"
                 keyboardType="numeric"
@@ -781,7 +795,7 @@ export default function EditCard({ route }) {
                   },
                 }}
               />
-              <ErrorMessage component="div" name="condition">
+              {/* <ErrorMessage component="div" name="condition">
                 {!gradingSwitch ? (
                   (msg) => (
                     <Text
@@ -802,6 +816,25 @@ export default function EditCard({ route }) {
                   )
                 ) : (
                   <View />
+                )}
+              </ErrorMessage> */}
+              <ErrorMessage component="div" name="condition">
+                {(msg) => (
+                  <Text
+                    style={{
+                      width: "70%",
+                      marginTop: 8,
+                      height: 20,
+                      marginBottom: 14,
+                      flexDirection: "row",
+                      justifyContent: "flex-end",
+                      display: "flex",
+                      color: "#b40424",
+                      fontWeight: "700",
+                    }}
+                  >
+                    {msg}
+                  </Text>
                 )}
               </ErrorMessage>
             </View>
@@ -894,6 +927,7 @@ export default function EditCard({ route }) {
                   borderRadius: 3,
                   paddingHorizontal: 20,
                 }}
+                disabled={loadingIndicator}
                 onPress={() => {
                   props.submitForm();
                   if (!cardId) {
