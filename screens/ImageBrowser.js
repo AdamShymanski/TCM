@@ -16,7 +16,7 @@ const ImageBrowserScreen = ({ route }) => {
   const navigation = useNavigation();
 
   let setPhoto = route.params.setPhoto;
-  let photoState = route.params.photoState;
+  let max = route.params.max;
 
   const _getHeaderLoader = () => {
     <ActivityIndicator size="big" color={"#0082ff"} />;
@@ -116,7 +116,7 @@ const ImageBrowserScreen = ({ route }) => {
   return (
     <View style={[styles.flex, styles.container]}>
       <ImageBrowser
-        max={3}
+        max={max ? max : 3}
         onChange={updateHandler}
         callback={imagesCallback}
         renderSelectedComponent={renderSelectedComponent}

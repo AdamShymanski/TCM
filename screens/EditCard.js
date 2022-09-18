@@ -616,7 +616,7 @@ export default function EditCard() {
                     color: "#5c5c5c",
                   }}
                 >
-                  ID of seleceted Card:{" "}
+                  Seleceted card number:{" "}
                   <Text
                     style={{
                       color: "#0082FF",

@@ -271,8 +271,8 @@ export default function CustomHeader({ version, props, setProps }) {
           >
             {"Settings"}
           </Text>
-          <IconF
-            name="settings"
+          <Icon
+            name="cog"
             color={"#0082ff"}
             size={30}
             style={{ marginRight: 8 }}
@@ -556,6 +556,50 @@ export default function CustomHeader({ version, props, setProps }) {
             {"Transactions"}
           </Text>
           <Icon name="swap-vertical" color={"#0082ff"} size={30} />
+        </View>
+      </View>
+    );
+  }
+  if (version == "messages") {
+    return (
+      <View
+        style={{
+          width: "100%",
+          height: "100%",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <MaterialIcons
+          name="menu"
+          size={28}
+          color={"#f4f4f4"}
+          onPress={() => {
+            openMenu();
+          }}
+          style={{
+            color: "#f4f4f4",
+            marginLeft: 6,
+          }}
+        />
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              color: "#f4f4f4",
+              fontWeight: "700",
+              fontSize: 21,
+              marginRight: 8,
+            }}
+          >
+            {"Messages"}
+          </Text>
+          <Icon name="message" color={"#0082ff"} size={30} />
         </View>
       </View>
     );

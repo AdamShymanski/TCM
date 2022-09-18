@@ -613,6 +613,16 @@ export default function CustomDrawer({ navigation }) {
             />
             {/* <DrawerItem
               icon={({ color, size }) => (
+                <Icon name="message-outline" color={"#f4f4f4"} size={size} />
+              )}
+              labelStyle={{ color: "#f4f4f4" }}
+              label="Messages"
+              onPress={() => {
+                navigation.navigate("MessagesStack");
+              }}
+            /> */}
+            {/* <DrawerItem
+              icon={({ color, size }) => (
                 <Icon
                   name='account-check-outline'
                   color={'#f4f4f4'}
@@ -681,7 +691,7 @@ export default function CustomDrawer({ navigation }) {
         >
           <DrawerItem
             icon={({ color, size }) => (
-              <IconF name="settings" color={"#f4f4f4"} size={size - 4} />
+              <Icon name="cog-outline" color={"#f4f4f4"} size={size - 4} />
             )}
             labelStyle={{ color: "#f4f4f4" }}
             label="Settings"

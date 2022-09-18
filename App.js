@@ -18,6 +18,7 @@ import Thanks from "./screens/Thanks";
 import Search from "./screens/Search";
 import Login from "./screens/Login.js";
 import SignOut from "./screens/SignOut";
+import Messages from "./screens/Messages";
 import Checkout from "./screens/Checkout";
 import AddCard from "./screens/AddCard.js";
 // import Welcome from "./screens/Welcome.js";
@@ -562,38 +563,39 @@ function ChatStack() {
           <Chat route={props.route} setSellerIdState={setSellerIdState} />
         )}
         options={({ navigation, route }) => ({
-          headerLeft: () => (
-            <TouchableOpacity
-              style={{
-                borderRadius: 3,
-                marginLeft: 12,
+          headerShown: false,
+          // headerLeft: () => (
+          //   <TouchableOpacity
+          //     style={{
+          //       borderRadius: 3,
+          //       marginLeft: 12,
 
-                height: 30,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 2,
-                borderColor: "#777777",
-                paddingHorizontal: 12,
-              }}
-              onPress={() => navigation.goBack()}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#777777",
-                }}
-              >
-                {"Go back"}
-              </Text>
-            </TouchableOpacity>
-          ),
-          headerTintColor: "#121212",
-          headerTitle: "",
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
+          //       height: 30,
+          //       flexDirection: "row",
+          //       alignItems: "center",
+          //       justifyContent: "center",
+          //       borderWidth: 2,
+          //       borderColor: "#777777",
+          //       paddingHorizontal: 12,
+          //     }}
+          //     onPress={() => navigation.goBack()}
+          //   >
+          //     <Text
+          //       style={{
+          //         fontSize: 16,
+          //         fontWeight: "700",
+          //         color: "#777777",
+          //       }}
+          //     >
+          //       {"Go back"}
+          //     </Text>
+          //   </TouchableOpacity>
+          // ),
+          // headerTintColor: "#121212",
+          // headerTitle: "",
+          // headerStyle: {
+          //   backgroundColor: "#121212",
+          // },
         })}
       />
       <Stack.Screen
@@ -1307,6 +1309,61 @@ function TransactionsStack() {
     </Stack.Navigator>
   );
 }
+function MessagesStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Messages"
+        component={Messages}
+        options={{
+          headerTitle: () => <CustomHeader version={"messages"} />,
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+        }}
+      />
+      <Stack.Screen
+        name="ChatScreen"
+        children={(props) => <Chat route={props.route} />}
+        options={({ navigation, route }) => ({
+          headerShown: false,
+          // headerLeft: () => (
+          //   <TouchableOpacity
+          //     style={{
+          //       borderRadius: 3,
+          //       marginLeft: 12,
+
+          //       height: 30,
+          //       flexDirection: "row",
+          //       alignItems: "center",
+          //       justifyContent: "center",
+          //       borderWidth: 2,
+          //       borderColor: "#777777",
+          //       paddingHorizontal: 12,
+          //     }}
+          //     onPress={() => navigation.goBack()}
+          //   >
+          //     <Text
+          //       style={{
+          //         fontSize: 16,
+          //         fontWeight: "700",
+          //         color: "#777777",
+          //       }}
+          //     >
+          //       {"Go back"}
+          //     </Text>
+          //   </TouchableOpacity>
+          // ),
+          // headerTintColor: "#121212",
+          // headerTitle: "",
+          // headerStyle: {
+          //   backgroundColor: "#121212",
+          // },
+        })}
+      />
+    </Stack.Navigator>
+  );
+}
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -1631,6 +1688,8 @@ export default function App() {
                 <CustomDrawer navigation={navigation} />
               )}
             >
+              <Drawer.Screen name="MessagesStack" component={MessagesStack} />
+              <Drawer.Screen name="ChatStack" component={ChatStack} />
               <Drawer.Screen name="HomeStack" component={HomeStack} />
               <Drawer.Screen name="SettingsStack" component={SettingsStack} />
               <Drawer.Screen name="CartStack" component={CartStack} />
@@ -1652,7 +1711,6 @@ export default function App() {
                 name="SavedOffersStack"
                 component={SavedOffersStack}
               />
-              <Drawer.Screen name="ChatStack" component={ChatStack} />
               <Drawer.Screen
                 name="DeletingAccount"
                 component={DeletingAccount}

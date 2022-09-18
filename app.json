@@ -4,7 +4,7 @@
     "name": "TCM",
     "scheme": "tcm",
     "slug": "ptcg_marketplace",
-    "version": "1.27.0",
+    "version": "1.28.0",
 
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -28,7 +28,7 @@
       "googleServicesFile": "./google-services.json",
       "userInterfaceStyle": "dark",
       "permissions": [],
-      "versionCode": 1270,
+      "versionCode": 1280,
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-2637485113454186~8246765572"
       }

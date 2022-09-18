@@ -294,8 +294,9 @@ export default function AddCard() {
 
   const [cardId, setId] = useState(null);
 
-  const [inputPlaceholderState, setInputPlaceholder] =
-    useState("ID or Name of Card");
+  const [inputPlaceholderState, setInputPlaceholder] = useState(
+    "Card number or Name"
+  );
 
   const [pickerModal, setPickerModal] = useState(false);
 
@@ -376,7 +377,7 @@ export default function AddCard() {
                 }}
                 placeholder={inputPlaceholderState}
                 onFocus={() => setInputPlaceholder("")}
-                onBlur={() => setInputPlaceholder("ID or Name of Card")}
+                onBlur={() => setInputPlaceholder("Card number or Name")}
                 style={{
                   width: 260,
                   height: 40,
@@ -641,7 +642,7 @@ export default function AddCard() {
                     color: "#5c5c5c",
                   }}
                 >
-                  ID of seleceted Card:{" "}
+                  Seleceted card number:{" "}
                   <Text
                     style={{
                       color: "#0082FF",
