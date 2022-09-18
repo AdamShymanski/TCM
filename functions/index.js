@@ -3,7 +3,7 @@ const admin = require("firebase-admin");
 const functions = require("firebase-functions");
 
 const stripe = require("stripe")(
-  "sk_test_51KDXfNCVH1iPNeBrKw7YbGdP8IpIPZiQKrG6uKrrUSd3xVie1zH7EJe9uO5pdvnl8lgl17qhxB5Q9JM84WFr6Nqb00lWqb7G75"
+  "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"
 );
 
 //! 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
@@ -467,6 +467,8 @@ exports.paymentSheet = functions.https.onCall(async (data, context) => {
               },
               status: "unpaid",
             });
+
+            //APPLICATION FEE
 
             if (offersState.length === masterIndex + 1) {
               paymentIntent = await stripe.paymentIntents.create({
