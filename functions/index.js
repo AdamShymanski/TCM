@@ -14,6 +14,14 @@ const endpointSecret =
 admin.initializeApp();
 //Stripe Account
 
+// Define values.
+const api_key = "nfnwsdq54g3b";
+const api_secret =
+  "3fzhjfk2spyxw8tmxeudfj4thqu3q2ftbure2qqxgpqrth7nv8dwahp45b6cc4pk";
+
+const stream_chat = require("stream-chat");
+const serverClient = stream_chat.StreamChat.getInstance(api_key, api_secret);
+
 function uuidv4() {
   var d = new Date().getTime(); //Timestamp
   var d2 =
@@ -249,32 +257,42 @@ exports.loginStripeLink = functions.https.onCall(async (data, context) => {
   return link.url;
 });
 
+exports.createChatToken = functions.https.onCall(async (data, context) => {
+  try {
+    const token = serverClient.createToken(context.auth.uid);
+
+    await admin
+      .firestore()
+      .collection("users")
+      .doc(context.auth.uid)
+      .update({ chatToken: token });
+
+    return token;
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+exports.deleteChatUser = functions.https.onCall(async (data, context) => {
+  try {
+    await serverClient.deleteUser(context.auth.uid, {
+      mark_messages_deleted: false,
+    });
+
+    return true;
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+});
+
 exports.fetchStripeAccount = functions.https.onCall(async (data, context) => {
-  const doc = await admin
-    .firestore()
-    .collection("users")
-    .doc(context.auth.uid)
-    .get();
+  const user_id = "john";
 
-  const vendorId = doc.data().stripe.vendorId;
-
-  const balance = await stripe.balance.retrieve({
-    stripeAccount: vendorId,
-  });
-  const transactions = await stripe.balanceTransactions.list(
-    {
-      limit: 3,
-    },
-    { stripeAccount: vendorId }
-  );
-
-  const account = await stripe.accounts.retrieve(vendorId);
-
-  account.balance = balance;
-  account.transactions =
-    transactions.data.lenght > 0 ? transactions.data : null;
-
-  return account;
+  // Initialize a Server Client
+  const serverClient = StreamChat.getInstance(api_key, api_secret);
+  // Create User Token
+  const token = serverClient.createToken(user_id);
 });
 
 exports.useReferralCode = functions.https.onCall(async (data, context) => {
@@ -300,63 +318,6 @@ exports.useReferralCode = functions.https.onCall(async (data, context) => {
       });
 
     return result;
-  } catch (e) {
-    console.log(e);
-  }
-});
-
-exports.overWriteUserDocs = functions.https.onCall(async (data, context) => {
-  try {
-    await admin
-      .firestore()
-      .collection("users")
-      .get()
-      .then((snapshot) => {
-        snapshot.forEach(async (doc) => {
-          let nick, country;
-
-          nick = doc.data().nick;
-          country = doc.data().country;
-
-          doc.ref.delete();
-
-          await admin
-            .firestore()
-            .collection("users")
-            .doc(doc.id)
-            .set({
-              nick: nick,
-              country: country,
-              discounts: {
-                referralProgram: [],
-                compensation: [],
-              },
-              addresses: [],
-              sellerProfile: {
-                status: "unset",
-                rating: [],
-                shippingMethods: {
-                  domestic: [],
-                  international: [],
-                },
-                statistics: {
-                  purchases: 0,
-                  sales: 0,
-                  views: 0,
-                  numberOfOffers: 0,
-                },
-              },
-              cart: [],
-              stripe: {
-                vendorId: null,
-                merchantId: null,
-              },
-              notificationToken: null,
-              savedOffers: [],
-              createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
-        });
-      });
   } catch (e) {
     console.log(e);
   }
@@ -786,7 +747,9 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
                 }
               }
 
-              db.collection("cardsData")
+              admin
+                .firestore()
+                .collection("cardsData")
                 .doc(offer.data().cardId)
                 .update(updateObj);
             });
@@ -795,6 +758,18 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
     }
   } else {
     res.status(200).send("event type not handled");
+  }
+});
+exports.testNotification = functions.https.onCall(async (data, context) => {
+  try {
+    await serverClient.testPushSettings(context.auth.uid, {
+      messageID:
+        "sketJE8u32UYTkUySGRLYWPuaT93-a39b8870-1a4e-4030-34f2-d0c026431a31",
+      skipDevices: true,
+    });
+    return "success";
+  } catch (err) {
+    console.log(err);
   }
 });
 

@@ -21,6 +21,8 @@ import IconI from "react-native-vector-icons/Ionicons";
 
 import {
   auth,
+  db,
+  functions,
   fetchUserData,
   updateUserData,
   deleteAccount,
@@ -96,6 +98,11 @@ export default function Settings() {
       setUserData({ nick: result.nick, country: result.country });
 
       setAddressesArray(result.addresses);
+
+      const query = functions.httpsCallable("testNotification");
+      await query().then((result) => {
+        console.log(result.data);
+      });
 
       setLoading(false);
     } else {
@@ -719,13 +726,13 @@ export default function Settings() {
                       marginTop: 12,
                       backgroundColor: "#121212",
                       borderRadius: 6,
-                      width: "96%",
+                      width: "98%",
                       paddingHorizontal: 12,
                       paddingVertical: 12,
                     }}
                   >
                     <IconI name={"warning"} color={"yellow"} size={50} />
-                    <View style={{ marginLeft: 12 }}>
+                    <View style={{ marginLeft: 12, paddingRight: 40 }}>
                       <Text
                         style={{
                           fontSize: 20,
@@ -772,10 +779,10 @@ export default function Settings() {
           >
             <View
               style={{
-                backgroundColor: "#121212",
-                paddingVertical: 22,
+                // backgroundColor: "#121212",
 
                 borderRadius: 5,
+                marginTop: 8,
 
                 alignItems: "center",
                 justifyContent: "space-evenly",
@@ -786,13 +793,13 @@ export default function Settings() {
                 style={{
                   width: "90%",
 
-                  paddingVertical: 6,
+                  paddingVertical: 7,
 
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
 
-                  borderRadius: 3,
+                  borderRadius: 4,
                   backgroundColor: "#0082FF",
                 }}
                 onPress={async () => {
@@ -816,9 +823,7 @@ export default function Settings() {
                 style={{
                   width: "90%",
                   marginTop: 20,
-
-                  paddingVertical: 6,
-
+                  paddingVertical: 7,
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
@@ -862,7 +867,7 @@ export default function Settings() {
                     backgroundColor: "#0082FF",
                     borderRadius: 3,
                     paddingHorizontal: 12,
-                    paddingVertical: 6,
+                    paddingVertical: 7,
                   }}
                   onPress={() => {
                     setChangePasswordModal(true);

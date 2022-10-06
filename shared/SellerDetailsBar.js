@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 
-import { View, Text, Image, TouchableOpacity } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 
 import IconM from "react-native-vector-icons/MaterialIcons";
 import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
@@ -9,17 +14,30 @@ import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
 import cart_down_icon from "./../assets/cart_down.png";
 import cart_up_icon from "./../assets/cart_up.png";
 
+import { useNavigation } from "@react-navigation/native";
+
+import { db, auth, createChat } from "../authContext";
+
+import useChatClient from "../screens/Chat/useChatClient";
+
 export default function SellerDetailsBar({ props }) {
+  const navigation = useNavigation();
+
+  const [startChatLoading, setStartChatLoading] = useState(false);
+
+  const { clientIsReady, chatClient } = useChatClient();
+
   if (!props.hide)
     return (
-      <LinearGradient
-        colors={["#121212", "#212121"]}
+      <View
         style={{
           height: 90,
           marginBottom: 18,
           borderBottomRightRadius: 3,
           borderBottomLeftRadius: 3,
           flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: "#121212",
 
           paddingLeft: 8,
         }}
@@ -147,6 +165,7 @@ export default function SellerDetailsBar({ props }) {
         <View
           style={{
             justifyContent: "center",
+            height: "74%",
           }}
         >
           <TouchableOpacity
@@ -160,6 +179,8 @@ export default function SellerDetailsBar({ props }) {
               borderColor: "#5c5c5c",
               paddingVertical: 3,
               paddingHorizontal: 8,
+
+              flex: 1,
             }}
           >
             <Text
@@ -180,8 +201,68 @@ export default function SellerDetailsBar({ props }) {
               style={{ color: "#5c5c5c" }}
             />
           </TouchableOpacity>
+          <TouchableOpacity
+            onPress={async () => {
+              setStartChatLoading(true);
+
+              try {
+                const channel = chatClient.channel("messaging", {
+                  members: [props.sellerProfile.uid, auth.currentUser.uid],
+                  created_by_id: auth.currentUser.uid,
+                });
+
+                await channel.create();
+
+                navigation.navigate("ChatStack", {
+                  screen: "ChannelListScreen",
+                });
+              } catch (e) {
+                console.log(e);
+              }
+              setStartChatLoading(false);
+            }}
+            style={{
+              alignItems: "center",
+              flexDirection: "row",
+              justifyContent: "center",
+
+              borderRadius: 3,
+
+              paddingVertical: 5,
+              paddingHorizontal: 8,
+
+              backgroundColor: "#0082ff",
+
+              marginTop: 8,
+              flex: 1,
+            }}
+          >
+            {startChatLoading ? (
+              <ActivityIndicator size={17} color={"#121212"} />
+            ) : (
+              <View style={{ flexDirection: "row" }}>
+                <Text
+                  style={{
+                    color: "#121212",
+
+                    fontSize: 13,
+                    fontWeight: "700",
+
+                    marginRight: 4,
+                  }}
+                >
+                  Start Chat
+                </Text>
+                <IconMI
+                  name={"message-arrow-right"}
+                  size={16}
+                  style={{ color: "#121212" }}
+                />
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
-      </LinearGradient>
+      </V>
     );
   else return null;
 }
