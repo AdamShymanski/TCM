@@ -13,248 +13,159 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import IconC from "react-native-vector-icons/MaterialIcons";
 
-import { db, auth } from "../authContext";
+import { firebaseObj, db, auth, storage } from "../authContext";
 import { useRoute, useNavigation } from "@react-navigation/native";
 
 import ChatBubble from "./../shared/Bubbles/ChatBubble";
-
-// export default function Chat({ route, setSellerIdState }) {
-//   const [messages, setMessages] = useState([]);
-
-//   const data = route.params.data;
-//   const ownerId = route.params?.data.uid;
-
-//   const chatRef = db.collection(`chats/${data?.id}/messages`);
-
-//   useEffect(() => {
-//     setSellerIdState(ownerId);
-
-//     const unsubscribe = chatRef.onSnapshot((querySnapshot) => {
-//       const messagesFirestore = querySnapshot
-//         .docChanges()
-//         .filter(({ type }) => type === "added")
-//         .map(({ doc }) => {
-//           const message = doc.data();
-
-//           return {
-//             _id: message._id,
-//             text: message.text,
-//             createdAt: message.createdAt.toDate(),
-//             user: {
-//               _id: message.user._id,
-//               name: message.user.name,
-//             },
-//             sent: true,
-//             received: message.received,
-//           };
-//         })
-//         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-//       appendMessages(messagesFirestore);
-//     });
-
-//     return () => unsubscribe();
-//   }, []);
-
-//   useEffect(() => {
-//     console.log(messages);
-//   }, [messages]);
-
-//   const appendMessages = useCallback(
-//     (messages) => {
-//       setMessages((previousMessages) =>
-//         GiftedChat.append(previousMessages, messages)
-//       );
-//     },
-//     [messages]
-//   );
-
-//   async function handleSend(messages) {
-//     const writes = messages.map((m) => {
-//       m.received = false;
-//       m.user.name = auth.currentUser.displayName;
-//       chatRef.add(m);
-//     });
-
-//     await Promise.all(writes);
-//   }
-
-//   return (
-//     <View
-//       style={{ backgroundColor: "#1b1b1b", flex: 1, flexDirection: "column" }}
-//     >
-//       <GiftedChat
-//         messages={messages}
-//         renderBubble={(props) => {
-//           return (
-//             <Bubble
-//               {...props}
-//               textStyle={{
-//                 right: {
-//                   color: "#f4f4f4",
-//                 },
-//                 left: {
-//                   color: "#f4f4f4",
-//                 },
-//               }}
-//               wrapperStyle={{
-//                 left: {
-//                   backgroundColor: "#0071db",
-//                   borderRadius: 4,
-//                 },
-//                 right: {
-//                   backgroundColor: "#0082ff",
-//                   borderRadius: 4,
-//                 },
-//               }}
-//             />
-//           );
-//         }}
-//         user={{ _id: auth.currentUser.uid, name: auth.currentUser.displayName }}
-//         onSend={async (messages) => {
-//           await handleSend(messages);
-//         }}
-//         renderLoading={() => <ActivityIndicator size="large" color="#0082ff" />}
-//       />
-//     </View>
-//   );
-// }
 
 export default function Chat() {
   const route = useRoute();
   const navigation = useNavigation();
 
-  var date1 = new Date("08/05/2015 23:41:20");
-  var date2 = new Date("08/05/2015 23:47:30");
-  var date3 = new Date("08/05/2015 23:49:32");
-
-  const chatId = route.params.id;
-  //Jz2fuJiDSps0P3fTPxhq
-  console.log(route.params.id);
-
-  //fetch chat
-  useEffect(() => {
-    //chat id
-    const resolvePromises = async () => {
-      // await db.collection("chats").add({
-      //   createdAt: new Date(),
-      //   participants: [auth.currentUser.uid, "z"],
-      //   newMessage: null,
-      // });
-
-      db.collection(`chats/${chatId}/messages`)
-        .limit(10)
-        .orderBy("sentAt", "asc")
-        .onSnapshot((doc) => {
-          let messages = [];
-          doc.forEach((message) => {
-            messages.push(message.data());
-          });
-          setMessages(messages);
-        });
-
-      // await db
-      //   .collection("chats")
-      //   .doc(chatId)
-      //   .onSnapshot((doc) => {
-      //     let messages = [];
-      //     doc.forEach((message) => {
-      //       console.log(message.data());
-      //       messages.push(message.data());
-      //     });
-      //     setMessages(messages);
-      //   });
-    };
-
-    resolvePromises();
-  }, []);
-
-  useEffect(() => {
-    if (photoState) {
-      setMessages((prevState) => [
-        ...prevState,
-        {
-          sentAt: new Date(),
-          type: "image",
-          content: photoState[0].uri,
-          sender: "1",
-        },
-      ]);
-      setPhoto(null);
-    }
-  }, [photoState]);
-
-  const sendMessage = async (text) => {
-    if (text.length > 0) {
-      const message = {
-        sentAt: new Date(),
-        type: "text",
-        content: text,
-        sender: auth.currentUser.uid,
-      };
-
-      setMessages((prevState) => [...prevState, message]);
-
-      await db.collection("chats").doc(chatId).collection("messages").add({
-        sentAt: new Date(),
-        type: "text",
-        content: text,
-        sender: auth.currentUser.uid,
-      });
-      setInputValue("Type a message...");
-    }
-  };
-
-  const sendImage = () => {
-    const storageRef = firebase.storage().ref(`cards/${docRef.id}`);
-    photoState.map(async (photo, i) => {
-      const response = await fetch(photo.uri);
-      const blob = await response.blob();
-      await storageRef.child(`/${i}`).put(blob);
-    });
-  };
-
   const [inputValue, setInputValue] = useState("Type a message...");
   const [showTime, setShowTime] = useState();
   const [photoState, setPhoto] = useState();
 
-  const [messages, setMessages] = useState([
-    // {
-    //   sentAt: date1,
-    //   type: "text",
-    //   content: "Hello",
-    //   sender: "1",
-    // },
-    // {
-    //   sentAt: date2,
-    //   type: "text",
-    //   content: "Hello",
-    //   sender: "1",
-    // },
-    // {
-    //   sentAt: date3,
-    //   type: "text",
-    //   content: "Hello",
-    //   sender: "0",
-    // },
-  ]);
+  const [messages, setMessages] = useState([]);
+  const [firstMessage, setFirstMessage] = useState([]);
 
-  const docId = {
-    createdAt: "date",
-    participants: ["x", "z"],
-    messages: [
-      {
-        sentAt: "x",
-        type: "image/text",
-        content: "url/text",
-        sender: "XX",
-      },
-    ],
-    newMessage: "null,x,z",
+  const chatId = route.params.id;
+
+  let isMounted = true;
+
+  useEffect(() => {
+    const resolvePromises = async () => {
+      await db
+        .collection(`chats/${chatId}/messages`)
+        .orderBy("sentAt", "desc")
+        .limit(20)
+        .get()
+        .then((doc) => {
+          let messages = [];
+
+          doc.forEach((message, index) => {
+            if (index === 0) setFirstMessage(message.data());
+            messages.push({ ...message.data(), id: message.id });
+          });
+
+          setFirstMessage(doc.docs[0].data());
+
+          if (isMounted) setMessages(messages);
+        });
+
+      if (firstMessage?.sentAt) {
+        db.collection(`chats/${chatId}/messages`)
+          .orderBy("sentAt", "desc")
+          .where("sentAt", "<", firstMessage.sentAt.toDate())
+          .onSnapshot((doc) => {
+            let messages = [];
+
+            console.log("vxv");
+
+            doc.forEach((message) => {
+              messages.push({ ...message.data(), id: message.id });
+            });
+
+            setFirstMessage(doc.docs[0].data());
+
+            if (isMounted) {
+              setMessages((prevState) => [...prevState, ...messages]);
+              console.log("added message");
+            }
+          });
+      } else {
+        db.collection(`chats/${chatId}/messages`)
+          .orderBy("sentAt", "desc")
+          .onSnapshot((doc) => {
+            let messages = [];
+
+            console.log("bmb");
+
+            doc.forEach((message) => {
+              messages.push({ ...message.data(), id: message.id });
+            });
+
+            setFirstMessage(doc.docs[0].data());
+
+            if (isMounted) {
+              setMessages((prevState) => [...prevState, ...messages]);
+              console.log("added message");
+            }
+          });
+      }
+    };
+
+    resolvePromises();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(async () => {
+    if (photoState) sendImage(photoState);
+  }, [photoState]);
+
+  const sendMessage = async (text) => {
+    if (text.length > 0) {
+      try {
+        const message = {
+          type: "text",
+          content: text,
+          sender: auth.currentUser.uid,
+          sentAt: new Date(),
+        };
+
+        setMessages((prevState) => [message, ...prevState]);
+
+        await db.collection(`chats/${chatId}/messages`).add({
+          sentAt: new Date(),
+          type: "text",
+          content: text,
+          sender: auth.currentUser.uid,
+        });
+
+        setInputValue("Type a message...");
+      } catch (e) {
+        console.log(e);
+      }
+    }
   };
 
-  // useEffect(() => {
-  //   console.log(messages);
-  // }, [messages]);
+  const sendImage = async (photoState) => {
+    if (photoState) {
+      try {
+        const messageLocal = {
+          sentAt: new Date(),
+          type: "text",
+          content: photoState[0].uri,
+          sender: auth.currentUser.uid,
+        };
+
+        setMessages((prevState) => [messageLocal, ...prevState]);
+
+        await db
+          .collection(`chats/${chatId}/messages`)
+          .add({
+            sentAt: firebaseObj.firestore.FieldValue.serverTimestamp(),
+            type: "image",
+            sender: auth.currentUser.uid,
+          })
+          .then(async (docRef) => {
+            // sendImage(photoState[0].uri, docRef.id);
+            const storageRef = storage.ref(`chats/${chatId}`);
+            const response = await fetch(photoState[0].uri);
+            const blob = await response.blob();
+
+            await storageRef.child(`/${docRef.id}`).put(blob);
+          });
+      } catch (e) {
+        console.log(e);
+      }
+
+      setPhoto(null);
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#1b1b1b" }}>
@@ -263,7 +174,7 @@ export default function Chat() {
           flexDirection: "row",
           alignItems: "center",
 
-          paddingTop: 24,
+          paddingTop: 38,
           paddingBottom: 10,
           marginBottom: 10,
 
@@ -291,6 +202,7 @@ export default function Chat() {
       </View>
       <FlatList
         data={messages}
+        inverted={true}
         scrollEventThrottle={2000}
         style={{
           backgroundColor: "#1b1b1b",
@@ -308,150 +220,357 @@ export default function Chat() {
           //next message is sent by different user
           //next message is sent more then 5 minutes after current message
 
-          if (item.sender == auth.currentUser.uid) {
-            if (
-              (messages[index + 1] && messages[index + 1].sender != "0") ||
-              (messages[index + 1] &&
-                messages[index + 1].sentAt - messages[index].sentAt > 300000) ||
-              messages.length == 1 ||
-              messages.length - 1 == index
-            ) {
-              return (
-                <TouchableOpacity
-                  style={{ flexDirection: "row-reverse", marginBottom: 8 }}
-                  onPress={() => {
-                    if (showTime === index) {
-                      setShowTime();
-                    } else {
-                      setShowTime(index);
-                    }
-                  }}
-                >
-                  <ChatBubble props={item} index={index} />
-                  {showTime == index ? (
-                    <Text
-                      style={{
-                        color: "#f4f4f4",
-                        fontSize: 12,
-                        bottom: -23,
-                        left: 10,
-                      }}
-                    >
-                      {item.sentAt.toISOString().slice(11, 16)}
-                    </Text>
-                  ) : null}
-                </TouchableOpacity>
-              );
-            } else {
-              return (
-                <TouchableOpacity
-                  style={{ flexDirection: "row-reverse" }}
-                  onPress={() => {
-                    if (showTime === index) {
-                      setShowTime();
-                    } else {
-                      setShowTime(index);
-                    }
-                  }}
-                >
-                  <ChatBubble props={item} index={index} />
-                  {showTime == index ? (
-                    <Text
-                      style={{
-                        color: "#f4f4f4",
-                        fontSize: 12,
-                        top: 24,
-                        left: 10,
-                      }}
-                    >
-                      {item.sentAt.toISOString().slice(11, 16)}
-                    </Text>
-                  ) : null}
-                </TouchableOpacity>
-              );
-            }
-          } else {
-            if (
-              (messages[index + 1] &&
-                messages[index + 1].sender == auth.currentUser.uid) ||
-              (messages[index + 1] &&
-                messages[index + 1].sentAt - messages[index].sentAt > 300000) ||
-              messages.length == 1 ||
-              messages.length - 1 == index
-            ) {
-              return (
-                <TouchableOpacity
-                  style={{ flexDirection: "row", marginBottom: 8 }}
-                  onPress={() => {
-                    if (showTime === index) {
-                      setShowTime();
-                    } else {
-                      setShowTime(index);
-                    }
-                  }}
-                >
-                  <View
+          item.chatId = chatId;
+
+          // var h = new Date(item.sentAt.getHours).getHours();
+          // var m = new Date(item.sentAt).getMinutes();
+          let time = null;
+
+          try {
+            var h = item.sentAt.toDate().getHours();
+            var m = item.sentAt.toDate().getMinutes();
+
+            h = h < 10 ? "0" + h : h;
+            m = m < 10 ? "0" + m : m;
+
+            time = h + ":" + m;
+          } catch (e) {
+            time = item.sentAt.getHours() + ":" + item.sentAt.getMinutes();
+          }
+
+          try {
+            if (item.sender == auth.currentUser.uid) {
+              if (
+                (messages[index - 1] &&
+                  messages[index - 1].sentAt.toDate() - item.sentAt.toDate() >
+                    300000 &&
+                  messages[index - 1].sender == auth.currentUser.uid) ||
+                (messages[index - 1] &&
+                  messages[index - 1].sender != auth.currentUser.uid) ||
+                index == 0
+              ) {
+                return (
+                  <TouchableOpacity
                     style={{
-                      position: "absolute",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      flexDirection: "row-reverse",
+                      alignItems: "flex-end",
+                      justifyContent: "flex-start",
 
-                      marginLeft: 4,
-                      marginTop: 8,
-
-                      height: 30,
-                      width: 30,
-
-                      borderRadius: 4,
-                      backgroundColor: "#0082ff",
+                      marginBottom: 8,
+                    }}
+                    onPress={() => {
+                      if (showTime === index) {
+                        setShowTime();
+                      } else {
+                        setShowTime(index);
+                      }
                     }}
                   >
-                    <Text style={{ fontWeight: "700", color: "#f4f4f4" }}>
-                      J
-                    </Text>
-                  </View>
-                  <ChatBubble props={item} index={index} />
-                  {showTime == index ? (
-                    <Text
-                      style={{
-                        color: "#f4f4f4",
-                        fontSize: 12,
-                        left: 10,
-                        bottom: -23,
-                      }}
-                    >
-                      {item.sentAt.toISOString().slice(11, 16)}
-                    </Text>
-                  ) : null}
-                </TouchableOpacity>
-              );
+                    <ChatBubble props={item} index={index} />
+                    {showTime == index ? (
+                      <Text
+                        style={{
+                          color: "#f4f4f4",
+                          fontSize: 12,
+                          marginRight: 10,
+                        }}
+                      >
+                        {time}
+                      </Text>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              } else {
+                return (
+                  <TouchableOpacity
+                    style={{
+                      flexDirection: "row-reverse",
+                      alignItems: "flex-end",
+                      justifyContent: "flex-start",
+                    }}
+                    onPress={() => {
+                      if (showTime === index) {
+                        setShowTime();
+                      } else {
+                        setShowTime(index);
+                      }
+                    }}
+                  >
+                    <ChatBubble props={item} index={index} />
+                    {showTime == index ? (
+                      <Text
+                        style={{
+                          color: "#f4f4f4",
+                          fontSize: 12,
+                          marginRight: 10,
+                        }}
+                      >
+                        {time}
+                      </Text>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              }
             } else {
-              return (
-                <TouchableOpacity
-                  style={{ flexDirection: "row" }}
-                  onPress={() => {
-                    if (showTime === index) {
-                      setShowTime();
-                    } else {
-                      setShowTime(index);
-                    }
-                  }}
-                >
-                  <ChatBubble props={item} index={index} />
-                  {showTime == index ? (
-                    <Text
+              if (
+                (messages[index - 1] &&
+                  messages[index - 1].sentAt.toDate() - item.sentAt.toDate() >
+                    300000 &&
+                  messages[index - 1].sender != auth.currentUser.uid) ||
+                (messages[index - 1] &&
+                  messages[index - 1].sender == auth.currentUser.uid) ||
+                index == 0
+              ) {
+                return (
+                  <TouchableOpacity
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "flex-end",
+                      justifyContent: "flex-start",
+
+                      marginBottom: 8,
+                    }}
+                    onPress={() => {
+                      if (showTime === index) {
+                        setShowTime();
+                      } else {
+                        setShowTime(index);
+                      }
+                    }}
+                  >
+                    <View
                       style={{
-                        color: "#f4f4f4",
-                        fontSize: 12,
-                        top: 24,
-                        left: 10,
+                        alignItems: "center",
+                        justifyContent: "center",
+
+                        marginLeft: 4,
+                        marginRight: 8,
+                        height: 30,
+                        width: 30,
+                        marginBottom: 2,
+
+                        borderRadius: 4,
+                        backgroundColor: "#0082ff",
                       }}
                     >
-                      {item.sentAt.toISOString().slice(11, 16)}
-                    </Text>
-                  ) : null}
-                </TouchableOpacity>
-              );
+                      <Text style={{ fontWeight: "700", color: "#f4f4f4" }}>
+                        J
+                      </Text>
+                    </View>
+
+                    <ChatBubble props={item} index={index} />
+
+                    {showTime == index ? (
+                      <Text
+                        style={{
+                          color: "#f4f4f4",
+                          fontSize: 12,
+                          marginLeft: 10,
+                        }}
+                      >
+                        {time}
+                      </Text>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              } else {
+                return (
+                  <TouchableOpacity
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "flex-end",
+                      justifyContent: "flex-start",
+                      marginLeft: 42,
+                    }}
+                    onPress={() => {
+                      if (showTime === index) {
+                        setShowTime();
+                      } else {
+                        setShowTime(index);
+                      }
+                    }}
+                  >
+                    <ChatBubble props={item} index={index} />
+                    {showTime == index ? (
+                      <Text
+                        style={{
+                          color: "#f4f4f4",
+                          fontSize: 12,
+                          marginLeft: 10,
+                        }}
+                      >
+                        {time}
+                      </Text>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              }
+            }
+          } catch (e) {
+            if (item.sender == auth.currentUser.uid) {
+              if (
+                (messages[index - 1] &&
+                  messages[index - 1].sentAt - item.sentAt > 300000 &&
+                  messages[index - 1].sender == auth.currentUser.uid) ||
+                (messages[index - 1] &&
+                  messages[index - 1].sender != auth.currentUser.uid) ||
+                index == 0
+              ) {
+                return (
+                  <TouchableOpacity
+                    style={{
+                      flexDirection: "row-reverse",
+                      alignItems: "flex-end",
+                      justifyContent: "flex-start",
+
+                      marginBottom: 8,
+                    }}
+                    onPress={() => {
+                      if (showTime === index) {
+                        setShowTime();
+                      } else {
+                        setShowTime(index);
+                      }
+                    }}
+                  >
+                    <ChatBubble props={item} index={index} />
+                    {showTime == index ? (
+                      <Text
+                        style={{
+                          color: "#f4f4f4",
+                          fontSize: 12,
+                          marginRight: 10,
+                        }}
+                      >
+                        {time}
+                      </Text>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              } else {
+                return (
+                  <TouchableOpacity
+                    style={{
+                      flexDirection: "row-reverse",
+                      alignItems: "flex-end",
+                      justifyContent: "flex-start",
+                    }}
+                    onPress={() => {
+                      if (showTime === index) {
+                        setShowTime();
+                      } else {
+                        setShowTime(index);
+                      }
+                    }}
+                  >
+                    <ChatBubble props={item} index={index} />
+                    {showTime == index ? (
+                      <Text
+                        style={{
+                          color: "#f4f4f4",
+                          fontSize: 12,
+                          marginRight: 10,
+                        }}
+                      >
+                        {time}
+                      </Text>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              }
+            } else {
+              if (
+                (messages[index - 1] &&
+                  messages[index - 1].sentAt - item.sentAt > 300000 &&
+                  messages[index - 1].sender != auth.currentUser.uid) ||
+                (messages[index - 1] &&
+                  messages[index - 1].sender == auth.currentUser.uid) ||
+                index == 0
+              ) {
+                return (
+                  <TouchableOpacity
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "flex-end",
+                      justifyContent: "flex-start",
+
+                      marginBottom: 8,
+                    }}
+                    onPress={() => {
+                      if (showTime === index) {
+                        setShowTime();
+                      } else {
+                        setShowTime(index);
+                      }
+                    }}
+                  >
+                    <View
+                      style={{
+                        alignItems: "center",
+                        justifyContent: "center",
+
+                        marginLeft: 4,
+                        marginRight: 8,
+                        height: 30,
+                        width: 30,
+                        marginBottom: 2,
+
+                        borderRadius: 4,
+                        backgroundColor: "#0082ff",
+                      }}
+                    >
+                      <Text style={{ fontWeight: "700", color: "#f4f4f4" }}>
+                        J
+                      </Text>
+                    </View>
+
+                    <ChatBubble props={item} index={index} />
+
+                    {showTime == index ? (
+                      <Text
+                        style={{
+                          color: "#f4f4f4",
+                          fontSize: 12,
+                          marginLeft: 10,
+                        }}
+                      >
+                        {time}
+                      </Text>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              } else {
+                return (
+                  <TouchableOpacity
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "flex-end",
+                      justifyContent: "flex-start",
+                      marginLeft: 42,
+                    }}
+                    onPress={() => {
+                      if (showTime === index) {
+                        setShowTime();
+                      } else {
+                        setShowTime(index);
+                      }
+                    }}
+                  >
+                    <ChatBubble props={item} index={index} />
+                    {showTime == index ? (
+                      <Text
+                        style={{
+                          color: "#f4f4f4",
+                          fontSize: 12,
+                          marginLeft: 10,
+                        }}
+                      >
+                        {time}
+                      </Text>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              }
             }
           }
         }}

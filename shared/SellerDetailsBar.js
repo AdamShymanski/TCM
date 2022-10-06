@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import IconM from "react-native-vector-icons/MaterialIcons";
@@ -9,7 +15,19 @@ import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
 import cart_down_icon from "./../assets/cart_down.png";
 import cart_up_icon from "./../assets/cart_up.png";
 
+import { useNavigation } from "@react-navigation/native";
+
+import { db, auth, createChat } from "../authContext";
+
+import useChatClient from "../screens/Chat/useChatClient";
+
 export default function SellerDetailsBar({ props }) {
+  const navigation = useNavigation();
+
+  const [startChatLoading, setStartChatLoading] = useState(false);
+
+  const { clientIsReady, chatClient } = useChatClient();
+
   if (!props.hide)
     return (
       <LinearGradient
@@ -179,6 +197,100 @@ export default function SellerDetailsBar({ props }) {
               size={17}
               style={{ color: "#5c5c5c" }}
             />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={async () => {
+              setStartChatLoading(true);
+
+              try {
+                // db.collection("chats")
+                //   .where("participants", "array-contains", auth.currentUser.uid)
+                //   .onSnapshot(async (snapshot) => {
+                //     let chatExists = false;
+                //     snapshot.forEach(async (doc) => {
+                //       if (
+                //         doc
+                //           .data()
+                //           .participants.includes(props.sellerProfile.uid)
+                //       ) {
+                //         chatExists = true;
+
+                //         navigation.navigate("ChatStack", {
+                //           screen: "ChatScreen",
+                //           params: {
+                //             id: doc.id,
+                //             name: props.sellerProfile.name,
+                //           },
+                //         });
+                //       }
+                //     });
+
+                //     if (!chatExists) {
+                //       const id = await createChat(props.sellerProfile.uid);
+                // navigation.navigate("ChatStack", {
+                //   screen: "ChatScreen",
+                //   params: {
+                //     id: id,
+                //     name: props.sellerProfile.name,
+                //   },
+                // });
+                //     }
+                //   });
+                
+                // console.log(auth.currentUser.uid);
+                // console.log(props.sellerProfile.uid);
+
+                const channel = chatClient.channel("messaging", {
+                  members: [props.sellerProfile.uid, auth.currentUser.uid],
+                  created_by_id: auth.currentUser.uid,
+                });
+
+                await channel.create();
+
+                navigation.navigate("ChatStack", {
+                  screen: "ChannelListScreen",
+                });
+              } catch (e) {
+                console.log(e);
+              }
+              setStartChatLoading(false);
+            }}
+            style={{
+              alignItems: "center",
+              flexDirection: "row",
+              justifyContent: "center",
+
+              borderRadius: 3,
+
+              paddingVertical: 5,
+              paddingHorizontal: 8,
+
+              backgroundColor: "#0082ff",
+
+              marginTop: 8,
+            }}
+          >
+            <Text
+              style={{
+                color: "#121212",
+
+                fontSize: 13,
+                fontWeight: "700",
+
+                marginRight: 4,
+              }}
+            >
+              Start Chat
+            </Text>
+            {startChatLoading ? (
+              <ActivityIndicator size={17} color={"#121212"} />
+            ) : (
+              <IconMI
+                name={"message-arrow-right"}
+                size={17}
+                style={{ color: "#121212" }}
+              />
+            )}
           </TouchableOpacity>
         </View>
       </LinearGradient>

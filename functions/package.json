@@ -4,6 +4,7 @@
   "scripts": {
     "serve": "firebase emulators:start --import=./saved-data --export-on-exit=./saved-data",
     "shell": "firebase functions:shell",
+    "functions": "firebase emulators:start --only functions",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
@@ -22,6 +23,7 @@
     "firebase-tools": "^11.2.0",
     "node-fetch": "^3.2.3",
     "request": "^2.88.2",
+    "stream-chat": "^7.1.0",
     "stripe": "^8.214.0"
   },
   "devDependencies": {

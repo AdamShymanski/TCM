@@ -70,6 +70,9 @@ export default function Messages() {
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-evenly",
+
+            borderBottomLeftRadius: 8,
+            borderBottomRightRadius: 8,
           }}
         >
           <TouchableOpacity
@@ -91,7 +94,7 @@ export default function Messages() {
             <Text
               style={{
                 color: pageState === "chats" ? "#121212" : "#f4f4f4",
-                fontFamily: "Roboto_Medium",
+                fontWeight: "700",
                 fontSize: 14,
               }}
             >
@@ -117,7 +120,7 @@ export default function Messages() {
             <Text
               style={{
                 color: pageState === "disputes" ? "#121212" : "#f4f4f4",
-                fontFamily: "Roboto_Medium",
+                fontWeight: "700",
                 fontSize: 14,
               }}
             >
@@ -143,7 +146,7 @@ export default function Messages() {
             <Text
               style={{
                 color: pageState === "mails" ? "#121212" : "#f4f4f4",
-                fontFamily: "Roboto_Medium",
+                fontWeight: "700",
                 fontSize: 14,
               }}
             >
@@ -151,6 +154,7 @@ export default function Messages() {
             </Text>
           </TouchableOpacity>
         </View>
+
         {pageState === "chats" ? <Chats /> : null}
         {pageState === "disputes" ? <Disputes /> : null}
         {pageState === "mails" ? <Mails /> : null}

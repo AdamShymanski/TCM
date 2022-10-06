@@ -26,10 +26,10 @@ export const db = firebase.firestore();
 export const storage = firebase.storage();
 export const functions = firebase.functions();
 
-// if (__DEV__) {
-//   firebase.functions().useEmulator("192.168.0.106", 5001);
-//   firebase.firestore().useEmulator("192.168.0.106", 8080);
-// }
+if (__DEV__) {
+  firebase.functions().useEmulator("192.168.0.106", 5001);
+  // firebase.firestore().useEmulator("192.168.0.106", 8080);
+}
 
 //! CARDS
 export async function fetchCards(props, setProps) {
@@ -179,25 +179,25 @@ export async function checkForUnreadedMessages(result) {
     return false;
   }
 }
-export async function createChat(message, secondUserUid, setChatRef) {
-  db.collection("chats")
-    .add({
-      members: [auth.currentUser.uid, secondUserUid],
-      lastMessage: "",
-      notificationFor: secondUserUid,
-    })
-    .then(async (doc) => {
-      db.collection(`chats/${doc.id}/messages`)
-        .add(message[0])
-        .then(async (messageDoc) => {
-          await db
-            .collection(`chats`)
-            .doc(doc.id)
-            .update({ lastMessage: messageDoc.id });
+export async function createChat(secondUserUid) {
+  let id = null;
 
-          setChatRef(`chats/${doc.id}/messages`);
-        });
+  console.log({
+    participants: [auth.currentUser.uid, secondUserUid],
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+
+  await db
+    .collection("chats")
+    .add({
+      participants: [auth.currentUser.uid, secondUserUid],
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    })
+    .then((doc) => {
+      id = doc.id;
     });
+
+  return id;
 }
 export async function sendMessage(id, message) {
   try {
@@ -1099,6 +1099,8 @@ export async function register(email, password, nick, country, setError) {
             savedOffers: [],
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           });
+        const query = functions.httpsCallable("createChatToken");
+        await query();
 
         await login(email.trim(), password.trim());
       })
@@ -1133,6 +1135,8 @@ export async function deleteAccount() {
       cardObj.id = doc.id;
       arr.push(cardObj);
     });
+
+    functions.httpsCallable("deleteChatUser");
 
     if (arr.length > 0) {
       const promise = new Promise(async (resolve, reject) => {
@@ -1213,6 +1217,11 @@ export async function updateUserData(outValues, initValues, setAddressesArray) {
           .collection("users")
           .doc(auth.currentUser.uid)
           .update({ nick: outValues.nick, country: outValues.country });
+
+        //update nick in firebase auth
+        await auth.currentUser.updateProfile({
+          displayName: outValues.nick,
+        });
       } else {
         await db
           .collection("users")
@@ -1513,6 +1522,7 @@ export async function fetchSavedOffersId(setSavedOffersId) {
 export async function fetchMostRecentOffers(setMostRecentOffers) {
   try {
     const offers = [];
+
     await db
       .collection("offers")
       .orderBy("timestamp", "desc")

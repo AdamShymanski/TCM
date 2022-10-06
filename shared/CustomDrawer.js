@@ -18,13 +18,7 @@ import * as GoogleSignIn from "expo-google-sign-in";
 
 import { CommonActions } from "@react-navigation/native";
 
-import {
-  db,
-  auth,
-  firebaseObj,
-  fetchOwnerData,
-  checkForUnreadedMessages,
-} from "../authContext";
+import { db, auth, firebaseObj } from "../authContext";
 
 const countryCodes = [
   { Code: "AF", Name: "Afghanistan" },
@@ -287,6 +281,7 @@ export default function CustomDrawer({ navigation }) {
   useEffect(() => {
     auth.onAuthStateChanged(async (user) => {
       setAuthState(user);
+
       if (user) {
         db.collection("users")
           .doc(auth.currentUser.uid)
@@ -611,26 +606,26 @@ export default function CustomDrawer({ navigation }) {
                 navigation.navigate("TransactionsStack");
               }}
             />
-            {/* <DrawerItem
+            <DrawerItem
               icon={({ color, size }) => (
                 <Icon name="message-outline" color={"#f4f4f4"} size={size} />
               )}
               labelStyle={{ color: "#f4f4f4" }}
               label="Messages"
               onPress={() => {
-                navigation.navigate("MessagesStack");
+                navigation.navigate("ChatStack");
               }}
-            /> */}
+            />
             {/* <DrawerItem
               icon={({ color, size }) => (
                 <Icon
-                  name='account-check-outline'
-                  color={'#f4f4f4'}
+                  name="account-check-outline"
+                  color={"#f4f4f4"}
                   size={size}
                 />
               )}
-              labelStyle={{ color: '#f4f4f4' }}
-              label='Support'
+              labelStyle={{ color: "#f4f4f4" }}
+              label="Support"
               onPress={() => {
                 // props.navigation.navigate('SupportScreen');
               }}

@@ -26,15 +26,26 @@ export default function Chats() {
         .onSnapshot((doc) => {
           const array = [];
 
-          doc.forEach((doc) => {
+          const update = true;
+
+          doc.forEach((doc, index) => {
             array.push({
               data: doc.data(),
-              uid: "lDKpPeBYaUXT2t6JFHOPv3Xd6FE3",
               id: doc.id,
             });
-          });
 
-          setObjectsArray(array);
+            if (
+              index === doc.length - 1 &&
+              doc.data().sender === auth.currentUser.uid &&
+              doc.data().type === "image"
+            ) {
+              update = false;
+            }
+          });
+          
+          if (update) {
+            setObjectsArray(array);
+          }
         });
     };
     resolvePromise();

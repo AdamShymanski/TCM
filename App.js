@@ -1,17 +1,28 @@
 // @refresh reset
+import "react-native-gesture-handler";
+
 import React, { useState, useEffect, useRef } from "react";
 import * as Updates from "expo-updates";
 
 import { Link, NavigationContainer } from "@react-navigation/native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import {
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 
 import { createStackNavigator } from "@react-navigation/stack";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { LogBox } from "react-native";
 
+import { OverlayProvider, Chat } from "stream-chat-expo";
+
 import Buy from "./screens/Buy";
-import Chat from "./screens/Chat";
+// import Chat from "./screens/StreamChat";
+
 import Cart from "./screens/Cart";
 import Home from "./screens/Home.js";
 import Thanks from "./screens/Thanks";
@@ -53,6 +64,10 @@ import WorkInProgress from "./screens/WorkInProgress";
 import CustomHeader from "./shared/CustomHeader";
 import CustomDrawer from "./shared/CustomDrawer";
 
+import ChannelScreen from "./screens/Chat/ChannelScreen";
+import ChannelListScreen from "./screens/Chat/ChannelListScreen";
+import useChatClient from "./screens/Chat/useChatClient";
+
 //!import SearchForSeller from "./screens/SearchForSeller";
 
 import { AdMobBanner } from "expo-ads-admob";
@@ -76,13 +91,15 @@ const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 const prefix = Linking.makeUrl("/");
 
-if (__DEV__) {
-} else {
+//Stream Chat
+
+if (!__DEV__) {
   Sentry.init({
     dsn: "https://6131440690cd436b8802bd5b1318e1a6@o1133377.ingest.sentry.io/6179878",
     enableInExpoDevelopment: true,
     debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
   });
+  console.log("Sentry initialized");
 }
 
 async function registerForPushNotificationsAsync() {
@@ -534,149 +551,270 @@ function CartStack() {
     </Stack.Navigator>
   );
 }
-function ChatStack() {
-  const [listenerData, setListenerData] = useState([]);
-  const [sellerIdState, setSellerIdState] = useState(null);
+// function ChatStack() {
+//   const [listenerData, setListenerData] = useState([]);
+//   const [sellerIdState, setSellerIdState] = useState(null);
 
-  useEffect(() => {
-    const resolvePromises = async () => {
-      await setChatListeners(setListenerData);
-    };
-    resolvePromises();
-  }, []);
+//   useEffect(() => {
+//     const resolvePromises = async () => {
+//       await setChatListeners(setListenerData);
+//     };
+//     resolvePromises();
+//   }, []);
+
+//   return (
+//     <Stack.Navigator>
+//       <Stack.Screen
+//         name="ChatScreen"
+//         children={(props) => (
+//           <Chat route={props.route} setSellerIdState={setSellerIdState} />
+//         )}
+//         options={({ navigation, route }) => ({
+//           headerShown: false,
+//           // headerLeft: () => (
+//           //   <TouchableOpacity
+//           //     style={{
+//           //       borderRadius: 3,
+//           //       marginLeft: 12,
+
+//           //       height: 30,
+//           //       flexDirection: "row",
+//           //       alignItems: "center",
+//           //       justifyContent: "center",
+//           //       borderWidth: 2,
+//           //       borderColor: "#777777",
+//           //       paddingHorizontal: 12,
+//           //     }}
+//           //     onPress={() => navigation.goBack()}
+//           //   >
+//           //     <Text
+//           //       style={{
+//           //         fontSize: 16,
+//           //         fontWeight: "700",
+//           //         color: "#777777",
+//           //       }}
+//           //     >
+//           //       {"Go back"}
+//           //     </Text>
+//           //   </TouchableOpacity>
+//           // ),
+//           // headerTintColor: "#121212",
+//           // headerTitle: "",
+//           // headerStyle: {
+//           //   backgroundColor: "#121212",
+//           // },
+//         })}
+//       />
+//       <Stack.Screen
+//         name="ChatConversations"
+//         children={() => <ChatConversations listenerData={listenerData} />}
+//         options={{
+//           headerTitle: () => <CustomHeader version={"chatConversations"} />,
+//           headerStyle: {
+//             backgroundColor: "#121212",
+//           },
+//         }}
+//       />
+//       <Stack.Screen
+//         name="SupportChatScreen"
+//         component={SupportChat}
+//         options={({ navigation, route }) => ({
+//           headerLeft: () => (
+//             <TouchableOpacity
+//               style={{
+//                 borderRadius: 3,
+//                 marginLeft: 12,
+
+//                 height: 30,
+//                 flexDirection: "row",
+//                 alignItems: "center",
+//                 justifyContent: "center",
+//                 borderWidth: 2,
+//                 borderColor: "#777777",
+//                 paddingHorizontal: 12,
+//               }}
+//               onPress={() => navigation.goBack()}
+//             >
+//               <Text
+//                 style={{
+//                   fontSize: 16,
+//                   fontWeight: "700",
+//                   color: "#777777",
+//                 }}
+//               >
+//                 {"Go back"}
+//               </Text>
+//             </TouchableOpacity>
+//           ),
+//           headerTintColor: "#121212",
+//           headerTitle: "",
+//           headerStyle: {
+//             backgroundColor: "#121212",
+//           },
+//         })}
+//       />
+//       <Stack.Screen
+//         name="StartChat"
+//         children={(props) => (
+//           <StartChat route={props.route} setSellerIdState={setSellerIdState} />
+//         )}
+//         options={({ navigation, route }) => ({
+//           headerLeft: () => (
+//             <TouchableOpacity
+//               style={{
+//                 borderRadius: 3,
+//                 marginLeft: 12,
+
+//                 height: 30,
+//                 flexDirection: "row",
+//                 alignItems: "center",
+//                 justifyContent: "center",
+//                 borderWidth: 2,
+//                 borderColor: "#777777",
+//                 paddingHorizontal: 12,
+//               }}
+//               onPress={() => navigation.goBack()}
+//             >
+//               <Text
+//                 style={{
+//                   fontSize: 16,
+//                   fontWeight: "700",
+//                   color: "#777777",
+//                 }}
+//               >
+//                 {"Go back"}
+//               </Text>
+//             </TouchableOpacity>
+//           ),
+//           headerTintColor: "#121212",
+//           headerTitle: "",
+//           headerStyle: {
+//             backgroundColor: "#121212",
+//           },
+//         })}
+//       />
+//     </Stack.Navigator>
+//   );
+// }
+
+const theme = {
+  channelListSkeleton: {
+    background: {
+      backgroundColor: "#1b1b1b",
+    },
+    maskFillColor: "#1b1b1b",
+    container: {
+      backgroundColor: "#1b1b1b",
+    },
+  },
+  channelPreview: {
+    container: {
+      backgroundColor: "#1b1b1b",
+    },
+    title: {
+      color: "#f4f4f4",
+    },
+  },
+  channelListMessenger: {
+    flatList: {
+      backgroundColor: "#1b1b1b",
+    },
+  },
+  loadingErrorIndicator: {
+    container: {
+      backgroundColor: "red",
+    },
+    errorText: {
+      color: "red",
+    },
+    retryText: {
+      color: "red",
+    },
+  },
+  messageInput: {
+    container: {
+      backgroundColor: "#121212",
+      color: "#f4f4f4",
+    },
+    inputBoxContainer: {
+      backgroundColor: "#121212",
+      color: "#f4f4f4",
+    },
+    autoCompleteInputContainer: {
+      color: "#f4f4f4",
+    },
+    inputBox: {
+      color: "#f4f4f4",
+    },
+  },
+};
+
+// channelListSkeleton: {
+//   animationTime: number;
+//   background: ViewStyle;
+//   container: ViewStyle;
+//   gradientStart: StopProps;
+//   gradientStop: StopProps;
+//   height: number;
+//   maskFillColor?: Color;
+// };
+
+function ChatStack() {
+  const { clientIsReady, chatClient } = useChatClient();
+
+  const [channel, setChannel] = useState();
+  const [thread, setThread] = useState();
+
+  if (!clientIsReady) {
+    return (
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Loading..."
+          children={() => (
+            <View
+              style={{
+                backgroundColor: "#1b1b1b",
+                flex: 1,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <ActivityIndicator size={"large"} color={"#0082ff"} />
+            </View>
+          )}
+          options={{
+            headerTitle: () => <CustomHeader version={"messages"} />,
+            headerStyle: {
+              backgroundColor: "#121212",
+            },
+          }}
+        />
+      </Stack.Navigator>
+    );
+  }
 
   return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="ChatConversations"
-        children={() => <ChatConversations listenerData={listenerData} />}
-        options={{
-          headerTitle: () => <CustomHeader version={"chatConversations"} />,
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        }}
-      />
-      <Stack.Screen
-        name="ChatScreen"
-        children={(props) => (
-          <Chat route={props.route} setSellerIdState={setSellerIdState} />
-        )}
-        options={({ navigation, route }) => ({
-          headerShown: false,
-          // headerLeft: () => (
-          //   <TouchableOpacity
-          //     style={{
-          //       borderRadius: 3,
-          //       marginLeft: 12,
-
-          //       height: 30,
-          //       flexDirection: "row",
-          //       alignItems: "center",
-          //       justifyContent: "center",
-          //       borderWidth: 2,
-          //       borderColor: "#777777",
-          //       paddingHorizontal: 12,
-          //     }}
-          //     onPress={() => navigation.goBack()}
-          //   >
-          //     <Text
-          //       style={{
-          //         fontSize: 16,
-          //         fontWeight: "700",
-          //         color: "#777777",
-          //       }}
-          //     >
-          //       {"Go back"}
-          //     </Text>
-          //   </TouchableOpacity>
-          // ),
-          // headerTintColor: "#121212",
-          // headerTitle: "",
-          // headerStyle: {
-          //   backgroundColor: "#121212",
-          // },
-        })}
-      />
-      <Stack.Screen
-        name="SupportChatScreen"
-        component={SupportChat}
-        options={({ navigation, route }) => ({
-          headerLeft: () => (
-            <TouchableOpacity
-              style={{
-                borderRadius: 3,
-                marginLeft: 12,
-
-                height: 30,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 2,
-                borderColor: "#777777",
-                paddingHorizontal: 12,
-              }}
-              onPress={() => navigation.goBack()}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#777777",
-                }}
-              >
-                {"Go back"}
-              </Text>
-            </TouchableOpacity>
-          ),
-          headerTintColor: "#121212",
-          headerTitle: "",
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        })}
-      />
-      <Stack.Screen
-        name="StartChat"
-        children={(props) => (
-          <StartChat route={props.route} setSellerIdState={setSellerIdState} />
-        )}
-        options={({ navigation, route }) => ({
-          headerLeft: () => (
-            <TouchableOpacity
-              style={{
-                borderRadius: 3,
-                marginLeft: 12,
-
-                height: 30,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 2,
-                borderColor: "#777777",
-                paddingHorizontal: 12,
-              }}
-              onPress={() => navigation.goBack()}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#777777",
-                }}
-              >
-                {"Go back"}
-              </Text>
-            </TouchableOpacity>
-          ),
-          headerTintColor: "#121212",
-          headerTitle: "",
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-        })}
-      />
-    </Stack.Navigator>
+    <Chat client={chatClient}>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="ChannelListScreen"
+          children={() => <ChannelListScreen setChannel={setChannel} />}
+          options={{
+            headerTitle: () => <CustomHeader version={"messages"} />,
+            headerStyle: {
+              backgroundColor: "#121212",
+            },
+          }}
+        />
+        <Stack.Screen
+          name="ChannelScreen"
+          children={() => <ChannelScreen channel={channel} />}
+          options={({ navigation, route }) => ({
+            headerShown: false,
+          })}
+        />
+      </Stack.Navigator>
+    </Chat>
   );
 }
 function YourOffersStack() {
@@ -1322,7 +1460,7 @@ function MessagesStack() {
           },
         }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="ChatScreen"
         children={(props) => <Chat route={props.route} />}
         options={({ navigation, route }) => ({
@@ -1360,7 +1498,7 @@ function MessagesStack() {
           //   backgroundColor: "#121212",
           // },
         })}
-      />
+      /> */}
     </Stack.Navigator>
   );
 }
@@ -1400,6 +1538,7 @@ export default function App() {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
         // await setTestDeviceIDAsync('EMULATOR');
+
         const usersDoc = await db
           .collection("users")
           .doc(auth.currentUser.uid)
@@ -1460,8 +1599,7 @@ export default function App() {
           Roboto_Medium: require("./assets/fonts/Roboto-Medium.ttf"),
         });
 
-        if (__DEV__) {
-        } else {
+        if (!__DEV__) {
           const update = await Updates.checkForUpdateAsync();
           if (update.isAvailable) {
             await Updates.fetchUpdateAsync();
@@ -1681,43 +1819,45 @@ export default function App() {
       //! pk_live_51KDXfNCVH1iPNeBrTGAw1ZFwnNCTNO3rJ23zBni3ohGDWO8zuby2xDw3dYiHabs2furS1EAgQKq3hdtR2PP2jPZr00JCFvS9h8
       return (
         <StripeProvider publishableKey="pk_live_51KDXfNCVH1iPNeBrTGAw1ZFwnNCTNO3rJ23zBni3ohGDWO8zuby2xDw3dYiHabs2furS1EAgQKq3hdtR2PP2jPZr00JCFvS9h8">
-          <NavigationContainer linking={linking}>
-            <Drawer.Navigator
-              style={{ backgroundColor: "#82ff00" }}
-              drawerContent={({ navigation }) => (
-                <CustomDrawer navigation={navigation} />
-              )}
-            >
-              <Drawer.Screen name="MessagesStack" component={MessagesStack} />
-              <Drawer.Screen name="ChatStack" component={ChatStack} />
-              <Drawer.Screen name="HomeStack" component={HomeStack} />
-              <Drawer.Screen name="SettingsStack" component={SettingsStack} />
-              <Drawer.Screen name="CartStack" component={CartStack} />
-              <Drawer.Screen name="SellerStack" component={SellerStack} />
-              <Drawer.Screen name="SearchStack" component={SearchStack} />
-              <Drawer.Screen
-                name="TransactionsStack"
-                component={TransactionsStack}
-              />
-              <Drawer.Screen
-                name="YourOffersStack"
-                component={YourOffersStack}
-              />
-              <Drawer.Screen
-                name="ReferralProgramStack"
-                component={ReferralProgramStack}
-              />
-              <Drawer.Screen
-                name="SavedOffersStack"
-                component={SavedOffersStack}
-              />
-              <Drawer.Screen
-                name="DeletingAccount"
-                component={DeletingAccount}
-              />
-              <Drawer.Screen name="WelcomeStack" component={WelcomeStack} />
-            </Drawer.Navigator>
-          </NavigationContainer>
+          <OverlayProvider value={{ style: theme }}>
+            <NavigationContainer linking={linking}>
+              <Drawer.Navigator
+                style={{ backgroundColor: "#82ff00" }}
+                drawerContent={({ navigation }) => (
+                  <CustomDrawer navigation={navigation} />
+                )}
+              >
+                <Drawer.Screen name="HomeStack" component={HomeStack} />
+                <Drawer.Screen name="ChatStack" component={ChatStack} />
+                <Drawer.Screen name="MessagesStack" component={MessagesStack} />
+                <Drawer.Screen name="SettingsStack" component={SettingsStack} />
+                <Drawer.Screen name="CartStack" component={CartStack} />
+                <Drawer.Screen name="SellerStack" component={SellerStack} />
+                <Drawer.Screen name="SearchStack" component={SearchStack} />
+                <Drawer.Screen
+                  name="TransactionsStack"
+                  component={TransactionsStack}
+                />
+                <Drawer.Screen
+                  name="YourOffersStack"
+                  component={YourOffersStack}
+                />
+                <Drawer.Screen
+                  name="ReferralProgramStack"
+                  component={ReferralProgramStack}
+                />
+                <Drawer.Screen
+                  name="SavedOffersStack"
+                  component={SavedOffersStack}
+                />
+                <Drawer.Screen
+                  name="DeletingAccount"
+                  component={DeletingAccount}
+                />
+                <Drawer.Screen name="WelcomeStack" component={WelcomeStack} />
+              </Drawer.Navigator>
+            </NavigationContainer>
+          </OverlayProvider>
         </StripeProvider>
       );
     }

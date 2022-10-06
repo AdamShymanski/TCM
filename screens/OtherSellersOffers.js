@@ -93,7 +93,14 @@ export default function OtherSellersOffers({ route }) {
           </View>
           <View style={{ marginRight: 12, marginLeft: 12 }}>
             <SellerDetailsBar
-              props={{ hide: false, sellerProfile: sellerData.sellerProfile }}
+              props={{
+                hide: false,
+                sellerProfile: {
+                  ...sellerData.sellerProfile,
+                  name: sellerData.nick,
+                  uid: route.params.sellerId,
+                },
+              }}
             />
           </View>
         </View>
