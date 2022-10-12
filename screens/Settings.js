@@ -99,6 +99,11 @@ export default function Settings() {
 
       setAddressesArray(result.addresses);
 
+      const query = functions.httpsCallable("testNotification");
+      await query().then((result) => {
+        console.log(result.data);
+      });
+
       setLoading(false);
     } else {
       setLoading(true);

@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
 import IconM from "react-native-vector-icons/MaterialIcons";
 import IconMI from "react-native-vector-icons/MaterialCommunityIcons";
@@ -30,14 +29,15 @@ export default function SellerDetailsBar({ props }) {
 
   if (!props.hide)
     return (
-      <LinearGradient
-        colors={["#121212", "#212121"]}
+      <View
         style={{
           height: 90,
           marginBottom: 18,
           borderBottomRightRadius: 3,
           borderBottomLeftRadius: 3,
           flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: "#121212",
 
           paddingLeft: 8,
         }}
@@ -165,6 +165,7 @@ export default function SellerDetailsBar({ props }) {
         <View
           style={{
             justifyContent: "center",
+            height: "74%",
           }}
         >
           <TouchableOpacity
@@ -178,6 +179,8 @@ export default function SellerDetailsBar({ props }) {
               borderColor: "#5c5c5c",
               paddingVertical: 3,
               paddingHorizontal: 8,
+
+              flex: 1,
             }}
           >
             <Text
@@ -203,43 +206,6 @@ export default function SellerDetailsBar({ props }) {
               setStartChatLoading(true);
 
               try {
-                // db.collection("chats")
-                //   .where("participants", "array-contains", auth.currentUser.uid)
-                //   .onSnapshot(async (snapshot) => {
-                //     let chatExists = false;
-                //     snapshot.forEach(async (doc) => {
-                //       if (
-                //         doc
-                //           .data()
-                //           .participants.includes(props.sellerProfile.uid)
-                //       ) {
-                //         chatExists = true;
-
-                //         navigation.navigate("ChatStack", {
-                //           screen: "ChatScreen",
-                //           params: {
-                //             id: doc.id,
-                //             name: props.sellerProfile.name,
-                //           },
-                //         });
-                //       }
-                //     });
-
-                //     if (!chatExists) {
-                //       const id = await createChat(props.sellerProfile.uid);
-                // navigation.navigate("ChatStack", {
-                //   screen: "ChatScreen",
-                //   params: {
-                //     id: id,
-                //     name: props.sellerProfile.name,
-                //   },
-                // });
-                //     }
-                //   });
-                
-                // console.log(auth.currentUser.uid);
-                // console.log(props.sellerProfile.uid);
-
                 const channel = chatClient.channel("messaging", {
                   members: [props.sellerProfile.uid, auth.currentUser.uid],
                   created_by_id: auth.currentUser.uid,
@@ -268,32 +234,35 @@ export default function SellerDetailsBar({ props }) {
               backgroundColor: "#0082ff",
 
               marginTop: 8,
+              flex: 1,
             }}
           >
-            <Text
-              style={{
-                color: "#121212",
-
-                fontSize: 13,
-                fontWeight: "700",
-
-                marginRight: 4,
-              }}
-            >
-              Start Chat
-            </Text>
             {startChatLoading ? (
               <ActivityIndicator size={17} color={"#121212"} />
             ) : (
-              <IconMI
-                name={"message-arrow-right"}
-                size={17}
-                style={{ color: "#121212" }}
-              />
+              <View style={{ flexDirection: "row" }}>
+                <Text
+                  style={{
+                    color: "#121212",
+
+                    fontSize: 13,
+                    fontWeight: "700",
+
+                    marginRight: 4,
+                  }}
+                >
+                  Start Chat
+                </Text>
+                <IconMI
+                  name={"message-arrow-right"}
+                  size={16}
+                  style={{ color: "#121212" }}
+                />
+              </View>
             )}
           </TouchableOpacity>
         </View>
-      </LinearGradient>
+      </V>
     );
   else return null;
 }

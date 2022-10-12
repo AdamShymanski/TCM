@@ -1100,7 +1100,19 @@ export async function register(email, password, nick, country, setError) {
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           });
         const query = functions.httpsCallable("createChatToken");
+
         await query();
+        // const { clientIsReady, chatClient } = useChatClient();
+
+        // await query()
+        //   .then((result) => {
+        //     try {
+        //       chatClient.connectUser(user, result.data);
+        //     } catch (e) {
+        //       console.log(e);
+        //     }
+        //   })
+        //   .catch((err) => console.log(err));
 
         await login(email.trim(), password.trim());
       })

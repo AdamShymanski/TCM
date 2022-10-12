@@ -606,7 +606,7 @@ export default function CustomDrawer({ navigation }) {
                 navigation.navigate("TransactionsStack");
               }}
             />
-            <DrawerItem
+            {/* <DrawerItem
               icon={({ color, size }) => (
                 <Icon name="message-outline" color={"#f4f4f4"} size={size} />
               )}
@@ -615,7 +615,7 @@ export default function CustomDrawer({ navigation }) {
               onPress={() => {
                 navigation.navigate("ChatStack");
               }}
-            />
+            /> */}
             {/* <DrawerItem
               icon={({ color, size }) => (
                 <Icon
@@ -816,3 +816,13 @@ const styles2 = StyleSheet.create({
     paddingHorizontal: 16,
   },
 });
+
+// "expo-notifications",
+// {
+//   "icon": "./local/assets/notification-icon.png",
+//   "color": "#ffffff",
+//   "sounds": [
+//     "./local/assets/notification-sound.wav",
+//     "./local/assets/notification-sound-other.wav"
+//   ]
+// }

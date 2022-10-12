@@ -760,6 +760,18 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
     res.status(200).send("event type not handled");
   }
 });
+exports.testNotification = functions.https.onCall(async (data, context) => {
+  try {
+    await serverClient.testPushSettings(context.auth.uid, {
+      messageID:
+        "sketJE8u32UYTkUySGRLYWPuaT93-a39b8870-1a4e-4030-34f2-d0c026431a31",
+      skipDevices: true,
+    });
+    return "success";
+  } catch (err) {
+    console.log(err);
+  }
+});
 
 exports.validateOffersStatus = functions.pubsub
   .schedule("every 10 minutes")

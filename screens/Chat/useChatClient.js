@@ -33,6 +33,7 @@ export default function useChatClient() {
                 //call server to create token
                 //save token to db
                 //connect user
+
                 const query = functions.httpsCallable("createChatToken");
 
                 await query()
@@ -45,6 +46,8 @@ export default function useChatClient() {
                   })
                   .catch((err) => console.log(err));
               }
+
+              console.log("useChatClient");
             } catch (error) {
               console.log(error);
             }
