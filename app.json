@@ -34,21 +34,23 @@
       }
     },
     "plugins": [
-      "sentry-expo",
       [
         "expo-media-library",
         {
-          "photosPermission": "The app accesses your photos to let you upload photos of cards.",
-          "savePhotosPermission": "The app accesses your photos to let you upload photos of cards."
+          "photosPermission": "Allow TCM to access your photos.",
+          "savePhotosPermission": "Allow TCM to save photos.",
+          "isAccessMediaLocationEnabled": "true"
         }
       ],
       [
         "expo-notifications",
         {
-          "icon": "./assets/notification-icon.png",
+          "icon": "./assets/nfi.png",
           "color": "#0082ff"
         }
-      ]
+      ],
+      "sentry-expo",
+      "expo-image-picker"
     ]
   }
 }

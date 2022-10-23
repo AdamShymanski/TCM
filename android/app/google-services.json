@@ -39,5 +39,8 @@
       }
     }
   ],
+  "android": {
+    "googleServicesFile": "./google-services.json"
+  },
   "configuration_version": "1"
 }
