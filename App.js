@@ -1,6 +1,7 @@
 // @refresh reset
 // "@react-native-google-signin/google-signin": "^7.0.1",
 // "expo-google-app-auth": "~8.3.0",
+// import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-gesture-handler";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -83,7 +84,7 @@ import * as Permissions from "expo-permissions";
 import clipboard_text_clock from "./assets/clipboard_text_clock.png";
 import opened_box from "./assets/opened_box.png";
 
-import messaging from "@react-native-firebase/messaging";
+// import messaging from "@react-native-firebase/messaging";
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -1547,18 +1548,18 @@ export default function App() {
         console.log(e);
       }
     };
-    const checkToken = async () => {
-      try {
-        const fcmToken = await messaging().getToken();
-        if (fcmToken) {
-          console.log(fcmToken);
-        }
-      } catch (e) {
-        console.log(e);
-      }
-    };
+    // const checkToken = async () => {
+    //   try {
+    //     const fcmToken = await messaging().getToken();
+    //     if (fcmToken) {
+    //       console.log(fcmToken);
+    //     }
+    //   } catch (e) {
+    //     console.log(e);
+    //   }
+    // };
 
-    checkToken();
+    // checkToken();
     resolvePromises();
 
     return () => {

@@ -262,7 +262,7 @@ export default function SellerDetailsBar({ props }) {
             )}
           </TouchableOpacity>
         </View>
-      </V>
+      </View>
     );
   else return null;
 }
