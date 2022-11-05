@@ -1,6 +1,4 @@
 package app.ptcg.marketplace;
-import expo.modules.updates.UpdatesDevLauncherController;
-import expo.modules.devlauncher.DevLauncherController;
 
 import android.app.Application;
 import android.content.Context;
@@ -28,7 +26,7 @@ public class MainApplication extends Application implements ReactApplication {
     new ReactNativeHost(this) {
     @Override
     public boolean getUseDeveloperSupport() {
-      return DevLauncherController.getInstance().getUseDeveloperSupport();
+      return BuildConfig.DEBUG;
     }
 
     @Override
@@ -65,10 +63,6 @@ public class MainApplication extends Application implements ReactApplication {
     ReactFeatureFlags.useTurboModules = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
     SoLoader.init(this, /* native exopackage */ false);
 
-    DevLauncherController.initialize(this, getReactNativeHost());
-    if (BuildConfig.DEBUG) {
-      DevLauncherController.getInstance().setUpdatesInterface(UpdatesDevLauncherController.initialize(this));
-    }
     initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
     ApplicationLifecycleDispatcher.onApplicationCreate(this);
   }

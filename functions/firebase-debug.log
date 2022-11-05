@@ -1,0 +1,103 @@
+[debug] [2022-11-03T20:50:49.720Z] ----------------------------------------------------------------------
+[debug] [2022-11-03T20:50:49.723Z] Command:       C:\Program Files\nodejs\node.exe Z:\repo\PTCGM\functions\node_modules\firebase-tools\lib\bin\firebase.js emulators:start --only functions
+[debug] [2022-11-03T20:50:49.724Z] CLI Version:   11.2.0
+[debug] [2022-11-03T20:50:49.724Z] Platform:      win32
+[debug] [2022-11-03T20:50:49.724Z] Node Version:  v16.18.0
+[debug] [2022-11-03T20:50:49.725Z] Time:          Thu Nov 03 2022 21:50:49 GMT+0100 (czas środkowoeuropejski standardowy)
+[debug] [2022-11-03T20:50:49.725Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2022-11-03T20:50:49.805Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"react-native"}
+[debug] [2022-11-03T20:50:49.813Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2022-11-03T20:50:49.814Z] > authorizing via signed-in user (szymanskiadam111@gmail.com)
+[info] i  emulators: Starting emulators: functions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: functions"}}
+[debug] [2022-11-03T20:50:49.867Z] [hub] writing locator at C:\Users\szyma\AppData\Local\Temp\hub-ptcg-marketpla.json
+[warn] !  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: auth, firestore, database, hosting, pubsub, storage {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mauth, firestore, database, hosting, pubsub, storage\u001b[22m"}}
+[info] +  functions: Using node@16 from host. {"metadata":{"emulator":{"name":"functions"},"message":"Using node@16 from host."}}
+[debug] [2022-11-03T20:50:51.923Z] defaultcredentials: writing to file C:\Users\szyma\AppData\Roaming\firebase\szymanskiadam111_gmail_com_application_default_credentials.json
+[debug] [2022-11-03T20:50:51.928Z] Setting GAC to C:\Users\szyma\AppData\Roaming\firebase\szymanskiadam111_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to C:\\Users\\szyma\\AppData\\Roaming\\firebase\\szymanskiadam111_gmail_com_application_default_credentials.json"}}
+[debug] [2022-11-03T20:50:51.931Z] > refreshing access token with scopes: []
+[debug] [2022-11-03T20:50:51.933Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2022-11-03T20:50:51.933Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2022-11-03T20:50:52.119Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2022-11-03T20:50:52.120Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2022-11-03T20:50:52.128Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/ptcg-marketpla/adminSdkConfig [none]
+[debug] [2022-11-03T20:50:52.466Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/ptcg-marketpla/adminSdkConfig 200
+[debug] [2022-11-03T20:50:52.466Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/ptcg-marketpla/adminSdkConfig {"projectId":"ptcg-marketpla","storageBucket":"ptcg-marketpla.appspot.com","locationId":"europe-west"}
+[debug] [2022-11-03T20:50:52.484Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"ui"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2022-11-03T20:50:52.484Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"ui"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2022-11-03T20:50:52.484Z] Starting Emulator UI with command {"binary":"node","args":["--dns-result-order=ipv4first","C:\\Users\\szyma\\.cache\\firebase\\emulators\\ui-v1.7.0\\server.bundle.js"],"optionalArgs":[],"joinArgs":false} {"metadata":{"emulator":{"name":"ui"},"message":"Starting Emulator UI with command {\"binary\":\"node\",\"args\":[\"--dns-result-order=ipv4first\",\"C:\\\\Users\\\\szyma\\\\.cache\\\\firebase\\\\emulators\\\\ui-v1.7.0\\\\server.bundle.js\"],\"optionalArgs\":[],\"joinArgs\":false}"}}
+[info] i  ui: Emulator UI logging to ui-debug.log {"metadata":{"emulator":{"name":"ui"},"message":"Emulator UI logging to \u001b[1mui-debug.log\u001b[22m"}}
+[debug] [2022-11-03T20:50:52.633Z] Web / API server started at localhost:4000
+ {"metadata":{"emulator":{"name":"ui"},"message":"Web / API server started at localhost:4000\n"}}
+[info] i  functions: Watching "Z:\repo\PTCGM\functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"Z:\\repo\\PTCGM\\functions\" for Cloud Functions..."}}
+[debug] [2022-11-03T20:50:52.758Z] Validating nodejs source
+[debug] [2022-11-03T20:50:53.772Z] getFunctionsSDKVersion encountered error: Unexpected end of JSON input {}
+[debug] [2022-11-03T20:50:53.773Z] checkFunctionsSDKVersion encountered error: Invalid Version:  {}
+[debug] [2022-11-03T20:50:53.774Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "serve": "firebase emulators:start --import=./saved-data --export-on-exit=./saved-data",
+    "shell": "firebase functions:shell",
+    "functions": "firebase emulators:start --only functions",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "16"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/logging": "^9.7.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "firebase": "^9.8.4",
+    "firebase-admin": "^9.8.0",
+    "firebase-functions": "^3.19.0",
+    "firebase-tools": "^11.2.0",
+    "node-fetch": "^3.2.3",
+    "request": "^2.88.2",
+    "stream-chat": "^7.1.0",
+    "stripe": "^8.214.0"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^0.2.0"
+  },
+  "private": true
+}
+[debug] [2022-11-03T20:50:53.774Z] Building nodejs source
+[debug] [2022-11-03T20:50:53.774Z] Analyzing nodejs backend spec
+[debug] [2022-11-03T20:50:54.534Z] getFunctionsSDKVersion encountered error: Unexpected end of JSON input {}
+[debug] [2022-11-03T20:50:55.305Z] getFunctionsSDKVersion encountered error: Unexpected end of JSON input {}
+[debug] [2022-11-03T20:50:55.305Z] Could not parse firebase-functions version '' into semver. Falling back to parseTriggers.
+[info] +  functions[us-central1-createChatToken]: http function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/createChatToken). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/createChatToken)."}}
+[info] +  functions[us-central1-deleteChatUser]: http function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/deleteChatUser). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/deleteChatUser)."}}
+[info] +  functions[us-central1-createStripeAccount]: http function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/createStripeAccount). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/createStripeAccount)."}}
+[info] +  functions[us-central1-linkStripeAccount]: http function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/linkStripeAccount). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/linkStripeAccount)."}}
+[info] +  functions[us-central1-loginStripeLink]: http function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/loginStripeLink). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/loginStripeLink)."}}
+[info] +  functions[us-central1-fetchStripeAccount]: http function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/fetchStripeAccount). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/fetchStripeAccount)."}}
+[info] +  functions[us-central1-useReferralCode]: http function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/useReferralCode). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/useReferralCode)."}}
+[info] +  functions[us-central1-calculateDiscount]: http function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/calculateDiscount). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/calculateDiscount)."}}
+[info] +  functions[us-central1-paymentSheet]: http function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/paymentSheet). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/paymentSheet)."}}
+[info] +  functions[us-central1-stripeWebhooks]: http function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/stripeWebhooks). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/stripeWebhooks)."}}
+[info] +  functions[us-central1-testNotification]: http function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/testNotification). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://192.168.0.104:5001/ptcg-marketpla/us-central1/testNotification)."}}
+[info] i  functions[us-central1-validateOffersStatus]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[info] i  functions[us-central1-deleteExpiredTransactions]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+│ i  View Emulator UI at http://localhost:4000                │
+└─────────────────────────────────────────────────────────────┘
+
+┌───────────┬────────────────────┬─────────────────────────────────┐
+│ Emulator  │ Host:Port          │ View in Emulator UI             │
+├───────────┼────────────────────┼─────────────────────────────────┤
+│ Functions │ 192.168.0.104:5001 │ http://localhost:4000/functions │
+└───────────┴────────────────────┴─────────────────────────────────┘
+  Emulator Hub running at localhost:4400
+  Other reserved ports: 4500
+
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 
+[debug] [2022-11-03T20:52:26.060Z] Received signal SIGHUP 1

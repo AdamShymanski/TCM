@@ -67,9 +67,9 @@ export default function SellerProfile() {
         setLoadingState(false);
 
         if (doc.data().stripe.vendorId) {
+          console.log("Stripe account exists");
           setNoStripe(false);
           const query = functions.httpsCallable("fetchStripeAccount");
-
           query()
             .then((result) => {
               if (result.data) {
@@ -78,6 +78,8 @@ export default function SellerProfile() {
             })
             .catch((e) => {
               setNoStripe(true);
+
+              console.log(e);
             });
 
           {
