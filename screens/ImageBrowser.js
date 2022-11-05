@@ -8,7 +8,7 @@ import {
 } from "react-native";
 
 import * as ImageManipulator from "expo-image-manipulator";
-import { ImageBrowser } from "expo-image-picker-multiple";
+// import { ImageBrowser } from "expo-image-picker-multiple";
 
 import { useNavigation } from "@react-navigation/native";
 
@@ -112,6 +112,8 @@ const ImageBrowserScreen = ({ route }) => {
       {"You don't have any pictures :("}
     </Text>
   );
+
+  return null;
 
   return (
     <View style={[styles.flex, styles.container]}>

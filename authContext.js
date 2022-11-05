@@ -1,8 +1,8 @@
-import firebase from "firebase/app";
-import "firebase/firestore";
-import "firebase/storage";
 import "firebase/auth";
+import "firebase/storage";
+import "firebase/firestore";
 import "firebase/functions";
+import firebase from "firebase/app";
 
 import pokemon from "pokemontcgsdk";
 
@@ -20,16 +20,18 @@ if (firebase.apps.length === 0) {
   });
 }
 
-export const firebaseObj = firebase;
-export const auth = firebase.auth();
 export const db = firebase.firestore();
+db.settings({ experimentalForceLongPolling: true });
+export const auth = firebase.auth();
 export const storage = firebase.storage();
 export const functions = firebase.functions();
 
-if (__DEV__) {
-  firebase.functions().useEmulator("192.168.0.106", 5001);
-  // firebase.firestore().useEmulator("192.168.0.106", 8080);
-}
+export const firebaseObj = firebase;
+
+// if (__DEV__) {
+//   firebase.functions().useEmulator("192.168.0.104", 5001);
+//   firebase.firestore().useEmulator("192.168.0.106", 8080);
+// }
 
 //! CARDS
 export async function fetchCards(props, setProps) {

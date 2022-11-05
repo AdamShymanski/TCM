@@ -182,6 +182,35 @@ async function sendPushNotification(expoPushToken) {
   // });
 }
 
+exports.createChatToken = functions.https.onCall(async (data, context) => {
+  try {
+    const token = serverClient.createToken(context.auth.uid);
+
+    await admin
+      .firestore()
+      .collection("users")
+      .doc(context.auth.uid)
+      .update({ chatToken: token });
+
+    return token;
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+exports.deleteChatUser = functions.https.onCall(async (data, context) => {
+  try {
+    await serverClient.deleteUser(context.auth.uid, {
+      mark_messages_deleted: false,
+    });
+
+    return true;
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+});
+
 exports.createStripeAccount = functions.https.onCall(async (data, context) => {
   const doc = await admin
     .firestore()
@@ -257,42 +286,31 @@ exports.loginStripeLink = functions.https.onCall(async (data, context) => {
   return link.url;
 });
 
-exports.createChatToken = functions.https.onCall(async (data, context) => {
-  try {
-    const token = serverClient.createToken(context.auth.uid);
-
-    await admin
-      .firestore()
-      .collection("users")
-      .doc(context.auth.uid)
-      .update({ chatToken: token });
-
-    return token;
-  } catch (err) {
-    console.log(err);
-  }
-});
-
-exports.deleteChatUser = functions.https.onCall(async (data, context) => {
-  try {
-    await serverClient.deleteUser(context.auth.uid, {
-      mark_messages_deleted: false,
-    });
-
-    return true;
-  } catch (err) {
-    console.log(err);
-    return err;
-  }
-});
-
 exports.fetchStripeAccount = functions.https.onCall(async (data, context) => {
-  const user_id = "john";
+  const doc = await admin
+    .firestore()
+    .collection("users")
+    .doc(context.auth.uid)
+    .get();
 
-  // Initialize a Server Client
-  const serverClient = StreamChat.getInstance(api_key, api_secret);
-  // Create User Token
-  const token = serverClient.createToken(user_id);
+  const vendorId = doc.data().stripe.vendorId;
+
+  const account = await stripe.accounts.retrieve(vendorId);
+  const balance = await stripe.balance.retrieve({
+    stripeAccount: vendorId,
+  });
+
+  const transactions = await stripe.balanceTransactions.list(
+    {
+      limit: 3,
+    },
+    { stripeAccount: vendorId }
+  );
+
+  account.balance = balance;
+  account.transactions =
+    transactions.data.lenght > 0 ? transactions.data : null;
+  return account;
 });
 
 exports.useReferralCode = functions.https.onCall(async (data, context) => {
