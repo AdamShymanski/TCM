@@ -3,12 +3,14 @@ import {
   View,
   Text,
   FlatList,
-  Clipboard,
+
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   LogBox,
 } from "react-native";
+
+//  Clipboard,
 
 import { TextInput } from "react-native-paper";
 
@@ -533,7 +535,7 @@ export default function Settings() {
                   marginLeft: 16,
                 }}
                 onPress={() => {
-                  Clipboard.setString(`${auth.currentUser.uid}`);
+                  // Clipboard.setString(`${auth.currentUser.uid}`);
                   setSnackbarState(true);
                 }}
               >

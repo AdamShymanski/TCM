@@ -182,6 +182,107 @@ async function sendPushNotification(expoPushToken) {
   // });
 }
 
+exports.deleteChatUser = functions.https.onCall(async (data, context) => {
+  try {
+    await serverClient.deleteUser(context.auth.uid, {
+      mark_messages_deleted: false,
+    });
+
+    return true;
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+});
+
+exports.createStripeAccount = functions.https.onCall(async (data, context) => {
+  try {
+    const doc = await admin
+      .firestore()
+      .collection("users")
+      .doc(context.auth.uid)
+      .get();
+
+    if (doc.data().stripe.vendorId === null) {
+      const account = await stripe.accounts.create({
+        type: "express",
+        business_type: "individual",
+        email: context.auth.token.email,
+        business_profile: {
+          mcc: "5947",
+          name: context.auth.uid,
+          product_description:
+            "TCM is platform for trading your Pokémon cards.",
+        },
+        business_type: "individual",
+      });
+
+      //Check if account is already assigned to user
+      //! Do afer successful account linking
+
+      await admin
+        .firestore()
+        .collection("users")
+        .doc(context.auth.uid)
+        .update({ [`stripe.vendorId`]: account.id });
+
+      var accountLink = await stripe.accountLinks.create({
+        account: account.id,
+        refresh_url: "https://tcmarket.place/return-to-the-app/",
+        return_url: "https://tcmarket.place/return-to-the-app/",
+        type: "account_onboarding",
+      });
+    }
+
+    return accountLink.url;
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+exports.loginStripeLink = functions.https.onCall(async (data, context) => {
+  try {
+    const doc = await admin
+      .firestore()
+      .collection("users")
+      .doc(context.auth.uid)
+      .get();
+
+    // const link = await stripe.accounts.createLoginLink("acct_1KowCZ2S1NwHjbvs");
+
+    const link = await stripe.accounts.createLoginLink(
+      doc.data().stripe.vendorId
+    );
+
+    // console.log(accountLink.url);
+    return link.url;
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+exports.linkStripeAccount = functions.https.onCall(async (data, context) => {
+  try {
+    const doc = await admin
+      .firestore()
+      .collection("users")
+      .doc(context.auth.uid)
+      .get();
+
+    const accountLink = await stripe.accountLinks.create({
+      account: doc.data().stripe.vendorId,
+      refresh_url: "https://tcmarket.place/return-to-the-app/",
+      return_url: "https://tcmarket.place/return-to-the-app/",
+      type: "account_onboarding",
+    });
+
+    // console.log(accountLink.url);
+    return accountLink.url;
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 exports.createChatToken = functions.https.onCall(async (data, context) => {
   try {
     const token = serverClient.createToken(context.auth.uid);
@@ -198,119 +299,64 @@ exports.createChatToken = functions.https.onCall(async (data, context) => {
   }
 });
 
-exports.deleteChatUser = functions.https.onCall(async (data, context) => {
+// exports.getStripeAccount = functions.https.onCall(async (data, context) => {
+//   const doc = await admin
+//     .firestore()
+//     .collection("users")
+//     .doc(context.auth.uid)
+//     .get();
+
+//   const vendorId = doc.data().stripe.vendorId;
+
+//   const account = await stripe.accounts.retrieve(vendorId);
+//   const balance = await stripe.balance.retrieve({
+//     stripeAccount: vendorId,
+//   });
+
+//   const transactions = await stripe.balanceTransactions.list(
+//     {
+//       limit: 3,
+//     },
+//     { stripeAccount: vendorId }
+//   );
+
+//   account.balance = balance;
+//   account.transactions =
+//     transactions.data.lenght > 0 ? transactions.data : null;
+
+//   return account;
+// });
+
+exports.fetchStripeAccount = functions.https.onCall(async (data, context) => {
   try {
-    await serverClient.deleteUser(context.auth.uid, {
-      mark_messages_deleted: false,
-    });
-
-    return true;
-  } catch (err) {
-    console.log(err);
-    return err;
-  }
-});
-
-exports.createStripeAccount = functions.https.onCall(async (data, context) => {
-  const doc = await admin
-    .firestore()
-    .collection("users")
-    .doc(context.auth.uid)
-    .get();
-
-  if (doc.data().stripe.vendorId === null) {
-    const account = await stripe.accounts.create({
-      type: "express",
-      business_type: "individual",
-      email: context.auth.token.email,
-      business_profile: {
-        mcc: "5947",
-        name: context.auth.uid,
-        product_description: "TCM is platform for trading your Pokémon cards.",
-      },
-      business_type: "individual",
-    });
-
-    //Check if account is already assigned to user
-    //! Do afer successful account linking
-
-    await admin
+    const doc = await admin
       .firestore()
       .collection("users")
       .doc(context.auth.uid)
-      .update({ [`stripe.vendorId`]: account.id });
+      .get();
 
-    var accountLink = await stripe.accountLinks.create({
-      account: account.id,
-      refresh_url: "https://tcmarket.place/return-to-the-app/",
-      return_url: "https://tcmarket.place/return-to-the-app/",
-      type: "account_onboarding",
+    const vendorId = doc.data().stripe.vendorId;
+
+    const account = await stripe.accounts.retrieve(vendorId);
+    const balance = await stripe.balance.retrieve({
+      stripeAccount: vendorId,
     });
+
+    const transactions = await stripe.balanceTransactions.list(
+      {
+        limit: 3,
+      },
+      { stripeAccount: vendorId }
+    );
+
+    account.balance = balance;
+    account.transactions =
+      transactions.data.lenght > 0 ? transactions.data : null;
+
+    return account;
+  } catch (err) {
+    console.log(err);
   }
-
-  return accountLink.url;
-});
-
-exports.linkStripeAccount = functions.https.onCall(async (data, context) => {
-  const doc = await admin
-    .firestore()
-    .collection("users")
-    .doc(context.auth.uid)
-    .get();
-
-  const accountLink = await stripe.accountLinks.create({
-    account: doc.data().stripe.vendorId,
-    refresh_url: "https://tcmarket.place/return-to-the-app/",
-    return_url: "https://tcmarket.place/return-to-the-app/",
-    type: "account_onboarding",
-  });
-
-  // console.log(accountLink.url);
-  return accountLink.url;
-});
-
-exports.loginStripeLink = functions.https.onCall(async (data, context) => {
-  const doc = await admin
-    .firestore()
-    .collection("users")
-    .doc(context.auth.uid)
-    .get();
-
-  // const link = await stripe.accounts.createLoginLink("acct_1KowCZ2S1NwHjbvs");
-
-  const link = await stripe.accounts.createLoginLink(
-    doc.data().stripe.vendorId
-  );
-
-  // console.log(accountLink.url);
-  return link.url;
-});
-
-exports.fetchStripeAccount = functions.https.onCall(async (data, context) => {
-  const doc = await admin
-    .firestore()
-    .collection("users")
-    .doc(context.auth.uid)
-    .get();
-
-  const vendorId = doc.data().stripe.vendorId;
-
-  const account = await stripe.accounts.retrieve(vendorId);
-  const balance = await stripe.balance.retrieve({
-    stripeAccount: vendorId,
-  });
-
-  const transactions = await stripe.balanceTransactions.list(
-    {
-      limit: 3,
-    },
-    { stripeAccount: vendorId }
-  );
-
-  account.balance = balance;
-  account.transactions =
-    transactions.data.lenght > 0 ? transactions.data : null;
-  return account;
 });
 
 exports.useReferralCode = functions.https.onCall(async (data, context) => {
@@ -778,6 +824,7 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
     res.status(200).send("event type not handled");
   }
 });
+
 exports.testNotification = functions.https.onCall(async (data, context) => {
   try {
     await serverClient.testPushSettings(context.auth.uid, {
@@ -791,57 +838,57 @@ exports.testNotification = functions.https.onCall(async (data, context) => {
   }
 });
 
-exports.validateOffersStatus = functions.pubsub
-  .schedule("every 10 minutes")
-  .onRun((context) => {
-    //check status of all sellerProfiles
-    //if status != enabled, set status of all published offers to suspended
+// exports.validateOffersStatus = functions.pubsub
+//   .schedule("every 10 minutes")
+//   .onRun((context) => {
+//     //check status of all sellerProfiles
+//     //if status != enabled, set status of all published offers to suspended
 
-    admin
-      .firestore()
-      .collection("users")
-      .where("sellerProfile.status", "!=", "enabled")
-      .get()
-      .then((snapshot) => {
-        if (snapshot.lenght > 0) {
-          snapshot.forEach(async (doc) => {
-            await admin
-              .firestore()
-              .collection("offers")
-              .where("owner", "==", doc.id)
-              .where("status", "==", "published")
-              .get()
-              .then((offers) => {
-                if (offers.length > 0) {
-                  offers.forEach(async (offer) => {
-                    offer.ref.update({ status: "suspended" });
-                    await handleCardDeletion(offer.id);
-                  });
-                }
-              });
-          });
-        }
-      });
-    return null;
-  });
+//     admin
+//       .firestore()
+//       .collection("users")
+//       .where("sellerProfile.status", "!=", "enabled")
+//       .get()
+//       .then((snapshot) => {
+//         if (snapshot.lenght > 0) {
+//           snapshot.forEach(async (doc) => {
+//             await admin
+//               .firestore()
+//               .collection("offers")
+//               .where("owner", "==", doc.id)
+//               .where("status", "==", "published")
+//               .get()
+//               .then((offers) => {
+//                 if (offers.length > 0) {
+//                   offers.forEach(async (offer) => {
+//                     offer.ref.update({ status: "suspended" });
+//                     await handleCardDeletion(offer.id);
+//                   });
+//                 }
+//               });
+//           });
+//         }
+//       });
+//     return null;
+//   });
 
-exports.deleteExpiredTransactions = functions.pubsub
-  .schedule("every 10 minutes")
-  .onRun((context) => {
-    let currentDate = new Date();
-    var pastDue = new Date(currentDate.getTime() - 600000);
+// exports.deleteExpiredTransactions = functions.pubsub
+//   .schedule("every 10 minutes")
+//   .onRun((context) => {
+//     let currentDate = new Date();
+//     var pastDue = new Date(currentDate.getTime() - 600000);
 
-    admin
-      .firestore()
-      .collection("transactions")
-      .where("timestamp", "<", pastDue)
-      .where("status", "==", "unpaid")
-      .get()
-      .then(function (querySnapshot) {
-        querySnapshot.forEach(function (doc) {
-          doc.ref.delete();
-        });
-      });
+//     admin
+//       .firestore()
+//       .collection("transactions")
+//       .where("timestamp", "<", pastDue)
+//       .where("status", "==", "unpaid")
+//       .get()
+//       .then(function (querySnapshot) {
+//         querySnapshot.forEach(function (doc) {
+//           doc.ref.delete();
+//         });
+//       });
 
-    return null;
-  });
+//     return null;
+//   });
