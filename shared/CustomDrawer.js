@@ -551,51 +551,7 @@ export default function CustomDrawer({ navigation }) {
                 navigation.navigate("SavedOffersStack");
               }}
             />
-            {/* <DrawerItem
-              icon={({ color, size }) => {
-                if (notificationState) {
-                  return (
-                    <View>
-                      <View
-                        style={{
-                          backgroundColor: "#ed400b",
-                          width: 10,
-                          height: 10,
-                          borderRadius: 8,
-                          top: 9,
-                          left: 14,
-                          zIndex: 2,
-                        }}
-                      />
-                      <IconM
-                        name="chat-bubble-outline"
-                        color={"#f4f4f4"}
-                        size={size - 2}
-                        style={{ zIndex: 1 }}
-                      />
-                    </View>
-                  );
-                } else {
-                  return (
-                    <IconM
-                      name="chat-bubble-outline"
-                      color={"#f4f4f4"}
-                      size={size - 2}
-                    />
-                  );
-                }
-              }}
-              labelStyle={{ color: "#f4f4f4" }}
-              label="Chat"
-              onPress={() => {
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: "Chat" }],
-                });
 
-                navigation.navigate("Chat", { screen: "ChatConversations" });
-              }}
-            /> */}
             <DrawerItem
               icon={({ color, size }) => (
                 <Icon name="swap-vertical" color={"#f4f4f4"} size={size} />
@@ -606,7 +562,7 @@ export default function CustomDrawer({ navigation }) {
                 navigation.navigate("TransactionsStack");
               }}
             />
-            {/* <DrawerItem
+            <DrawerItem
               icon={({ color, size }) => (
                 <Icon name="message-outline" color={"#f4f4f4"} size={size} />
               )}
@@ -615,21 +571,7 @@ export default function CustomDrawer({ navigation }) {
               onPress={() => {
                 navigation.navigate("ChatStack");
               }}
-            /> */}
-            {/* <DrawerItem
-              icon={({ color, size }) => (
-                <Icon
-                  name="account-check-outline"
-                  color={"#f4f4f4"}
-                  size={size}
-                />
-              )}
-              labelStyle={{ color: "#f4f4f4" }}
-              label="Support"
-              onPress={() => {
-                // props.navigation.navigate('SupportScreen');
-              }}
-            /> */}
+            />
           </Drawer.Section>
         </View>
         <Drawer.Section

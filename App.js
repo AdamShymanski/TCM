@@ -13,13 +13,13 @@ import {
   Text,
   View,
   Image,
+  LogBox,
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
 
 import { createStackNavigator } from "@react-navigation/stack";
 import { StripeProvider } from "@stripe/stripe-react-native";
-import { LogBox } from "react-native";
 
 import { OverlayProvider, Chat } from "stream-chat-expo";
 
@@ -102,6 +102,24 @@ if (!__DEV__) {
   console.log("Sentry initialized");
 }
 
+// LogBox.ignoreLogs(["new NativeEventEmitter"]);
+// LogBox.ignoreLogs([
+//   "Setting a timer for a long period of time, i.e. multiple minutes, is a performance and correctness issue on Android as it keeps the timer module awake, and timers can only be called when the app is in the foreground. See https://github.com/facebook/react-native/issues/12981 for more info.",
+// ]);
+// LogBox.ignoreLogs([
+//   "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing and other functionality - use another VirtualizedList-backed container instead.",
+// ]);
+
+const ignoreWarns = [
+  "Setting a timer for a long period of time",
+  "AsyncStorage has been extracted from react-native",
+  "Non-serializable values were found in the navigation state.",
+  "VirtualizedLists should never be nested inside plain ScrollViews",
+  "You are overriding the original host.",
+];
+
+LogBox.ignoreLogs(ignoreWarns);
+LogBox.ignoreAllLogs(true);
 async function registerForPushNotificationsAsync() {
   let token;
 
@@ -119,7 +137,11 @@ async function registerForPushNotificationsAsync() {
       // alert("Failed to get push token for push notification!");
       return;
     }
-    token = (await Notifications.getExpoPushTokenAsync()).data;
+    token = (
+      await Notifications.getExpoPushTokenAsync({
+        experienceId: "@rig/ptcg_marketplace",
+      })
+    ).data;
   } else {
     // alert("Must use physical device for Push Notifications");
   }
@@ -1331,13 +1353,6 @@ export default function App() {
 
   const chatClient = StreamChat.getInstance(chatApiKey);
   const [clientIsReady, setClientIsReady] = useState(false);
-
-  LogBox.ignoreLogs([
-    "Setting a timer for a long period of time, i.e. multiple minutes, is a performance and correctness issue on Android as it keeps the timer module awake, and timers can only be called when the app is in the foreground. See https://github.com/facebook/react-native/issues/12981 for more info.",
-  ]);
-  LogBox.ignoreLogs([
-    "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing and other functionality - use another VirtualizedList-backed container instead.",
-  ]);
 
   const handleDeepLink = async (event) => {
     let data = Linking.parse(event.url);

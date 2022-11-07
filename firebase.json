@@ -5,14 +5,10 @@
   },
   "emulators": {
     "functions": {
-      "host": "192.168.0.104"
+      "host": "192.168.0.105"
     },
     "firestore": {
-      "host": "192.168.0.104"
+      "host": "192.168.0.105"
     }
-  },
-  "react-native": {
-    "android_task_executor_maximum_pool_size": 10,
-    "android_task_executor_keep_alive_seconds": 3
   }
 }

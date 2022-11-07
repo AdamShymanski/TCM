@@ -55,61 +55,63 @@ export default function SellerProfile() {
     }
   };
 
-  useEffect(async () => {
-    const listener = db
-      .collection("users")
-      .doc(auth.currentUser.uid)
-      .onSnapshot((doc) => {
-        setRating(doc.data().sellerProfile.rating);
-        setStatistics(doc.data().sellerProfile.statistics);
-        setShippingMethods(doc.data().sellerProfile.shippingMethods);
+  useEffect(() => {
+    const asyncFunction = async () => {
+      const listener = db
+        .collection("users")
+        .doc(auth.currentUser.uid)
+        .onSnapshot((doc) => {
+          setRating(doc.data().sellerProfile.rating);
+          setStatistics(doc.data().sellerProfile.statistics);
+          setShippingMethods(doc.data().sellerProfile.shippingMethods);
 
-        setLoadingState(false);
+          setLoadingState(false);
 
-        if (doc.data().stripe.vendorId) {
-          console.log("Stripe account exists");
-          setNoStripe(false);
-          const query = functions.httpsCallable("fetchStripeAccount");
-          query()
-            .then((result) => {
-              if (result.data) {
-                setAccountData(result.data);
-              }
-            })
-            .catch((e) => {
-              setNoStripe(true);
+          if (doc.data().stripe.vendorId) {
+            setNoStripe(false);
+            const query = functions.httpsCallable("fetchStripeAccount");
+            query()
+              .then((result) => {
+                if (result.data) {
+                  setAccountData(result.data);
+                }
+              })
+              .catch((e) => {
+                setNoStripe(true);
 
-              console.log(e);
-            });
+                console.log(e);
+              });
 
-          {
-            //pending
-            // - under_review in requirements.disabled_reason
-            //completed
-            // - eventualy_due is empty
-            //enabled
-            // - currentl_deadline is empty
-            // - eventualy_due is not empty
-            //rejected
-            // - disabled_reason
-            //restriced
-            // - currently_due
-            // - currentl_deadline
-            //restriced soon
+            {
+              //pending
+              // - under_review in requirements.disabled_reason
+              //completed
+              // - eventualy_due is empty
+              //enabled
+              // - currentl_deadline is empty
+              // - eventualy_due is not empty
+              //rejected
+              // - disabled_reason
+              //restriced
+              // - currently_due
+              // - currentl_deadline
+              //restriced soon
+            }
+          } else {
+            setNoStripe(true);
           }
-        } else {
-          setNoStripe(true);
-        }
-      });
-    if (!isFocused) {
-      setLoadingState(true);
-      setShippingMethods(null);
-      return listener;
-    }
+        });
+      if (!isFocused) {
+        setLoadingState(true);
+        setShippingMethods(null);
+        return listener;
+      }
 
-    if (isFocused) {
-      listener;
-    }
+      if (isFocused) {
+        listener;
+      }
+    };
+    asyncFunction();
   }, [isFocused]);
 
   useEffect(() => {

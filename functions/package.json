@@ -7,6 +7,7 @@
     "functions": "firebase emulators:start --only functions",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
+    "deployFX": "firebase deploy --debug --only functions",
     "logs": "firebase functions:log"
   },
   "engines": {

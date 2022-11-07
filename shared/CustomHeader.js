@@ -174,7 +174,7 @@ export default function CustomHeader({ version, props, setProps }) {
             {"Seller Profile"}
           </Text>
           <Icon
-            name="wallet"
+            name="account-cash"
             color={"#0082ff"}
             size={30}
             style={{ marginRight: 8 }}
