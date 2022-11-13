@@ -16,9 +16,11 @@ import {
   LogBox,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
+  AsyncStorage,
 } from "react-native";
 
-import { createStackNavigator } from "@react-navigation/stack";
+import { createStackNavigator, useNavigation } from "@react-navigation/stack";
 import { StripeProvider } from "@stripe/stripe-react-native";
 
 import { OverlayProvider, Chat } from "stream-chat-expo";
@@ -78,20 +80,21 @@ import * as Sentry from "sentry-expo";
 
 import * as Device from "expo-device";
 import * as Linking from "expo-linking";
-import * as Notifications from "expo-notifications";
+// import * as Notifications from "expo-notifications";
 import * as Permissions from "expo-permissions";
 
 import clipboard_text_clock from "./assets/clipboard_text_clock.png";
 import opened_box from "./assets/opened_box.png";
 
-// import messaging from "@react-native-firebase/messaging";
+import messaging from "@react-native-firebase/messaging";
+import notifee, { EventType } from "@notifee/react-native";
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 const prefix = Linking.makeUrl("/");
 const chatApiKey = "nfnwsdq54g3b";
 
-//Stream Chat
+const navigationContainerRef = React.createRef();
 
 if (!__DEV__) {
   Sentry.init({
@@ -101,14 +104,6 @@ if (!__DEV__) {
   });
   console.log("Sentry initialized");
 }
-
-// LogBox.ignoreLogs(["new NativeEventEmitter"]);
-// LogBox.ignoreLogs([
-//   "Setting a timer for a long period of time, i.e. multiple minutes, is a performance and correctness issue on Android as it keeps the timer module awake, and timers can only be called when the app is in the foreground. See https://github.com/facebook/react-native/issues/12981 for more info.",
-// ]);
-// LogBox.ignoreLogs([
-//   "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing and other functionality - use another VirtualizedList-backed container instead.",
-// ]);
 
 const ignoreWarns = [
   "Setting a timer for a long period of time",
@@ -120,43 +115,6 @@ const ignoreWarns = [
 
 LogBox.ignoreLogs(ignoreWarns);
 LogBox.ignoreAllLogs(true);
-async function registerForPushNotificationsAsync() {
-  let token;
-
-  if (Device.isDevice) {
-    const { status: existingStatus } =
-      await Notifications.getPermissionsAsync();
-
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== "granted") {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    if (finalStatus !== "granted") {
-      // alert("Failed to get push token for push notification!");
-      return;
-    }
-    token = (
-      await Notifications.getExpoPushTokenAsync({
-        experienceId: "@rig/ptcg_marketplace",
-      })
-    ).data;
-  } else {
-    // alert("Must use physical device for Push Notifications");
-  }
-
-  if (Platform.OS === "android") {
-    Notifications.setNotificationChannelAsync("default", {
-      name: "default",
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#0082ff",
-    });
-  }
-
-  return token;
-}
 
 function SearchStack() {
   const [headerProps, setHeaderProps] = useState({
@@ -1203,7 +1161,6 @@ function TransactionsStack() {
     </Stack.Navigator>
   );
 }
-
 function WelcomeStack() {
   return (
     <Stack.Navigator>
@@ -1341,15 +1298,24 @@ function WelcomeStack() {
   );
 }
 
+notifee.onBackgroundEvent(async ({ detail, type }) => {
+  if (type == 3) {
+    // user press on notification detected while app was on background on Android
+    const channel = detail.notification?.data;
+    // console.log("channelId", detail.notification?.data);
+
+    await navigationContainerRef.current?.navigate("ChatStack", {
+      screen: "ChannelScreen",
+      params: channel,
+    });
+
+    await Promise.resolve();
+  }
+});
+
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [finishRegisterProcess, setFinishRegisterProcess] = useState(null);
-
-  const responseListener = useRef();
-  const notificationListener = useRef();
-
-  const [expoPushToken, setExpoPushToken] = useState(null);
-  const [notification, setNotification] = useState(false);
 
   const chatClient = StreamChat.getInstance(chatApiKey);
   const [clientIsReady, setClientIsReady] = useState(false);
@@ -1358,16 +1324,16 @@ export default function App() {
     let data = Linking.parse(event.url);
     // setDeepLinkData(data);
   };
-
+  
   const linking = {
-    prefixes: [prefix],
+    prefixes: [Linking.createURL("/"), "https://tcmarket.place"],
     config: {
       screens: {
         YourOffers: "yourOffers",
+        Home: "home",
       },
     },
   };
-
   const theme = {
     messageList: {
       container: { backgroundColor: "#1b1b1b" },
@@ -1395,17 +1361,7 @@ export default function App() {
       },
     },
     channelListMessenger: {
-      flatList: {
-        backgroundColor: "#1b1b1b",
-        flex: 1,
-      },
       flatListContent: {
-        backgroundColor: "#1b1b1b",
-        flex: 1,
-      },
-    },
-    channelListMessenger: {
-      flatList: {
         backgroundColor: "#1b1b1b",
       },
     },
@@ -1451,90 +1407,58 @@ export default function App() {
   };
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        // await setTestDeviceIDAsync('EMULATOR');
+    let unsubscribeTokenRefreshListener;
 
-        const usersDoc = await db
-          .collection("users")
-          .doc(auth.currentUser.uid)
-          .get();
+    const requestPermission = async () => {
+      const authStatus = await messaging().requestPermission();
+      const enabled =
+        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-        if (!usersDoc.exists) {
-          setFinishRegisterProcess(true);
-        } else {
-          setFinishRegisterProcess(false);
-
-          registerForPushNotificationsAsync().then((token) => {
-            setExpoPushToken(token);
-
-            if (
-              token &&
-              (!usersDoc.data()?.notificationToken ||
-                usersDoc.data()?.notificationToken !== token)
-            ) {
-              db.collection("users").doc(auth.currentUser.uid).update({
-                notificationToken: token,
-              });
-            }
-          });
-
-          if (!chatClient.userID) {
-            try {
-              const user = {
-                id: auth.currentUser.uid,
-                name: auth.currentUser.displayName,
-              };
-
-              if (usersDoc.data().chatToken) {
-                await chatClient.connectUser(user, usersDoc.data().chatToken);
-              } else {
-                const query = functions.httpsCallable("createChatToken");
-
-                await query()
-                  .then(async (result) => {
-                    try {
-                      await chatClient.connectUser(user, result.data);
-                    } catch (e) {
-                      console.log(e);
-                    }
-                  })
-                  .catch((err) => console.log(err));
-              }
-
-              setClientIsReady(true);
-            } catch (error) {
-              console.log(error);
-            }
-          }
-
-          // This listener is fired whenever a notification is received while the app is foregrounded
-        }
-      } else {
-        await chatClient.disconnectUser();
+      if (enabled) {
+        console.log("Authorization status:", authStatus);
       }
+    };
 
-      Notifications.setNotificationHandler({
-        handleNotification: async () => ({
-          shouldShowAlert: true,
-          shouldPlaySound: false,
-          shouldSetBadge: false,
-        }),
+    const registerPushToken = async () => {
+      const push_provider = "firebase";
+      const token = await messaging().getToken();
+
+      const push_provider_name = "TCM"; // name an alias for your push provider (optional)
+      // push_provider_name is meant for optional multiple providers support, see: https://getstream.io/chat/docs/react/push_providers_and_multi_bundle
+
+      chatClient.setLocalDevice({
+        id: token,
+        push_provider,
+        push_provider_name,
       });
 
-      notificationListener.current =
-        Notifications.addNotificationReceivedListener((notification) => {
-          setNotification(notification);
-        });
+      await AsyncStorage.setItem("@current_push_token", token);
+      await AsyncStorage.setItem("@current_user_id", auth.currentUser.uid);
 
-      // This listener is fired whenever a user taps on or interacts with a notification (works when app is foregrounded, backgrounded, or killed)
-      responseListener.current =
-        Notifications.addNotificationResponseReceivedListener((response) => {
-          console.log(response);
-        });
+      const removeOldToken = async () => {
+        const oldToken = await AsyncStorage.getItem("@current_push_token");
+        if (oldToken !== null) {
+          await chatClient.removeDevice(oldToken);
+        }
+      };
 
-      setLoading(false);
-    });
+      unsubscribeTokenRefreshListener = messaging().onTokenRefresh(
+        async (newToken) => {
+          await Promise.all([
+            removeOldToken(),
+            chatClient.addDevice(
+              newToken,
+              push_provider,
+              auth.currentUser.uid,
+              push_provider_name
+            ),
+            AsyncStorage.setItem("@current_push_token", newToken),
+          ]);
+        }
+      );
+    };
+
     const resolvePromises = async () => {
       try {
         Linking.addEventListener("url", handleDeepLink);
@@ -1557,33 +1481,65 @@ export default function App() {
         console.log(e);
       }
     };
-    // const checkToken = async () => {
-    //   try {
-    //     const fcmToken = await messaging().getToken();
-    //     if (fcmToken) {
-    //       console.log(fcmToken);
-    //     }
-    //   } catch (e) {
-    //     console.log(e);
-    //   }
-    // };
 
-    // checkToken();
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const usersDoc = await db
+          .collection("users")
+          .doc(auth.currentUser.uid)
+          .get();
+
+        const userObject = {
+          id: auth.currentUser.uid,
+          name: auth.currentUser.displayName,
+        };
+
+        if (usersDoc.exists) {
+          await requestPermission();
+          await registerPushToken();
+
+          if (!chatClient.userID && usersDoc.data().chatToken) {
+            await chatClient.connectUser(userObject, usersDoc.data().chatToken);
+          } else if (!chatClient.userID) {
+            const query = functions.httpsCallable("createChatToken");
+
+            await query()
+              .then(async (result) => {
+                try {
+                  await chatClient.connectUser(userObject, result.data);
+                } catch (e) {
+                  console.log(e);
+                }
+              })
+              .catch((err) => console.log(err));
+          }
+
+          setClientIsReady(true);
+          setFinishRegisterProcess(false);
+        } else {
+          setFinishRegisterProcess(true);
+        }
+      } else {
+        await chatClient?.disconnectUser();
+      }
+
+      setLoading(false);
+    });
+
     resolvePromises();
 
-    return () => {
+    return async () => {
       Linking.removeEventListener("url");
-      Notifications.removeNotificationSubscription(
-        notificationListener.current
-      );
-      Notifications.removeNotificationSubscription(responseListener.current);
+
+      unsubscribeTokenRefreshListener?.();
       unsubscribe();
+      await chatClient?.disconnectUser();
     };
   }, []);
 
   function ChatStack() {
-    const [channel, setChannel] = useState();
-    const [thread, setThread] = useState();
+    // const [channel, setChannel] = useState();
+    // const [thread, setThread] = useState();
 
     if (!clientIsReady) {
       return (
@@ -1618,12 +1574,7 @@ export default function App() {
         <Stack.Navigator>
           <Stack.Screen
             name="ChannelListScreen"
-            children={() => (
-              <ChannelListScreen
-                setChannel={setChannel}
-                chatClient={chatClient}
-              />
-            )}
+            children={() => <ChannelListScreen chatClient={chatClient} />}
             options={{
               headerTitle: () => <CustomHeader version={"messages"} />,
               headerStyle: {
@@ -1633,7 +1584,7 @@ export default function App() {
           />
           <Stack.Screen
             name="ChannelScreen"
-            children={() => <ChannelScreen channel={channel} />}
+            component={ChannelScreen}
             options={({ navigation, route }) => ({
               headerShown: false,
             })}
@@ -1648,7 +1599,7 @@ export default function App() {
   } else {
     if (finishRegisterProcess) {
       return (
-        <NavigationContainer>
+        <NavigationContainer ref={navigationContainerRef}>
           <Stack.Navigator>
             <Stack.Screen
               name="FinishGoogleRegister"
@@ -1703,7 +1654,7 @@ export default function App() {
       return (
         <StripeProvider publishableKey="pk_live_51KDXfNCVH1iPNeBrTGAw1ZFwnNCTNO3rJ23zBni3ohGDWO8zuby2xDw3dYiHabs2furS1EAgQKq3hdtR2PP2jPZr00JCFvS9h8">
           <OverlayProvider value={{ style: theme }}>
-            <NavigationContainer linking={linking}>
+            <NavigationContainer linking={linking} ref={navigationContainerRef}>
               <Drawer.Navigator
                 style={{ backgroundColor: "#82ff00" }}
                 drawerContent={({ navigation }) => (

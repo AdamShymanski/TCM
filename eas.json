@@ -3,6 +3,14 @@
     "version": ">= 0.54.1"
   },
   "build": {
+    "local": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "developmentClient": true
+      }
+    },
     "development": {
       "distribution": "internal",
       "android": {

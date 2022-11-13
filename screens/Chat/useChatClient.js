@@ -46,8 +46,6 @@ export default function useChatClient() {
                   })
                   .catch((err) => console.log(err));
               }
-
-              console.log("useChatClient");
             } catch (error) {
               console.log(error);
             }

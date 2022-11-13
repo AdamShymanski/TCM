@@ -145,6 +145,8 @@ android {
     defaultConfig {
         manifestPlaceholders = [appAuthRedirectScheme: 'tcm']
         applicationId 'app.ptcg.marketplace'
+        // minSdkVersion 21
+        // targetSdkVersion 33
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1280

@@ -6,7 +6,7 @@ import { chatUserId } from "./chatConfig";
 import { useNavigation } from "@react-navigation/native";
 // import { auth } from "../../authContext";
 
-export default function ChannelListScreen({ setChannel, chatClient }) {
+export default function ChannelListScreen({ chatClient }) {
   const navigation = useNavigation();
 
   const filters = {
@@ -24,8 +24,7 @@ export default function ChannelListScreen({ setChannel, chatClient }) {
       filters={filters}
       numberOfSkeletons={10}
       onSelect={(channel) => {
-        setChannel(channel);
-        navigation.navigate("ChannelScreen");
+        navigation.navigate("ChannelScreen", { channel });
       }}
     />
   );
