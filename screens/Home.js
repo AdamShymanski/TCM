@@ -42,9 +42,6 @@ export default function Home() {
     };
   }, []);
 
-  // useEffect(() => {
-  //   console.log(mostRecentOffers);
-  // }, [mostRecentOffers]);
 
   return (
     <View

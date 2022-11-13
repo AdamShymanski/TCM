@@ -63,53 +63,60 @@ export default function Search({ props, setProps }) {
     if (props.loadingState && mostRecentOffers.length !== 0) setNoCards(true);
   }, [props.loadingState]);
 
-  useEffect(async () => {
-    if (!isFocused) {
-      setCartArray([]);
-      setOffersData([]);
-      setSavedOffersId([]);
-      setMostRecentOffers([]);
-      setProps((prevState) => ({
-        ...prevState,
-        loadingState: true,
-      }));
-    }
-    if (isFocused) {
-      if (auth.currentUser) {
-        const doc = await db
-          .collection("users")
-          .doc(auth.currentUser.uid)
-          .get();
-          
-        setCountry(doc.data().country);
-        setCartArray(doc.data().cart);
-
-        await fetchSavedOffersId(setSavedOffersId);
-      } else {
-        setCountry("United States");
+  useEffect(() => {
+    const resolvePromises = async () => {
+      if (!isFocused) {
         setCartArray([]);
+        setOffersData([]);
+        setSavedOffersId([]);
+        setMostRecentOffers([]);
+        setProps((prevState) => ({
+          ...prevState,
+          loadingState: true,
+        }));
       }
+      if (isFocused) {
+        if (auth.currentUser) {
+          const doc = await db
+            .collection("users")
+            .doc(auth.currentUser.uid)
+            .get();
 
-      await fetchMostRecentOffers(setMostRecentOffers);
+          setCountry(doc.data().country);
+          setCartArray(doc.data().cart);
 
-      setProps((prev) => ({ ...prev, loadingState: false }));
-    }
+          await fetchSavedOffersId(setSavedOffersId);
+        } else {
+          setCountry("United States");
+          setCartArray([]);
+        }
+
+        await fetchMostRecentOffers(setMostRecentOffers);
+
+        setProps((prev) => ({ ...prev, loadingState: false }));
+      }
+    };
+    resolvePromises();
   }, [isFocused]);
 
-  useEffect(async () => {
-    if (id) {
-      setProps((prevState) => ({
-        ...prevState,
-        loadingState: true,
-      }));
+  useEffect(() => {
+    const resolvePromises = async () => {
+      if (id) {
+        setProps((prevState) => ({
+          ...prevState,
+          loadingState: true,
+        }));
 
-      await fetchOffers(id, props.filterParams, setOffersData);
+        await fetchOffers(id, props.filterParams, setOffersData);
 
-      setProps((prevState) => ({
-        ...prevState,
-        loadingState: false,
-      }));
-    }
+        setProps((prevState) => ({
+          ...prevState,
+          loadingState: false,
+        }));
+      }
+    };
+
+    resolvePromises();
   }, [id, props.filterParams]);
 
   return (
