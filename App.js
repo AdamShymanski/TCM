@@ -361,7 +361,10 @@ function CartStack() {
                     if (checkoutPageState === "summaryPage") {
                       setCheckoutPageState("shippingPage");
                     } else {
-                      navigation.goBack();
+                      navigation.reset({
+                        index: 0,
+                        routes: [{ name: "Cart" }],
+                      });
                     }
                   }}
                 >
@@ -1330,7 +1333,7 @@ export default function App() {
     let data = Linking.parse(event.url);
     // setDeepLinkData(data);
   };
-  
+
   const linking = {
     prefixes: [Linking.createURL("/"), "https://tcmarket.place"],
     config: {
@@ -1658,7 +1661,7 @@ export default function App() {
       //! pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX
       //! pk_live_51KDXfNCVH1iPNeBrTGAw1ZFwnNCTNO3rJ23zBni3ohGDWO8zuby2xDw3dYiHabs2furS1EAgQKq3hdtR2PP2jPZr00JCFvS9h8
       return (
-        <StripeProvider publishableKey="pk_live_51KDXfNCVH1iPNeBrTGAw1ZFwnNCTNO3rJ23zBni3ohGDWO8zuby2xDw3dYiHabs2furS1EAgQKq3hdtR2PP2jPZr00JCFvS9h8">
+        <StripeProvider publishableKey="pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX">
           <OverlayProvider value={{ style: theme }}>
             <NavigationContainer linking={linking} ref={navigationContainerRef}>
               <Drawer.Navigator

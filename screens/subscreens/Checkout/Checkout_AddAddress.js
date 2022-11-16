@@ -12,7 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 
 export default function Checkout_AddAddress() {
   const [loadingIndicator, setLoadingIndicator] = useState(false);
-  const [country, setCountry] = useState("Loading...");
+  const [countryState, setCountry] = useState("Loading...");
 
   const [error, setError] = useState("");
 
@@ -40,7 +40,7 @@ export default function Checkout_AddAddress() {
     };
     resolvePromises();
   }, []);
-
+  
   return (
     <ScrollView style={{ backgroundColor: "#1b1b1b", flex: 1 }}>
       <View style={{ alignItems: "center", width: "100%" }}>
@@ -78,7 +78,7 @@ export default function Checkout_AddAddress() {
           firstName: "",
           lastName: "",
           zipCode: "",
-          country: country,
+          country: countryState,
           state: "",
           city: "",
           streetAddress1: "",
@@ -87,46 +87,56 @@ export default function Checkout_AddAddress() {
         }}
         validationSchema={reviewSchema}
         onSubmit={async (values, actions) => {
-          const preventAddressesDuplication = () => {
-            const promise = new Promise((resolve, reject) => {
-              db.collection("users")
-                .doc(auth.currentUser.uid)
-                .get()
-                .then((doc) => {
-                  if (doc.data().addresses.length > 0) {
-                    doc.data().addresses.forEach((address, index) => {
-                      if (JSON.stringify(address) === JSON.stringify(values)) {
-                        reject("Address already exists!");
-                      }
-                      if (index === doc.data().addresses.length - 1) {
-                        resolve();
-                      }
-                    });
-                  } else {
-                    resolve();
-                  }
-                });
-            });
+          try {
+            const preventAddressesDuplication = () => {
+              const promise = new Promise((resolve, reject) => {
+                db.collection("users")
+                  .doc(auth.currentUser.uid)
+                  .get()
+                  .then((doc) => {
+                    if (doc.data().addresses.length > 0) {
+                      doc.data().addresses.forEach((address, index) => {
+                        if (
+                          JSON.stringify(address) === JSON.stringify(values)
+                        ) {
+                          reject("Address already exists!");
+                        }
+                        if (index === doc.data().addresses.length - 1) {
+                          resolve();
+                        }
+                      });
+                    } else {
+                      resolve();
+                    }
+                  });
+              });
 
-            return promise;
-          };
-          preventAddressesDuplication()
-            .then(async () => {
-              await db
-                .collection("users")
-                .doc(auth.currentUser.uid)
-                .update({
-                  addresses:
-                    firebaseObj.firestore.FieldValue.arrayUnion(values),
-                });
+              return promise;
+            };
+            preventAddressesDuplication()
+              .then(async () => {
+                values.country = countryState;
+                await db
+                  .collection("users")
+                  .doc(auth.currentUser.uid)
+                  .update({
+                    addresses:
+                      firebaseObj.firestore.FieldValue.arrayUnion(values),
+                  });
 
-              setLoadingIndicator(false);
-              navigation.goBack();
-            })
-            .catch((e) => {
-              setError(e);
-              setLoadingIndicator(false);
-            });
+                setLoadingIndicator(false);
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "Checkout" }],
+                });
+              })
+              .catch((e) => {
+                setError(e);
+                setLoadingIndicator(false);
+              });
+          } catch (e) {
+            console.log(e);
+          }
         }}
         style={{
           flex: 1,
@@ -316,7 +326,7 @@ export default function Checkout_AddAddress() {
                 <TouchableOpacity style={{ width: "100%" }} disabled={true}>
                   <TextInput
                     mode={"outlined"}
-                    value={country}
+                    value={countryState}
                     onChangeText={props.handleChange("country")}
                     label="Country"
                     outlineColor={props.errors.country ? "#b40424" : "#5c5c5c"}
@@ -329,10 +339,7 @@ export default function Checkout_AddAddress() {
                     theme={{
                       colors: {
                         text: "#fff",
-                        disabled:
-                          props.errors.country && countryInputTouched
-                            ? "#b40424"
-                            : "#5c5c5c",
+                        disabled: props.errors.country ? "#b40424" : "#5c5c5c",
                         background: "transparent",
                       },
                     }}
@@ -635,7 +642,6 @@ export default function Checkout_AddAddress() {
                 }}
                 onPress={async () => {
                   setLoadingIndicator(true);
-                  setCountryInputTouched(true);
                   props.handleSubmit();
                 }}
               >

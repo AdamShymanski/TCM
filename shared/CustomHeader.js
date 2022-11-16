@@ -12,6 +12,7 @@ import IconF from "react-native-vector-icons/Feather";
 
 import referral_program_icon from "../assets/referral_program.png";
 import tcm_logo from "../assets/TCM.png";
+import { async } from "./../authContext";
 
 export default function CustomHeader({ version, props, setProps }) {
   const searchForCard = async () => {
@@ -682,8 +683,9 @@ export default function CustomHeader({ version, props, setProps }) {
     );
   }
   if (version == "search") {
-    useEffect(async () => {
-      searchForCard();
+    useEffect(() => {
+      const resolvePromise = async () => await searchForCard();
+      resolvePromise();
     }, [props.sorterParams]);
 
     return (

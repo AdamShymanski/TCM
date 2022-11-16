@@ -94,17 +94,24 @@ export default function Checkout({ pageState, setPage }) {
     resolvePromise();
   }, []);
 
-  useEffect(async () => {
-    if (isFocused) {
-      const user = await db.collection("users").doc(auth.currentUser.uid).get();
-      if (user.data().addresses?.length > 0) {
-        setAddressesArray(user.data().addresses);
+  useEffect(() => {
+    const resolvePromise = async () => {
+      if (isFocused) {
+        const user = await db
+          .collection("users")
+          .doc(auth.currentUser.uid)
+          .get();
+        if (user.data().addresses?.length > 0) {
+          setAddressesArray(user.data().addresses);
+        } else {
+          setAddressesArray([]);
+        }
       } else {
         setAddressesArray([]);
       }
-    } else {
-      setAddressesArray([]);
-    }
+    };
+
+    resolvePromise();
   }, [isFocused]);
 
   useEffect(() => {
@@ -114,40 +121,44 @@ export default function Checkout({ pageState, setPage }) {
   }, [addressesArray]);
 
   useEffect(() => {
-    if (shippingAddress) {
-      const shippingMethodsArray = [];
-      const promise = new Promise((resolve, reject) => {
-        offersState.forEach(async (obj, index) => {
-          const owner = await db.collection("users").doc(obj.uid).get();
+    const resolvePromise = async () => {
+      if (shippingAddress) {
+        const shippingMethodsArray = [];
+        const promise = new Promise((resolve, reject) => {
+          offersState.forEach(async (obj, index) => {
+            const owner = await db.collection("users").doc(obj.uid).get();
 
-          if (shippingAddress.country !== owner.data().country) {
-            shippingMethodsArray.push({
-              title: obj.title,
-              uid: obj.uid,
-              data: owner.data().sellerProfile.shippingMethods.international,
-            });
-          } else {
-            shippingMethodsArray.push({
-              title: obj.title,
-              uid: obj.uid,
-              data: owner.data().sellerProfile.shippingMethods.domestic,
-            });
-          }
+            if (shippingAddress.country !== owner.data().country) {
+              shippingMethodsArray.push({
+                title: obj.title,
+                uid: obj.uid,
+                data: owner.data().sellerProfile.shippingMethods.international,
+              });
+            } else {
+              shippingMethodsArray.push({
+                title: obj.title,
+                uid: obj.uid,
+                data: owner.data().sellerProfile.shippingMethods.domestic,
+              });
+            }
 
-          if (index === offersState.length - 1) {
-            resolve();
-          }
+            if (index === offersState.length - 1) {
+              resolve();
+            }
+          });
         });
-      });
 
-      promise.then(() => {
-        shippingMethodsArray.forEach((item, index) => {
-          if (item.data.length === 0)
-            shippingMethodsArray[index].data.push({ empty: true });
+        promise.then(() => {
+          shippingMethodsArray.forEach((item, index) => {
+            if (item.data.length === 0)
+              shippingMethodsArray[index].data.push({ empty: true });
+          });
+          setAvalibleShippingMethods(shippingMethodsArray);
         });
-        setAvalibleShippingMethods(shippingMethodsArray);
-      });
-    }
+      }
+    };
+
+    resolvePromise();
   }, [shippingAddress]);
 
   useEffect(() => {
@@ -1050,45 +1061,51 @@ const getFooter = (
     resolvePromise();
   }, []);
 
-  useEffect(async () => {
-    if (offersState) {
-      let cards = 0;
-      let discount = 0;
-      let shipping = 0;
+  useEffect(() => {
+    const resolvePromise = async () => {
+      if (offersState) {
+        let cards = 0;
+        let discount = 0;
+        let shipping = 0;
 
-      offersState.forEach((object) => {
-        object.data.forEach((offer) => {
-          cards += offer.price;
-        });
-      });
-
-      const doc = await db.collection("users").doc(auth.currentUser.uid).get();
-
-      doc.data()?.discounts.referralProgram.forEach((item) => {
-        db.collection("users")
-          .doc(item.uid)
-          .get()
-          .then((doc) => {
-            if (
-              doc.data()?.sellerProfile?.statistics?.purchases > 0 &&
-              item.used === false
-            ) {
-              discount += 1.5;
-            }
+        offersState.forEach((object) => {
+          object.data.forEach((offer) => {
+            cards += offer.price;
           });
-      });
+        });
 
-      for (const [key, value] of Object.entries(shippingMethod)) {
-        shipping += value.price;
+        const doc = await db
+          .collection("users")
+          .doc(auth.currentUser.uid)
+          .get();
+
+        doc.data()?.discounts.referralProgram.forEach((item) => {
+          db.collection("users")
+            .doc(item.uid)
+            .get()
+            .then((doc) => {
+              if (
+                doc.data()?.sellerProfile?.statistics?.purchases > 0 &&
+                item.used === false
+              ) {
+                discount += 1.5;
+              }
+            });
+        });
+
+        for (const [key, value] of Object.entries(shippingMethod)) {
+          shipping += value.price;
+        }
+
+        setTotals({
+          cards: cards.toFixed(2),
+          discount: discount.toFixed(2),
+          shipping: shipping.toFixed(2),
+          final: (cards + shipping - discount).toFixed(2),
+        });
       }
-
-      setTotals({
-        cards: cards.toFixed(2),
-        discount: discount.toFixed(2),
-        shipping: shipping.toFixed(2),
-        final: (cards + shipping - discount).toFixed(2),
-      });
-    }
+    };
+    resolvePromise();
   }, [offersState]);
 
   const initializePaymentSheet = async (data) => {
@@ -1113,22 +1130,27 @@ const getFooter = (
     }
   };
   const openPaymentSheet = async () => {
-    const { error } = await presentPaymentSheet();
+    try {
+      const { error } = await presentPaymentSheet();
 
-    if (error) {
-      console.log(`Error code: ${error.code}`, error.message);
-    } else {
-      console.log("Success", "Your order is confirmed!");
-      setPage("endPage");
-      navigation.addListener("beforeRemove", (e) => {
-        if (pageState === "endPage") {
-          e.preventDefault();
-        } else {
-          return;
-        }
-      });
+      if (error) {
+        console.log(`Error code: ${error.code}`, error.message);
+      } else {
+        console.log("Success", "Your order is confirmed!");
+        setPage("endPage");
+        navigation.addListener("beforeRemove", (e) => {
+          if (pageState === "endPage") {
+            e.preventDefault();
+          } else {
+            return;
+          }
+        });
+      }
+    } catch (e) {
+      console.log(e);
     }
   };
+  
   return (
     <View style={{ flex: 1 }}>
       <View
@@ -1332,24 +1354,24 @@ const getFooter = (
 
             openPaymentSheet();
 
-            let outObj = {};
+            // let outObj = {};
 
-            offersState.forEach((item) => {
-              outObj.seller = item.uid;
+            // offersState.forEach((item) => {
+            //   outObj.seller = item.uid;
 
-              const offersArray = [];
-              item.data.forEach((offer) => {
-                offersArray.push(offer.id);
-              });
+            //   const offersArray = [];
+            //   item.data.forEach((offer) => {
+            //     offersArray.push(offer.id);
+            //   });
 
-              outObj.offers = offersArray;
+            //   outObj.offers = offersArray;
 
-              outObj.shipping = {
-                method: shippingMethod[item.uid],
-                address: shippingAddress,
-              };
-              outObj.paymentId = "paymentId -- null";
-            });
+            //   outObj.shipping = {
+            //     method: shippingMethod[item.uid],
+            //     address: shippingAddress,
+            //   };
+            //   outObj.paymentId = "paymentId -- null";
+            // });
 
             //! ONLY FOR DEMO PURPOSE || 1 SELLER ONLY
           }}

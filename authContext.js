@@ -28,10 +28,10 @@ export const functions = firebase.functions();
 
 export const firebaseObj = firebase;
 
-// if (__DEV__) {
-//   firebase.functions().useEmulator("192.168.0.105", 5001);
-//   firebase.firestore().useEmulator("192.168.0.105", 8080);
-// }
+if (__DEV__) {
+  firebase.functions().useEmulator("192.168.0.105", 5001);
+  // firebase.firestore().useEmulator("192.168.0.105", 8080);
+}
 
 //! CARDS
 export async function fetchCards(props, setProps) {
