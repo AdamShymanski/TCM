@@ -1165,7 +1165,7 @@
     node-forge "^1.2.1"
     nullthrows "^1.1.1"
 
-"@expo/config-plugins@^4.0.14", "@expo/config-plugins@^4.0.2", "@expo/config-plugins@^4.1.4":
+"@expo/config-plugins@^4.0.14", "@expo/config-plugins@^4.0.2", "@expo/config-plugins@^4.1.5":
   version "4.1.5"
   resolved "https://registry.yarnpkg.com/@expo/config-plugins/-/config-plugins-4.1.5.tgz#9d357d2cda9c095e511b51583ede8a3b76174068"
   integrity sha512-RVvU40RtZt12HavuDAe+LDIq9lHj7sheOfMEHdmpJ/uTA8pgvkbc56XF6JHQD+yRr6+uhhb+JnAasGq49dsQbw==
@@ -2530,12 +2530,12 @@
   resolved "https://registry.yarnpkg.com/@stream-io/flat-list-mvcp/-/flat-list-mvcp-0.10.2.tgz#e247206c5c6409bb4af120e0f02d7b9b505f6e53"
   integrity sha512-jebEKP7pfRF8/tVSqNM6qdvisfOtMnMlzGYTWldoOnIq9/6DS1BU4ilzBuH6O7iBUu4bDokrMCNJgA2b2EKW/A==
 
-"@stripe/stripe-react-native@0.13.1":
-  version "0.13.1"
-  resolved "https://registry.yarnpkg.com/@stripe/stripe-react-native/-/stripe-react-native-0.13.1.tgz#d0dfa0c6eedecac370712e89c2b9dbc73149eaca"
-  integrity sha512-Y0Op6/ACJF+iKd121qObFnU1oTW2ZIhIs4E0d141oSTW4KMgIY4Mq1mRExt9ZNnp7ZgMOQ7BIRaInoF52xJIgQ==
+"@stripe/stripe-react-native@0.17.0":
+  version "0.17.0"
+  resolved "https://registry.yarnpkg.com/@stripe/stripe-react-native/-/stripe-react-native-0.17.0.tgz#b7d271e23f1216ebf7ddccaf0235d952c838668e"
+  integrity sha512-Dn7A7MHgDPvffY+1qNNcLd/ImnDDg8NozuE7jsZRC8MyQrpSNSVrLmqSultii5Y7NqunljtjPO6VcVtof3vbJw==
   dependencies:
-    "@expo/config-plugins" "^4.1.4"
+    "@expo/config-plugins" "^4.1.5"
 
 "@tootallnate/once@2":
   version "2.0.0"

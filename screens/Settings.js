@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
@@ -92,33 +91,40 @@ export default function Settings() {
     "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing and other functionality - use another VirtualizedList-backed container instead.",
   ]);
 
-  useEffect(async () => {
-    if (isFocused) {
-      const result = await fetchUserData();
+  useEffect(() => {
+    const resolvePromise = async () => {
+      if (isFocused) {
+        const result = await fetchUserData();
 
-      setInitValues({ nick: result.nick, country: result.country });
-      setUserData({ nick: result.nick, country: result.country });
+        setInitValues({ nick: result.nick, country: result.country });
+        setUserData({ nick: result.nick, country: result.country });
 
-      setAddressesArray(result.addresses);
+        setAddressesArray(result.addresses);
 
-      const query = functions.httpsCallable("testNotification");
-      await query().then((result) => {
-        console.log(result.data);
-      });
+        // const query = functions.httpsCallable("testNotification");
+        // await query().then((result) => {
+        //   console.log(result.data);
+        // });
 
-      setLoading(false);
-    } else {
-      setLoading(true);
-      setInitValues({
-        nick: "",
-        country: "",
-      });
-      setUserData({
-        nick: "",
-        country: "",
-      });
-      setAddressesArray([]);
-    }
+        // const query = functions.httpsCallable("sendMail");
+        // await query();
+
+        setLoading(false);
+      } else {
+        setLoading(true);
+        setInitValues({
+          nick: "",
+          country: "",
+        });
+        setUserData({
+          nick: "",
+          country: "",
+        });
+        setAddressesArray([]);
+      }
+    };
+
+    resolvePromise();
   }, [isFocused]);
 
   useEffect(() => {
@@ -387,7 +393,6 @@ export default function Settings() {
                       }}
                     />
                   </TouchableOpacity>
-
                   <ErrorMessage component="div" name="country">
                     {(msg) => (
                       <Text

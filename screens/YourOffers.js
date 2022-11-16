@@ -464,7 +464,7 @@ export default function YourOffers() {
               }}
             >
               Add photos, description, price and condition of the card and sell
-              it. It's really easy with PTCG Marketplace.
+              it. It's really easy with Trading Card Marketplace.
             </Text>
 
             <TouchableOpacity

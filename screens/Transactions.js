@@ -22,7 +22,7 @@ export default function Transactions() {
 
   const isFocused = useIsFocused();
 
-  useEffect(async () => {
+  useEffect(() => {
     if (!isFocused) {
       setTransactionsSold([]);
       setTransactionBought([]);
@@ -157,7 +157,7 @@ export default function Transactions() {
             }}
           >
             It looks like you don't have any transactions yet. Buying and
-            selling cards with PTCG Marketplace is easy. Try it.
+            selling cards with Trading Card Marketplace is easy. Try it.
           </Text>
         </View>
       );

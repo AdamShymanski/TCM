@@ -16,17 +16,24 @@ export default function SavedOffers() {
 
   const isFocused = useIsFocused();
 
-  useEffect(async () => {
-    if (!isFocused) {
-      setCardsData([]);
-      setLoading(true);
-    }
-    if (isFocused) {
-      fetchSavedCards(setCardsData, setLoading);
-      const doc = await db.collection("users").doc(auth.currentUser.uid).get();
-      setCartState(doc.data().cart);
-      setUserCountry(doc.data().country);
-    }
+  useEffect(() => {
+    const resolvePromise = async () => {
+      if (!isFocused) {
+        setCardsData([]);
+        setLoading(true);
+      }
+      if (isFocused) {
+        fetchSavedCards(setCardsData, setLoading);
+        const doc = await db
+          .collection("users")
+          .doc(auth.currentUser.uid)
+          .get();
+        setCartState(doc.data().cart);
+        setUserCountry(doc.data().country);
+      }
+    };
+
+    resolvePromise();
   }, [isFocused]);
 
   if (loadingState) {

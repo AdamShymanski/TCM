@@ -1,25 +1,27 @@
 const request = require("request");
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
-
+const sgMail = require("@sendgrid/mail");
+const stream_chat = require("stream-chat");
 const stripe = require("stripe")(
-  "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"
+  "sk_test_51KDXfNCVH1iPNeBrKw7YbGdP8IpIPZiQKrG6uKrrUSd3xVie1zH7EJe9uO5pdvnl8lgl17qhxB5Q9JM84WFr6Nqb00lWqb7G75"
 );
-
 //! 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
 //! sk_test_51KDXfNCVH1iPNeBrKw7YbGdP8IpIPZiQKrG6uKrrUSd3xVie1zH7EJe9uO5pdvnl8lgl17qhxB5Q9JM84WFr6Nqb00lWqb7G75
+
 const endpointSecret =
   "whsec_fe2b32369c4237e36bdacd1e74883ebebadde92f87c0eda852575649abee2e38";
 
 admin.initializeApp();
 //Stripe Account
 
-// Define values.
 const api_key = "nfnwsdq54g3b";
 const api_secret =
   "3fzhjfk2spyxw8tmxeudfj4thqu3q2ftbure2qqxgpqrth7nv8dwahp45b6cc4pk";
+const SENDGRID_API_KEY =
+  "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";
 
-const stream_chat = require("stream-chat");
+sgMail.setApiKey(SENDGRID_API_KEY);
 const serverClient = stream_chat.StreamChat.getInstance(api_key, api_secret);
 
 function uuidv4() {
@@ -624,6 +626,8 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
                     admin.firestore.FieldValue.increment(1),
                 });
 
+              //incremetn by number of cards sold
+
               await stripe.transfers.create({
                 amount:
                   doc.data().costs.cards +
@@ -638,6 +642,47 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
                 resolve();
               }
             });
+
+            //send email to buyer
+            //send email to seller
+            //send notification to seller
+
+            // const msg = {
+            //   to: "test@example.com", // Change to your recipient
+            //   from: "test@example.com", // Change to your verified sender
+            //   subject: "Sending with SendGrid is Fun",
+            //   text: "and easy to do anywhere, even with Node.js",
+            //   html: "<strong>and easy to do anywhere, even with Node.js</strong>",
+            // };
+
+            // sgMail
+            //   .send(msg)
+            //   .then(() => {
+            //     console.log("Email sent");
+            //   })
+            //   .catch((error) => {
+            //     console.error(error);
+            //   });
+
+            // const msg = {
+            //   to: "szymanskiadam111@gmail.com",
+            //   from: "sales@tcmarket.place",
+            //   templateId: "d-f43daeeaef504760851f727007e0b5d0",
+            //   subject: 'Order Confirmation',
+            //   dynamicTemplateData: {
+            //     subject: "Testing Templates",
+            //     name: "Some One",
+            //     city: "Denver",
+            //   },
+            // };
+            // sgMail
+            //   .send(msg)
+            //   .then(() => {
+            //     console.log("Email sent");
+            //   })
+            //   .catch((error) => {
+            //     console.error(error);
+            //   });
           });
 
           promise.then(() => {
@@ -648,34 +693,34 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
         }
       });
   }
-  // if (
-  //   event.type === "payment_intent.canceled" ||
-  //   event.type === "payment_intent.failed"
-  // ) {
-  //   await admin
-  //     .firestore()
-  //     .collection("transactions")
-  //     .where("paymentIntent", "==", event.data.object.id)
-  //     .get()
-  //     .then((transactions) => {
-  //       const promise = new Promise((resolve, reject) => {
-  //         transactions.forEach(async (doc) => {
-  //           await admin
-  //             .firestore()
-  //             .collection("transactions")
-  //             .doc(doc.id)
-  //             .delete();
-  //         });
-  //         if (transactions.length - 1 === index) {
-  //           resolve();
-  //         }
-  //       });
+  if (
+    event.type === "payment_intent.canceled" ||
+    event.type === "payment_intent.failed"
+  ) {
+    await admin
+      .firestore()
+      .collection("transactions")
+      .where("paymentIntent", "==", event.data.object.id)
+      .get()
+      .then((transactions) => {
+        const promise = new Promise((resolve, reject) => {
+          transactions.forEach(async (doc) => {
+            await admin
+              .firestore()
+              .collection("transactions")
+              .doc(doc.id)
+              .delete();
+          });
+          if (transactions.length - 1 === index) {
+            resolve();
+          }
+        });
 
-  //       promise.then(() => {
-  //         res.status(200).send("success");
-  //       });
-  //     });
-  // }
+        promise.then(() => {
+          res.status(200).send("success");
+        });
+      });
+  }
   if (event.type === "account.updated") {
     const accountData = event.data.object;
 
@@ -832,6 +877,77 @@ exports.testNotification = functions.https.onCall(async (data, context) => {
         "sketJE8u32UYTkUySGRLYWPuaT93-a39b8870-1a4e-4030-34f2-d0c026431a31",
       skipDevices: true,
     });
+    return "success";
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+exports.sendMail = functions.https.onCall(async (data, context) => {
+  try {
+    const msg = {
+      to: "milosz.nedzny@gmail.com",
+      from: "sales@tcmarket.place",
+      templateId: "d-0c7fc69547ec40f2b778421535729a31",
+      subject: "Order Confirmation",
+      dynamicTemplateData: {
+        order_id: "137vn2389jfg72h98wh",
+        vendor_name: "Ben Harvey",
+        shipping_address: {
+          name: "Adam Szymanski",
+          street1: "Waclawa Wojewodzkiego 1/2",
+          street2: "-- street 2 --",
+          city: "Lodz",
+          postal_code: "92-446",
+          phone: "+48606417902",
+          country: "Poland",
+        },
+        shipping_method: {
+          carrier: "USPS",
+          cost: "12.00 USD",
+          type: "Standard",
+          delivery_time: "12/21",
+        },
+        final_cost: {
+          shipping: "12.00 USD",
+          cards: "89.00 USD",
+          discount: "12.00 USD",
+          total: "89.00 USD",
+        },
+        card1: {
+          name: "Gyarados GX",
+          price: "12.00 USD",
+          graded: true,
+          condition: 1,
+          language: "English",
+          url: "https://firebasestorage.googleapis.com/v0/b/ptcg-marketpla.appspot.com/o/cards%2FAwPacv081ZZLBZsiS396%2F0?alt=media&token=09cbc856-aa3b-457f-a0eb-cacf7683d71c",
+        },
+        card2: {
+          name: "Pikachu GX",
+          price: "12.00 USD",
+          graded: false,
+          condition: 9,
+          language: "English",
+          url: "https://firebasestorage.googleapis.com/v0/b/ptcg-marketpla.appspot.com/o/cards%2FGYbG7QO4a0dlYXOhqZHI%2F0?alt=media&token=019e42c2-f258-49b2-9271-48d313e2ff3d",
+        },
+        card3: {
+          name: "Charizard GX",
+          price: "12.00 USD",
+          graded: true,
+          condition: 9,
+          language: "English",
+          url: "https://firebasestorage.googleapis.com/v0/b/ptcg-marketpla.appspot.com/o/cards%2FQLnfrUsLYy2UKQkakBUR%2F0?alt=media&token=37201275-52d5-46dc-b75c-7b9609f5fab2",
+        },
+      },
+    };
+    sgMail
+      .send(msg)
+      .then(() => {
+        console.log("Email sent");
+      })
+      .catch((error) => {
+        console.error(error);
+      });
     return "success";
   } catch (err) {
     console.log(err);

@@ -89,7 +89,7 @@ export default function Cart({ route }) {
   const isFocused = useIsFocused();
   const navigation = useNavigation();
 
-  useEffect(async () => {
+  useEffect(() => {
     if (!isFocused) {
       setCartState([]);
       setLoading(true);
