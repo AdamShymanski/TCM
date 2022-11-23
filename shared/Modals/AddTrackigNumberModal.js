@@ -8,9 +8,9 @@ import {
 } from "react-native";
 
 import { TextInput } from "react-native-paper";
-import { db, firebaseObj } from "../../authContext";
+import { db, firebaseObj, functions, auth } from "../../authContext";
 
-export default function AddTrackigNumberModal({ id, setModal, setLoading }) {
+export default function AddTrackigNumberModal({ id, setModal }) {
   const [error, setError] = useState("");
   const [activityIndicator, setActivityIndicator] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
@@ -123,16 +123,55 @@ export default function AddTrackigNumberModal({ id, setModal, setLoading }) {
                 onPress={async () => {
                   try {
                     setActivityIndicator(true);
-                    setActivityIndicator(false);
-                    setModal(false);
 
-                    db.collection("transactions")
+                    await db
+                      .collection("transactions")
+                      .doc(id)
+                      .get()
+                      .then((doc) => {
+                        const notificationQuery =
+                          functions.httpsCallable("sendNotification");
+
+                        notificationQuery({
+                          payload: {
+                            notification: {
+                              title: "Shipment Sent",
+                              body: "The order has been shipped 🚀",
+                            },
+                            data: {
+                              channelId: "transactions-notifications",
+                            },
+                          },
+                          uid: doc.data().buyer,
+                        });
+
+                        const mailQuery = functions.httpsCallable("sendMail");
+
+                        mailQuery({
+                          to: doc.data().buyer,
+                          from: {
+                            email: "sales@tcmarket.place",
+                            name: "TCM",
+                          },
+                          templateId: "d-b76ecdbfa7ca44d9a90a6c6788e6d863",
+                          subject: "Shipment Sent",
+                          dynamicTemplateData: {
+                            order_id: id,
+                          },
+                        });
+                      });
+
+                    await db
+                      .collection("transactions")
                       .doc(id)
                       .update({
                         ["shipping.sent"]:
                           firebaseObj.firestore.FieldValue.serverTimestamp(),
                         ["shipping.trackingNumber"]: trackingNumber.trim(),
                       });
+
+                    setActivityIndicator(false);
+                    setModal(null);
                   } catch (error) {
                     console.log(error);
                   }

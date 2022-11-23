@@ -7,10 +7,10 @@ import {
   ActivityIndicator,
 } from "react-native";
 
-import { db, firebaseObj } from "../../authContext";
+import { db, firebaseObj, functions, auth } from "../../authContext";
 
 export default function ConfirmSendingModal({ id, setModal }) {
-  const [loadingIndicator, setLoadingIndicator] = useState(false);
+  const [activityIndicator, setActivityIndicator] = useState(false);
 
   return (
     <Modal
@@ -72,16 +72,55 @@ export default function ConfirmSendingModal({ id, setModal }) {
                 borderRadius: 3,
               }}
               onPress={async () => {
-                setLoadingIndicator(true);
+                setActivityIndicator(true);
+
+                await db
+                  .collection("transactions")
+                  .doc(id)
+                  .get()
+                  .then((doc) => {
+                    const notificationQuery =
+                      functions.httpsCallable("sendNotification");
+
+                    notificationQuery({
+                      payload: {
+                        notification: {
+                          title: "Shipment Sent",
+                          body: "The order has been shipped 🚀",
+                        },
+                        data: {
+                          channelId: "transactions-notifications",
+                        },
+                      },
+                      uid: doc.data().buyer,
+                    });
+
+                    const mailQuery = functions.httpsCallable("sendMail");
+
+                    mailQuery({
+                      to: doc.data().buyer,
+                      from: {
+                        email: "sales@tcmarket.place",
+                        name: "TCM",
+                      },
+                      templateId: "d-b76ecdbfa7ca44d9a90a6c6788e6d863",
+                      subject: "Shipment Sent",
+                      dynamicTemplateData: {
+                        order_id: id,
+                      },
+                    });
+                  });
+
                 await db
                   .collection("transactions")
                   .doc(id)
                   .update({
                     ["shipping.sent"]:
                       firebaseObj.firestore.FieldValue.serverTimestamp(),
+                    ["shipping.trackingNumber"]: trackingNumber.trim(),
                   });
 
-                setLoadingIndicator(false);
+                setActivityIndicator(false);
                 setModal(null);
               }}
             >
@@ -95,11 +134,11 @@ export default function ConfirmSendingModal({ id, setModal }) {
                 Submit
               </Text>
             </TouchableOpacity>
-            {loadingIndicator ? (
+            {activityIndicator ? (
               <ActivityIndicator
                 size={30}
                 color="#0082ff"
-                animating={loadingIndicator}
+                animating={activityIndicator}
                 style={{
                   marginRight: 14,
                   marginLeft: 18,

@@ -90,21 +90,9 @@ export default function Transactions() {
             backgroundColor: "#1b1b1b",
           }}
         >
-          {ATN ? (
-            <AddTrackigNumberModal
-              id={ATN}
-              setModal={setATN}
-              setLoading={setLoading}
-            />
-          ) : null}
+          {ATN ? <AddTrackigNumberModal id={ATN} setModal={setATN} /> : null}
+          {CS ? <ConfirmSendingModal id={CS} setModal={setCS} /> : null}
 
-          {CS ? (
-            <ConfirmSendingModal
-              id={CS}
-              setModal={setCS}
-              setLoading={setLoading}
-            />
-          ) : null}
           <FlatList
             data={[...transcationsBought, ...transcationsSold].sort((a, b) => {
               return b.timestamp - a.timestamp;

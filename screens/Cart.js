@@ -271,11 +271,15 @@ export default function Cart({ route }) {
               backgroundColor: "#0082ff",
               alignItems: "center",
               justifyContent: "center",
-              borderRadius: 4,
+              borderRadius: 5,
               paddingVertical: 7,
             }}
             onPress={() => {
               navigation.navigate("Checkout");
+              // navigation.reset({
+              //   index: 0,
+              //   routes: [{ name: "Checkout" }],
+              // });
             }}
           >
             <Text

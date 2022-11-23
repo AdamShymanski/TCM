@@ -288,13 +288,15 @@ export default function CustomDrawer({ navigation }) {
           .onSnapshot((snapshot) => {
             let countryCode;
 
-            countryCodes.forEach((item, i) => {
-              if (item.Name == snapshot.data().country) {
-                countryCode = countryCodes[i].Code.toLowerCase();
-              }
-            });
+            if (snapshot.data()?.country) {
+              countryCodes.forEach((item, i) => {
+                if (item.Name == snapshot.data().country) {
+                  countryCode = countryCodes[i].Code.toLowerCase();
+                }
+              });
 
-            setOwner({ countryCode: countryCode, ...snapshot.data() });
+              setOwner({ countryCode: countryCode, ...snapshot.data() });
+            }
           });
       }
     });

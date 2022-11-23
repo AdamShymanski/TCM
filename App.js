@@ -7,8 +7,14 @@ import "react-native-gesture-handler";
 import React, { useState, useEffect, useRef } from "react";
 import * as Updates from "expo-updates";
 
-import { Link, NavigationContainer } from "@react-navigation/native";
+import {
+  Link,
+  NavigationContainer,
+  CommonActions,
+} from "@react-navigation/native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
+import { createStackNavigator, useNavigation } from "@react-navigation/stack";
+
 import {
   Text,
   View,
@@ -20,7 +26,6 @@ import {
   AsyncStorage,
 } from "react-native";
 
-import { createStackNavigator, useNavigation } from "@react-navigation/stack";
 import { StripeProvider } from "@stripe/stripe-react-native";
 
 import { OverlayProvider, Chat } from "stream-chat-expo";
@@ -71,6 +76,7 @@ import useChatClient from "./screens/Chat/useChatClient";
 //!import SearchForSeller from "./screens/SearchForSeller";
 
 import { db, auth, functions } from "./authContext.js";
+import messaging from "@react-native-firebase/messaging";
 
 import IconMI from "react-native-vector-icons/MaterialIcons";
 import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
@@ -78,23 +84,22 @@ import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 import * as Font from "expo-font";
 import * as Sentry from "sentry-expo";
 
-import * as Device from "expo-device";
 import * as Linking from "expo-linking";
+// import * as Device from "expo-device";
 // import * as Notifications from "expo-notifications";
-import * as Permissions from "expo-permissions";
+// import * as Permissions from "expo-permissions";
 
 import clipboard_text_clock from "./assets/clipboard_text_clock.png";
 import opened_box from "./assets/opened_box.png";
 
-import messaging from "@react-native-firebase/messaging";
-import notifee, { EventType } from "@notifee/react-native";
+import notifee, { EventType, AndroidImportance } from "@notifee/react-native";
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 const prefix = Linking.makeUrl("/");
 const chatApiKey = "nfnwsdq54g3b";
 
-const navigationContainerRef = React.createRef();
+// const navigationContainerRef = React.createRef();
 
 if (!__DEV__) {
   Sentry.init({
@@ -342,7 +347,7 @@ function CartStack() {
         )}
         options={({ navigation, route }) => ({
           headerLeft: () => {
-            if (checkoutPageState !== "endPage") {
+            if (checkoutPageState != "endPage") {
               return (
                 <TouchableOpacity
                   style={{
@@ -361,10 +366,18 @@ function CartStack() {
                     if (checkoutPageState === "summaryPage") {
                       setCheckoutPageState("shippingPage");
                     } else {
-                      navigation.reset({
-                        index: 0,
-                        routes: [{ name: "Cart" }],
-                      });
+                      navigation.navigate("CartStack", { screen: "Cart" });
+
+                      // navigation.reset({
+                      //   index: 0,
+                      //   routes: [{ name: "Cart" }],
+                      // });
+                      // navigation.dispatch(
+                      // CommonActions.reset({
+                      //   index: 0,
+                      //   routes: [{ name: "Cart" }],
+                      // })
+                      // );
                     }
                   }}
                 >
@@ -375,9 +388,7 @@ function CartStack() {
                       color: "#777777",
                     }}
                   >
-                    {checkoutPageState === "shippingPage"
-                      ? "Cancel"
-                      : "Go Back"}
+                    {checkoutPageState === "summaryPage" ? "Go Back" : "Cancel"}
                   </Text>
                 </TouchableOpacity>
               );
@@ -1173,13 +1184,6 @@ function TransactionsStack() {
 function WelcomeStack() {
   return (
     <Stack.Navigator>
-      {/* <Stack.Screen
-          options={{
-            headerShown: false,
-          }}
-          name="Welcome"
-          children={() => <Welcome setUserName={setFinishRegisterProcess} />}
-        /> */}
       <Stack.Screen
         options={({ navigation, route }) => ({
           headerLeft: () => (
@@ -1307,20 +1311,20 @@ function WelcomeStack() {
   );
 }
 
-notifee.onBackgroundEvent(async ({ detail, type }) => {
-  if (type == 3) {
-    // user press on notification detected while app was on background on Android
-    const channel = detail.notification?.data;
-    // console.log("channelId", detail.notification?.data);
+// notifee.onBackgroundEvent(async ({ detail, type }) => {
+//   if (type == 3) {
+// user press on notification detected while app was on background on Android
+// const channel = detail.notification?.data;
+// console.log("channelId", detail.notification?.data);
 
-    await navigationContainerRef.current?.navigate("ChatStack", {
-      screen: "ChannelScreen",
-      params: channel,
-    });
+// await navigationContainerRef.current?.navigate("ChatStack", {
+//   screen: "ChannelScreen",
+//   params: channel,
+// });
 
-    await Promise.resolve();
-  }
-});
+//     await Promise.resolve();
+//   }
+// });
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -1329,10 +1333,10 @@ export default function App() {
   const chatClient = StreamChat.getInstance(chatApiKey);
   const [clientIsReady, setClientIsReady] = useState(false);
 
-  const handleDeepLink = async (event) => {
-    let data = Linking.parse(event.url);
-    // setDeepLinkData(data);
-  };
+  // const handleDeepLink = async (event) => {
+  //   let data = Linking.parse(event.url);
+  // setDeepLinkData(data);
+  // };
 
   const linking = {
     prefixes: [Linking.createURL("/"), "https://tcmarket.place"],
@@ -1418,22 +1422,50 @@ export default function App() {
   useEffect(() => {
     let unsubscribeTokenRefreshListener;
 
-    const requestPermission = async () => {
-      const authStatus = await messaging().requestPermission();
-      const enabled =
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+    const notificationUnsubscribe = messaging().onMessage(
+      async (remoteMessage) => {
+        try {
+          let channelId;
+          // if (remoteMessage.data.channelId == "vendor-notifications") {
+          // }
+          channelId = await notifee.createChannel({
+            id: "vendor-notifications",
+            name: "Vendor Notifications",
+          });
 
-      if (enabled) {
-        console.log("Authorization status:", authStatus);
+          try {
+            await notifee.displayNotification({
+              title: remoteMessage.notification.title,
+              body: remoteMessage.notification.body,
+              android: {
+                channelId,
+                smallIcon: "notification_icon",
+                color: "#0082ff",
+              },
+            });
+          } catch (e) {
+            console.log(e);
+          }
+
+          // android: {
+          //   largeIcon: remoteMessage.notification.android.imageUrl;
+          // }
+        } catch (e) {
+          console.log(e);
+        }
       }
-    };
+    );
 
     const registerPushToken = async () => {
-      const push_provider = "firebase";
-      const token = await messaging().getToken();
+      const token = await messaging().getToken({
+        vapidKey:
+          "BBGS4skwQmR3XTpi98N79O10BE1Xc1Z7h2JFVltSut-4Dy9w2XXf2uhQgzzcZoHXg69EsQoF8sskFGeJD2IsIWk",
+      });
 
-      const push_provider_name = "TCM"; // name an alias for your push provider (optional)
+      const push_provider = "firebase";
+      const push_provider_name = "TCM";
+
+      // name an alias for your push provider (optional)
       // push_provider_name is meant for optional multiple providers support, see: https://getstream.io/chat/docs/react/push_providers_and_multi_bundle
 
       chatClient.setLocalDevice({
@@ -1466,11 +1498,13 @@ export default function App() {
           ]);
         }
       );
-    };
 
+      return token;
+    };
     const resolvePromises = async () => {
       try {
-        Linking.addEventListener("url", handleDeepLink);
+        // Linking.addEventListener("url", handleDeepLink);
+        Linking.addEventListener("url", () => {});
 
         await Font.loadAsync({
           Roboto_Thin: require("./assets/fonts/Roboto-Thin.ttf"),
@@ -1479,12 +1513,10 @@ export default function App() {
           Roboto_Medium: require("./assets/fonts/Roboto-Medium.ttf"),
         });
 
-        if (!__DEV__) {
-          const update = await Updates.checkForUpdateAsync();
-          if (update.isAvailable) {
-            await Updates.fetchUpdateAsync();
-            Updates.reloadAsync();
-          }
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          Updates.reloadAsync();
         }
       } catch (e) {
         console.log(e);
@@ -1504,8 +1536,17 @@ export default function App() {
         };
 
         if (usersDoc.exists) {
-          await requestPermission();
-          await registerPushToken();
+          const enabled = await messaging().hasPermission();
+
+          if (!enabled) {
+            console.log("not enabled");
+            await messaging().requestPermission();
+            console.log(await messaging().hasPermission());
+          } else {
+            console.log("enabled");
+          }
+
+          const token = await registerPushToken();
 
           if (!chatClient.userID && usersDoc.data().chatToken) {
             await chatClient.connectUser(userObject, usersDoc.data().chatToken);
@@ -1523,6 +1564,14 @@ export default function App() {
               .catch((err) => console.log(err));
           }
 
+          if (
+            !usersDoc.data().notificationToken ||
+            usersDoc.data().notificationToken != token
+          ) {
+            db.collection("users").doc(auth.currentUser.uid).update({
+              notificationToken: token,
+            });
+          }
           setClientIsReady(true);
           setFinishRegisterProcess(false);
         } else {
@@ -1540,11 +1589,12 @@ export default function App() {
     return async () => {
       Linking.removeEventListener("url");
 
-      unsubscribeTokenRefreshListener?.();
-      unsubscribe();
       await chatClient?.disconnectUser();
+      unsubscribe();
+      unsubscribeTokenRefreshListener?.();
+      notificationUnsubscribe();
     };
-  }, []);
+  }, [, finishRegisterProcess]);
 
   function ChatStack() {
     // const [channel, setChannel] = useState();
@@ -1608,54 +1658,59 @@ export default function App() {
   } else {
     if (finishRegisterProcess) {
       return (
-        <NavigationContainer ref={navigationContainerRef}>
-          <Stack.Navigator>
-            <Stack.Screen
-              name="FinishGoogleRegister"
-              children={() => (
-                <FinishGoogleRegister
-                  setFinishRegisterProcess={setFinishRegisterProcess}
-                />
-              )}
-              options={({ navigation, route }) => ({
-                headerLeft: () => (
-                  <TouchableOpacity
-                    style={{
-                      borderRadius: 3,
-                      marginLeft: 12,
+        <StripeProvider publishableKey="pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX">
+          <OverlayProvider value={{ style: theme }}>
+            <NavigationContainer>
+              <Stack.Navigator>
+                <Stack.Screen
+                  name="FinishGoogleRegister"
+                  children={() => (
+                    <FinishGoogleRegister
+                      setFinishRegisterProcess={setFinishRegisterProcess}
+                    />
+                  )}
+                  options={({ navigation, route }) => ({
+                    headerLeft: () => (
+                      <TouchableOpacity
+                        style={{
+                          borderRadius: 3,
+                          marginLeft: 12,
 
-                      height: 30,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderWidth: 2,
-                      borderColor: "#777777",
-                      paddingHorizontal: 12,
-                    }}
-                    onPress={() => {
-                      auth.signOut();
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: "700",
-                        color: "#777777",
-                      }}
-                    >
-                      {"Go back"}
-                    </Text>
-                  </TouchableOpacity>
-                ),
-                headerTintColor: "#121212",
-                headerTitle: "",
-                headerStyle: {
-                  backgroundColor: "#121212",
-                },
-              })}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
+                          height: 30,
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderWidth: 2,
+                          borderColor: "#777777",
+                          paddingHorizontal: 12,
+                        }}
+                        onPress={() => {
+                          auth.signOut();
+                          setFinishRegisterProcess(false);
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            fontWeight: "700",
+                            color: "#777777",
+                          }}
+                        >
+                          {"Cancel"}
+                        </Text>
+                      </TouchableOpacity>
+                    ),
+                    headerTintColor: "#121212",
+                    headerTitle: "",
+                    headerStyle: {
+                      backgroundColor: "#121212",
+                    },
+                  })}
+                />
+              </Stack.Navigator>
+            </NavigationContainer>
+          </OverlayProvider>
+        </StripeProvider>
       );
     } else {
       //! pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX
@@ -1663,23 +1718,24 @@ export default function App() {
       return (
         <StripeProvider publishableKey="pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX">
           <OverlayProvider value={{ style: theme }}>
-            <NavigationContainer linking={linking} ref={navigationContainerRef}>
+            <NavigationContainer linking={linking}>
               <Drawer.Navigator
                 style={{ backgroundColor: "#82ff00" }}
                 drawerContent={({ navigation }) => (
                   <CustomDrawer navigation={navigation} />
                 )}
               >
+                <Drawer.Screen
+                  name="TransactionsStack"
+                  component={TransactionsStack}
+                />
                 <Drawer.Screen name="HomeStack" component={HomeStack} />
                 <Drawer.Screen name="ChatStack" component={ChatStack} />
                 <Drawer.Screen name="SettingsStack" component={SettingsStack} />
                 <Drawer.Screen name="CartStack" component={CartStack} />
                 <Drawer.Screen name="SellerStack" component={SellerStack} />
                 <Drawer.Screen name="SearchStack" component={SearchStack} />
-                <Drawer.Screen
-                  name="TransactionsStack"
-                  component={TransactionsStack}
-                />
+
                 <Drawer.Screen
                   name="YourOffersStack"
                   component={YourOffersStack}

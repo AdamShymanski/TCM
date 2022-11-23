@@ -1,4 +1,7 @@
 const request = require("request");
+// import { pokemon } from "pokemontcgsdk";
+const pokemon = require("pokemontcgsdk");
+
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
 const sgMail = require("@sendgrid/mail");
@@ -12,6 +15,8 @@ const stripe = require("stripe")(
 const endpointSecret =
   "whsec_fe2b32369c4237e36bdacd1e74883ebebadde92f87c0eda852575649abee2e38";
 
+pokemon.configure({ apiKey: "3c362cd9-2286-48d4-989a-0d2a65b9d5a8" });
+
 admin.initializeApp();
 //Stripe Account
 
@@ -20,7 +25,6 @@ const api_secret =
   "3fzhjfk2spyxw8tmxeudfj4thqu3q2ftbure2qqxgpqrth7nv8dwahp45b6cc4pk";
 const SENDGRID_API_KEY =
   "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";
-
 sgMail.setApiKey(SENDGRID_API_KEY);
 const serverClient = stream_chat.StreamChat.getInstance(api_key, api_secret);
 
@@ -523,6 +527,7 @@ exports.paymentSheet = functions.https.onCall(async (data, context) => {
       });
 
       return {
+        id: paymentIntent.id,
         paymentIntent: paymentIntent.client_secret,
         ephemeralKey: ephemeralKey.secret,
         customer: customer.id,
@@ -530,6 +535,16 @@ exports.paymentSheet = functions.https.onCall(async (data, context) => {
           "pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX",
       };
     });
+  } catch (e) {
+    console.log(e);
+    res.status(400).send(e);
+  }
+});
+
+exports.cancelPaymentSheet = functions.https.onCall(async (data, context) => {
+  try {
+    console.log(data);
+    await stripe.paymentIntents.cancel(data.paymentIntent);
   } catch (e) {
     console.log(e);
     res.status(400).send(e);
@@ -547,6 +562,8 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
     res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
+  console.log(event.type);
+
   if (event.type === "payment_intent.succeeded") {
     await admin
       .firestore()
@@ -555,172 +572,223 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
       .get()
       .then((transactions) => {
         try {
-          const promise = new Promise((resolve, reject) => {
-            transactions.forEach(async (doc, index) => {
-              let transferDestination = "";
+          transactions.forEach(async (doc, index) => {
+            const msg = {
+              from: {
+                email: "sales@tcmarket.place",
+                name: "TCM",
+              },
+              templateId: "d-0c7fc69547ec40f2b778421535729a31",
+              subject: "Order Confirmation",
+              dynamicTemplateData: {
+                order_id: doc.id,
+              },
+            };
 
-              //update doc
-              await admin
-                .firestore()
-                .collection("transactions")
-                .doc(doc.id)
-                .update({ status: "paid" });
-
-              await admin
-                .firestore()
-                .collection("transactions")
-                .doc(doc.id)
-                .get()
-                .then(async (transactionDoc) => {
-                  transactionDoc.data().offers.forEach(async (offer) => {
-                    await admin
-                      .firestore()
-                      .collection("offers")
-                      .doc(offer.id)
-                      .update({ status: "sold" });
-
-                    await handleCardDeletion(offer.id);
-                  });
-
-                  await admin
-                    .firestore()
-                    .collection("users")
-                    .doc(doc.data().seller)
-                    .update({
-                      ["sellerProfile.statistics.numberOfOffers"]:
-                        admin.firestore.FieldValue.increment(
-                          -transactionDoc.data().offers.length
-                        ),
-                    });
-                });
-
-              //fetch destination id
-              await admin
-                .firestore()
-                .collection("users")
-                .doc(doc.data().seller)
-                .get()
-                .then(async (seller) => {
-                  transferDestination = seller.data().stripe.vendorId;
-
-                  //send notification about order
-                  await sendPushNotification(seller.data().notificationToken);
-                });
-
-              await admin
-                .firestore()
-                .collection("users")
-                .doc(doc.data().buyer)
-                .update({
-                  cart: [],
-                  ["sellerProfile.statistics.purchases"]:
-                    admin.firestore.FieldValue.increment(1),
-                });
-
-              await admin
-                .firestore()
-                .collection("users")
-                .doc(doc.data().seller)
-                .update({
-                  ["sellerProfile.statistics.sales"]:
-                    admin.firestore.FieldValue.increment(1),
-                });
-
-              //incremetn by number of cards sold
-
-              await stripe.transfers.create({
-                amount:
-                  doc.data().costs.cards +
-                  doc.data().costs.shipping -
-                  doc.data().costs.fee,
-                currency: "usd",
-                destination: transferDestination,
-                transfer_group: event.data.object.transfer_group,
+            await admin
+              .firestore()
+              .collection("users")
+              .doc(doc.data().buyer)
+              .update({
+                cart: [],
+                ["sellerProfile.statistics.purchases"]:
+                  admin.firestore.FieldValue.increment(
+                    +doc.data().offers.length
+                  ),
               });
 
-              if (transactions.length - 1 === index) {
-                resolve();
-              }
+            await admin
+              .firestore()
+              .collection("users")
+              .doc(doc.data().seller)
+              .update({
+                ["sellerProfile.statistics.numberOfOffers"]:
+                  admin.firestore.FieldValue.increment(
+                    -doc.data().offers.length
+                  ),
+                ["sellerProfile.statistics.sales"]:
+                  admin.firestore.FieldValue.increment(
+                    +doc.data().offers.length
+                  ),
+              });
+
+            await admin
+              .firestore()
+              .collection("transactions")
+              .doc(doc.id)
+              .update({ status: "paid" });
+
+            msg.dynamicTemplateData.shipping_address = {
+              name:
+                doc.data().shipping.address.firstName +
+                " " +
+                doc.data().shipping.address.lastName,
+              street1: doc.data().shipping.address.streetAddress1,
+              street2: doc.data().shipping.address.streetAddress2,
+              city: doc.data().shipping.address.city,
+              state: doc.data().shipping.address.state,
+              postal_code: doc.data().shipping.address.zipCode,
+              phone: doc.data().shipping.address.phone,
+              country: doc.data().shipping.address.country,
+            };
+            msg.dynamicTemplateData.shipping_method = {
+              carrier: doc.data().shipping.method.carrier,
+              cost: doc.data().shipping.method.price + " USD",
+              type: doc.data().shipping.method.name,
+              delivery_time: {
+                to: doc.data().shipping.method.to,
+                from: doc.data().shipping.method.from,
+              },
+            };
+            msg.dynamicTemplateData.final_cost = {
+              shipping: doc.data().costs.shipping / 100 + " USD",
+              cards: doc.data().costs.cards / 100 + " USD",
+              discount: doc.data().costs.discount / 100 + " USD",
+              total:
+                (doc.data().costs.shipping +
+                  doc.data().costs.cards -
+                  doc.data().costs.discount) /
+                  100 +
+                " USD",
+            };
+
+            const promise = new Promise((resolve, reject) => {
+              doc.data().offers.forEach(async (offer, index) => {
+                let pokemonName;
+
+                await pokemon.card.find(offer.cardId).then((card) => {
+                  pokemonName = card.name;
+                });
+
+                if (index == 0) {
+                  msg.dynamicTemplateData.first = {
+                    name: pokemonName,
+                    condition: offer.condition,
+                    price: offer.price + " USD",
+                    language: offer.languageVersion,
+                    graded: offer.isGraded,
+                    url: `https://firebasestorage.googleapis.com/v0/b/ptcg-marketpla.appspot.com/o/cards%2F${offer.id}%2F0?alt=media&token=b1428248-6d61-41fb-a222-d8973540776d`,
+                  };
+                } else if (index == 1) {
+                  msg.dynamicTemplateData.second = {
+                    name: pokemonName,
+                    condition: offer.condition,
+                    price: offer.price + " USD",
+                    language: offer.languageVersion,
+                    graded: offer.isGraded,
+                    url: `https://firebasestorage.googleapis.com/v0/b/ptcg-marketpla.appspot.com/o/cards%2F${offer.id}%2F0?alt=media&token=b1428248-6d61-41fb-a222-d8973540776d`,
+                  };
+                } else if (index == 2) {
+                  msg.dynamicTemplateData.third = {
+                    name: pokemonName,
+                    condition: offer.condition,
+                    price: offer.price + " USD",
+                    language: offer.languageVersion,
+                    graded: offer.isGraded,
+                    url: `https://firebasestorage.googleapis.com/v0/b/ptcg-marketpla.appspot.com/o/cards%2F${offer.id}%2F0?alt=media&token=b1428248-6d61-41fb-a222-d8973540776d`,
+                  };
+                } else {
+                  msg.dynamicTemplateData.more_cards = true;
+                }
+
+                await admin
+                  .firestore()
+                  .collection("offers")
+                  .doc(offer.id)
+                  .update({ status: "sold" });
+
+                await handleCardDeletion(offer.id);
+
+                if (index == doc.data().offers.length - 1) resolve();
+              });
             });
 
-            //send email to buyer
-            //send email to seller
-            //send notification to seller
+            promise.then(async () => {
+              let FCMToken;
 
-            // const msg = {
-            //   to: "test@example.com", // Change to your recipient
-            //   from: "test@example.com", // Change to your verified sender
-            //   subject: "Sending with SendGrid is Fun",
-            //   text: "and easy to do anywhere, even with Node.js",
-            //   html: "<strong>and easy to do anywhere, even with Node.js</strong>",
-            // };
+              await admin
+                .firestore()
+                .collection("users")
+                .doc(doc.data().seller)
+                .get()
+                .then((doc) => {
+                  FCMToken = doc.data().notificationToken;
 
-            // sgMail
-            //   .send(msg)
-            //   .then(() => {
-            //     console.log("Email sent");
-            //   })
-            //   .catch((error) => {
-            //     console.error(error);
-            //   });
+                  msg.dynamicTemplateData.vendor_name = doc.data().nick;
+                });
 
-            // const msg = {
-            //   to: "szymanskiadam111@gmail.com",
-            //   from: "sales@tcmarket.place",
-            //   templateId: "d-f43daeeaef504760851f727007e0b5d0",
-            //   subject: 'Order Confirmation',
-            //   dynamicTemplateData: {
-            //     subject: "Testing Templates",
-            //     name: "Some One",
-            //     city: "Denver",
-            //   },
-            // };
-            // sgMail
-            //   .send(msg)
-            //   .then(() => {
-            //     console.log("Email sent");
-            //   })
-            //   .catch((error) => {
-            //     console.error(error);
-            //   });
+              admin
+                .auth()
+                .getUser(doc.data().buyer)
+                .then((userRecord) => {
+                  msg.to = userRecord.toJSON().email;
+                  sgMail.send(msg);
+                });
+
+              admin.messaging().send({
+                token: FCMToken,
+                notification: {
+                  title: "New Order",
+                  body: "Congrats! You have a new transaction 💸",
+                },
+                data: {
+                  channelId: "vendor-notifications",
+                },
+              });
+            });
+
+            //! DO TRANSFER 3 DAYS AFTER BUYER HAVE RECEIVED CARDS
+            // await stripe.transfers.create({
+            //   amount:
+            //     doc.data().costs.cards +
+            //     doc.data().costs.shipping -
+            //     doc.data().costs.fee,
+            //   currency: "usd",
+            //   destination: transferDestination,
+            //   transfer_group: event.data.object.transfer_group,
+            // });
+
+            //
+
+            if (transactions.length - 1 === index) resolve();
           });
 
-          promise.then(() => {
-            res.status(200).send("success");
-          });
+          // promise.then(() => {
+          //   res.status(200).send("success");
+          // });
         } catch (err) {
           res.status(400).send(err);
         }
       });
   }
-  if (
-    event.type === "payment_intent.canceled" ||
-    event.type === "payment_intent.failed"
-  ) {
-    await admin
-      .firestore()
-      .collection("transactions")
-      .where("paymentIntent", "==", event.data.object.id)
-      .get()
-      .then((transactions) => {
-        const promise = new Promise((resolve, reject) => {
-          transactions.forEach(async (doc) => {
-            await admin
-              .firestore()
-              .collection("transactions")
-              .doc(doc.id)
-              .delete();
-          });
-          if (transactions.length - 1 === index) {
-            resolve();
-          }
-        });
+  // else if (
+  //   event.type === ("payment_intent.canceled" || "payment_intent.failed")
+  // ) {
+  //   await admin
+  //     .firestore()
+  //     .collection("transactions")
+  //     .where("paymentIntent", "==", event.data.object.id)
+  //     .get()
+  //     .then((transactions) => {
+  //       const promise = new Promise((resolve, reject) => {
+  //         transactions.forEach(async (doc) => {
+  //           await admin
+  //             .firestore()
+  //             .collection("transactions")
+  //             .doc(doc.id)
+  //             .delete();
+  //         });
 
-        promise.then(() => {
-          res.status(200).send("success");
-        });
-      });
-  }
+  //         if (transactions.length - 1 === index) {
+  //           resolve();
+  //         }
+  //       });
+
+  //       promise.then(() => {
+  //         res.status(200).send("success");
+  //       });
+  //     });
+  // }
   if (event.type === "account.updated") {
     const accountData = event.data.object;
 
@@ -885,74 +953,62 @@ exports.testNotification = functions.https.onCall(async (data, context) => {
 
 exports.sendMail = functions.https.onCall(async (data, context) => {
   try {
-    const msg = {
-      to: "milosz.nedzny@gmail.com",
-      from: "sales@tcmarket.place",
-      templateId: "d-0c7fc69547ec40f2b778421535729a31",
-      subject: "Order Confirmation",
-      dynamicTemplateData: {
-        order_id: "137vn2389jfg72h98wh",
-        vendor_name: "Ben Harvey",
-        shipping_address: {
-          name: "Adam Szymanski",
-          street1: "Waclawa Wojewodzkiego 1/2",
-          street2: "-- street 2 --",
-          city: "Lodz",
-          postal_code: "92-446",
-          phone: "+48606417902",
-          country: "Poland",
-        },
-        shipping_method: {
-          carrier: "USPS",
-          cost: "12.00 USD",
-          type: "Standard",
-          delivery_time: "12/21",
-        },
-        final_cost: {
-          shipping: "12.00 USD",
-          cards: "89.00 USD",
-          discount: "12.00 USD",
-          total: "89.00 USD",
-        },
-        card1: {
-          name: "Gyarados GX",
-          price: "12.00 USD",
-          graded: true,
-          condition: 1,
-          language: "English",
-          url: "https://firebasestorage.googleapis.com/v0/b/ptcg-marketpla.appspot.com/o/cards%2FAwPacv081ZZLBZsiS396%2F0?alt=media&token=09cbc856-aa3b-457f-a0eb-cacf7683d71c",
-        },
-        card2: {
-          name: "Pikachu GX",
-          price: "12.00 USD",
-          graded: false,
-          condition: 9,
-          language: "English",
-          url: "https://firebasestorage.googleapis.com/v0/b/ptcg-marketpla.appspot.com/o/cards%2FGYbG7QO4a0dlYXOhqZHI%2F0?alt=media&token=019e42c2-f258-49b2-9271-48d313e2ff3d",
-        },
-        card3: {
-          name: "Charizard GX",
-          price: "12.00 USD",
-          graded: true,
-          condition: 9,
-          language: "English",
-          url: "https://firebasestorage.googleapis.com/v0/b/ptcg-marketpla.appspot.com/o/cards%2FQLnfrUsLYy2UKQkakBUR%2F0?alt=media&token=37201275-52d5-46dc-b75c-7b9609f5fab2",
-        },
-      },
-    };
-    sgMail
-      .send(msg)
-      .then(() => {
-        console.log("Email sent");
-      })
-      .catch((error) => {
-        console.error(error);
+    admin
+      .auth()
+      .getUser(data.to)
+      .then(async (userRecord) => {
+        const msg = {
+          to: userRecord.toJSON().email,
+          from: {
+            email: data.from.email,
+            name: data.from.name,
+          },
+          templateId: data.templateId,
+          subject: data.subject,
+          dynamicTemplateData: data.dynamicTemplateData,
+        };
+
+        sgMail.send(msg);
       });
-    return "success";
+
+    return { success: true };
   } catch (err) {
     console.log(err);
   }
 });
+
+exports.sendNotification = functions.https.onCall(async (data, context) => {
+  try {
+    const FCMToken = await admin
+      .firestore()
+      .collection("users")
+      .doc(data.uid)
+      .get()
+      .then((doc) => doc.data().notificationToken);
+
+    const payload = {
+      token: FCMToken,
+      ...data.payload,
+    };
+
+    admin
+      .messaging()
+      .send(payload)
+      .then((response) => {
+        return { success: true };
+      })
+      .catch((error) => {
+        console.error(error);
+        return { error: error.code };
+      });
+
+    return { success: true };
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+// exports.sendListenerPushNotification = functions.database.ref('/sendMessage/{userId}/').onWrite((data, context) => {});
 
 // exports.validateOffersStatus = functions.pubsub
 //   .schedule("every 10 minutes")

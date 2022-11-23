@@ -11,7 +11,7 @@
         "developmentClient": true
       }
     },
-    "development": {
+    "developmentX": {
       "distribution": "internal",
       "android": {
         "gradleCommand": ":app:assembleDebug"
@@ -19,6 +19,10 @@
       "ios": {
         "buildConfiguration": "Debug"
       }
+    },
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
     },
     "preview": {
       "distribution": "internal"

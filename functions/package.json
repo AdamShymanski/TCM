@@ -24,6 +24,7 @@
     "firebase-functions": "^3.19.0",
     "firebase-tools": "^11.2.0",
     "node-fetch": "^3.2.3",
+    "pokemontcgsdk": "^2.0.0",
     "request": "^2.88.2",
     "stream-chat": "^7.1.0",
     "stripe": "^8.214.0"
