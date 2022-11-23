@@ -37,6 +37,8 @@ import signature from "../assets/signature_x.png";
 import IconI from "react-native-vector-icons/Ionicons";
 import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 
+let paymentIntentId = null;
+
 // import UPS_logo from "../assets/UPS_logo.png";
 // import DHL_logo from "../assets/DHL_logo.png";
 // import USPS_logo from "../assets/USPS_logo.png";
@@ -59,6 +61,8 @@ export default function Checkout({ pageState, setPage }) {
     "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing and other functionality - use another VirtualizedList-backed container instead.",
   ]);
 
+  const navigation = useNavigation();
+
   const [shippingMethod, setShippingMethod] = useState({});
   const [shippingAddress, setShippingAddress] = useState({});
 
@@ -76,6 +80,10 @@ export default function Checkout({ pageState, setPage }) {
   };
 
   useEffect(() => {
+    navigation.addListener("beforeRemove", (e) => {
+      e.preventDefault();
+    });
+
     const resolvePromise = async () => {
       setPage("loadingPage");
 
@@ -87,31 +95,46 @@ export default function Checkout({ pageState, setPage }) {
         });
       }
 
-      // fetch id's of owners of cards in users cart
-
       setPage("shippingPage");
     };
+
     resolvePromise();
   }, []);
 
   useEffect(() => {
     const resolvePromise = async () => {
-      if (isFocused) {
-        const user = await db
-          .collection("users")
-          .doc(auth.currentUser.uid)
-          .get();
-        if (user.data().addresses?.length > 0) {
-          setAddressesArray(user.data().addresses);
-        } else {
-          setAddressesArray([]);
-        }
+      const user = await db.collection("users").doc(auth.currentUser.uid).get();
+      if (user.data().addresses?.length > 0) {
+        setAddressesArray(user.data().addresses);
       } else {
         setAddressesArray([]);
       }
     };
 
-    resolvePromise();
+    const cancelPayment = async () => {
+      if (paymentIntentId) {
+        const query = functions.httpsCallable("cancelPaymentSheet");
+        await query({ paymentIntent: paymentIntentId });
+        paymentIntentId = null;
+      }
+    };
+
+    if (isFocused) {
+      resolvePromise();
+    } else {
+      // setShippingMethod({});
+      // setShippingAddress({});
+      // setAddressesArray([]);
+      // setAvalibleShippingMethods([]);
+      // setOffersState([]);
+      // setPage("shippingPage");
+
+      if (pageState !== "endPage") {
+        cancelPayment();
+      }
+
+      // console.log("Unmounted");
+    }
   }, [isFocused]);
 
   useEffect(() => {
@@ -214,6 +237,8 @@ const ShippingPage = ({
   const [loadingIndicator, setLoadingIndicator] = useState(false);
   const [errorState, setError] = useState(false);
 
+  const navigation = useNavigation();
+
   const validateForm = () => {
     let error = false;
     setLoadingIndicator(true);
@@ -247,8 +272,6 @@ const ShippingPage = ({
       setShippingAddress(addressesArray[0]);
     }
   }, [addressesArray]);
-
-  const navigation = useNavigation();
 
   return (
     <FlatList
@@ -635,7 +658,6 @@ const ShippingPage = ({
     />
   );
 };
-
 const SummaryPage = ({
   setPage,
   pageState,
@@ -795,6 +817,7 @@ const LoadingPage = () => {
 };
 const EndPage = () => {
   const navigation = useNavigation();
+
   return (
     <View
       style={{
@@ -833,8 +856,9 @@ const EndPage = () => {
             width: "90%",
           }}
         >
-          The order has been successfully placed. The vendor has 72 hours to
-          ship your cards. You can track your shipment in the Transactions Tab.
+          The order has been successfully placed. The vendor has 7 days to ship
+          your cards. You can track progress of the transaction in the
+          Transactions Tab.
         </Text>
         <TouchableOpacity
           style={{
@@ -847,7 +871,7 @@ const EndPage = () => {
 
             marginTop: 80,
             marginBottom: 6,
-            borderRadius: 4,
+            borderRadius: 5,
           }}
           onPress={async () => {
             let outArray = [];
@@ -895,41 +919,14 @@ const EndPage = () => {
                   });
               });
             });
-            promise.then((res) => {
-              let total = 0;
-              res.forEach((item) => {
-                total += item.price;
-              });
-
-              // navigation.reset({
-              //   index: 1,
-              //   routes: [
-              //     {
-              //       name: "TransactionsStack",
-              //       screen: "Transactions",
-              //       params: {
-              //         props: outArray[0],
-              //         offersArray: res,
-              //         totalAmount: total,
-              //       },
-              //     },
-              //   ],
-              // });
+            navigation.navigate("TransactionsStack", {
+              screen: "Transactions",
             });
 
-            // if (navigation.canGoBack()) {
-            //   navigation.dispatch(StackActions.pop(1));
-            // }
-            // navigation.navigate("TransactionsStack", {
-            //   screen: "Transactions",
+            // navigation.reset({
+            //   index: 0,
+            //   routes: [{ name: "TransactionsStack" }],
             // });
-
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: "TransactionsStack" }],
-              })
-            );
           }}
         >
           <Text
@@ -992,7 +989,6 @@ const EndPage = () => {
     </View>
   );
 };
-
 const getHeader = () => {
   return (
     <View style={{ flex: 1 }}>
@@ -1109,11 +1105,13 @@ const getFooter = (
   }, [offersState]);
 
   const initializePaymentSheet = async (data) => {
-    const { paymentIntent, ephemeralKey, customer } = data;
+    const { id, paymentIntent, ephemeralKey, customer } = data;
+
+    paymentIntentId = id;
 
     let merchantName = auth.currentUser.displayName;
 
-    if (merchantName == null) {
+    if (!merchantName) {
       merchantName = await fetchName();
     }
 
@@ -1136,21 +1134,13 @@ const getFooter = (
       if (error) {
         console.log(`Error code: ${error.code}`, error.message);
       } else {
-        console.log("Success", "Your order is confirmed!");
         setPage("endPage");
-        navigation.addListener("beforeRemove", (e) => {
-          if (pageState === "endPage") {
-            e.preventDefault();
-          } else {
-            return;
-          }
-        });
       }
     } catch (e) {
       console.log(e);
     }
   };
-  
+
   return (
     <View style={{ flex: 1 }}>
       <View
@@ -1343,7 +1333,7 @@ const getFooter = (
             backgroundColor: "#0082ff",
             alignItems: "center",
             justifyContent: "center",
-            borderRadius: 6,
+            borderRadius: 5,
             paddingVertical: 7,
             marginTop: 50,
 

@@ -5,7 +5,6 @@
     "scheme": "tcm",
     "slug": "ptcg_marketplace",
     "version": "1.28.0",
-
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -16,22 +15,36 @@
     "updates": {
       "fallbackToCacheTimeout": 300,
       "enabled": true,
-      "checkAutomatically": "ON_LOAD"
+      "checkAutomatically": "ON_LOAD",
+      "url": "https://u.expo.dev/29d0103a-1786-452e-99a4-a43644a8cbbc"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.ptcg.marketplace"
+      "bundleIdentifier": "app.ptcg.marketplace",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Allow TCM to access your photos.",
+        "NSPhotoLibraryAddUsageDescription": "Allow TCM to save photos."
+      },
+      "runtimeVersion": {
+        "policy": "sdkVersion"
+      }
     },
     "android": {
       "package": "app.ptcg.marketplace",
       "googleServicesFile": "./google-services.json",
       "userInterfaceStyle": "dark",
-      "permissions": [],
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.RECORD_AUDIO"
+      ],
       "versionCode": 1280,
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-2637485113454186~8246765572"
-      }
+      },
+      "runtimeVersion": "1.0.0"
     },
     "plugins": [
       [
@@ -40,13 +53,6 @@
           "photosPermission": "Allow TCM to access your photos.",
           "savePhotosPermission": "Allow TCM to save photos.",
           "isAccessMediaLocationEnabled": "true"
-        }
-      ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/nfi.png",
-          "color": "#0082ff"
         }
       ],
       "sentry-expo",

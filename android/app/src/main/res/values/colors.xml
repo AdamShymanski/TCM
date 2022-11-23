@@ -4,4 +4,5 @@
   <color name="colorPrimary">#023c69</color>
   <color name="colorPrimaryDark">#1b1b1b</color>
   <color name="notification_icon_color">#0082ff</color>
+  <color name="TCMBlue">#0082ff</color>
 </resources>

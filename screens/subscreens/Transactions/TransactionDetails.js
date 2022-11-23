@@ -8,38 +8,31 @@ import {
   FlatList,
   ScrollView,
   ActivityIndicator,
+  Modal,
 } from "react-native";
 
 import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 import IconMI from "react-native-vector-icons/MaterialIcons";
+import IconI from "react-native-vector-icons/Ionicons";
 import Icon from "react-native-vector-icons/Octicons";
 
 import cart_down_icon from "../../../assets/cart_down.png";
 import cart_up_icon from "../../../assets/cart_up.png";
 
-import { auth, fetchOwnerData, fetchPhotos } from "../../../authContext";
+import {
+  auth,
+  fetchOwnerData,
+  fetchPhotos,
+  db,
+  functions,
+  firebaseObj,
+} from "../../../authContext";
 import { Snackbar } from "react-native-paper";
 
 import { useNavigation } from "@react-navigation/native";
 
 export default function TransactionDetails({ route }) {
   const { props, offersArray, totalAmount } = route.params;
-
-  const [vendor, setVendor] = useState({
-    nick: "",
-    sellerProfile: {
-      statistics: {
-        sales: 0,
-        visits: 0,
-        purchases: 0,
-        numberOfOffers: 0,
-      },
-    },
-  });
-
-  const [loading, setLoading] = useState(true);
-  const [snackbarState, setSnackbarState] = useState(false);
-
   const phsm = {
     from: props.shipping.method.from,
     to: props.shipping.method.to,
@@ -48,6 +41,19 @@ export default function TransactionDetails({ route }) {
     name: props.shipping.method.name,
     tracking: props.shipping.method.tracking,
   };
+
+  const [vendor, setVendor] = useState({ nick: "" });
+
+  const [loading, setLoading] = useState(true);
+  const [snackbarState, setSnackbarState] = useState(false);
+
+  const [sentDate, setSentDate] = useState(false);
+  const [deliveryDate, setDeliveryDate] = useState(false);
+
+  const [showDisputeButton, setShowDisputeButton] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
+  const [activityIndicator, setActivityIndicator] = useState(false);
 
   const fillPhotosArray = (array) => {
     let outArray = [];
@@ -79,12 +85,284 @@ export default function TransactionDetails({ route }) {
       promise.then(() => {
         setLoading(false);
       });
+
+      if (props.shipping.sent) {
+        const x = new Date(props.shipping.sent.seconds * 1000);
+
+        setSentDate(
+          [x.getDate(), x.getMonth() + 1, x.getFullYear()].join("/") +
+            " " +
+            [
+              x.getHours(),
+              `${
+                parseInt(x.getMinutes()) <= 9
+                  ? "0" + x.getMinutes()
+                  : x.getMinutes()
+              }`,
+            ].join(":")
+        );
+      }
+
+      if (props.shipping.delivered) {
+        const x = new Date(props.shipping.delivered.seconds * 1000);
+
+        setDeliveryDate(
+          [x.getDate(), x.getMonth() + 1, x.getFullYear()].join("/") +
+            " " +
+            [
+              x.getHours(),
+              `${
+                parseInt(x.getMinutes()) <= 9
+                  ? "0" + x.getMinutes()
+                  : x.getMinutes()
+              }`,
+            ].join(":")
+        );
+
+        const t2 = new Date();
+        const t1 = new Date(props.shipping.delivered.seconds * 1000);
+
+        //time difference in minutes
+        const diff = Math.ceil((t2 - t1) / (1000 * 60));
+
+        if (diff < 60 * 24 * 3 && props.status !== "disputed") {
+          setShowDisputeButton(true);
+        }
+      }
     };
 
     resolvePromises();
   }, []);
 
+  const disputeModal = () => {
+    return (
+      <Modal
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+        transparent={true}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              width: "87%",
+
+              backgroundColor: "#121212",
+              borderRadius: 8,
+              paddingVertical: 18,
+              paddingHorizontal: 18,
+            }}
+          >
+            <Text style={{ color: "#f4f4f4", fontSize: 26, fontWeight: "700" }}>
+              Are you sure?
+            </Text>
+            <Text
+              style={{
+                color: "#5c5c5c",
+                fontSize: 12,
+                width: "90%",
+                marginTop: 10,
+              }}
+            >
+              Initiate a dispute only when the card is actually damaged, doesn't
+              meet the description or the order is incomplete. Aspects such as
+              late shipment can be expressed in the seller's feedback.
+            </Text>
+            <Text
+              style={{
+                color: "#5c5c5c",
+                fontSize: 12,
+                width: "90%",
+                marginTop: 10,
+              }}
+            >
+              If you initiate a dispute, a support representative will contact
+              you by email as soon as possible, and then help resolve the issue.
+            </Text>
+            <View
+              style={{
+                flexDirection: "row-reverse",
+                marginTop: 32,
+                alignItems: "center",
+              }}
+            >
+              {!activityIndicator ? (
+                <TouchableOpacity
+                  style={{
+                    width: 84,
+                    height: 30,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+
+                    backgroundColor: "#D80000",
+                    borderRadius: 3,
+                  }}
+                  onPress={async () => {
+                    setActivityIndicator(true);
+                    setShowDisputeButton(false);
+
+                    await db.collection("transactions").doc(props.id).update({
+                      status: "disputed",
+                      disputeDate:
+                        firebaseObj.firestore.FieldValue.serverTimestamp(),
+                    });
+
+                    const notificationQuery =
+                      functions.httpsCallable("sendNotification");
+
+                    await notificationQuery({
+                      payload: {
+                        notification: {
+                          title: "Dispute Initiated",
+                          body: "Buyer initiated a dispute, check your email ⚠",
+                        },
+                        data: {
+                          channelId: "transactions-notifications",
+                        },
+                      },
+                      uid: props.seller,
+                    });
+
+                    const mailQueryV = functions.httpsCallable("sendMail");
+
+                    await mailQueryV({
+                      to: props.seller,
+                      from: {
+                        email: "sales@tcmarket.place",
+                        name: "TCM",
+                      },
+                      templateId: "d-aa2838060fa344439c2a24e301e34420",
+                      subject: "Dispute Initiated",
+                      dynamicTemplateData: {
+                        order_id: props.id,
+                      },
+                    });
+                    const mailQueryB = functions.httpsCallable("sendMail");
+
+                    await mailQueryB({
+                      to: props.buyer,
+                      from: {
+                        email: "sales@tcmarket.place",
+                        name: "TCM",
+                      },
+                      templateId: "d-6ee0863df5574ba8a9fd46def9d44c10",
+                      subject: "Dispute Initiated",
+                      dynamicTemplateData: {
+                        order_id: props.id,
+                      },
+                    });
+
+                    setActivityIndicator(false);
+                    setShowModal(false);
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "700",
+                      color: "#FAFAFA",
+                    }}
+                  >
+                    Submit
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+
+              {activityIndicator ? (
+                <ActivityIndicator
+                  size={30}
+                  color="#0082ff"
+                  animating={activityIndicator}
+                  style={{
+                    marginRight: 14,
+                    marginLeft: 18,
+                  }}
+                />
+              ) : (
+                <TouchableOpacity
+                  style={{
+                    width: 76,
+                    height: 30,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+
+                    backgroundColor: "transparent",
+                    borderRadius: 3,
+                    borderColor: "#5c5c5c",
+                    borderWidth: 2,
+
+                    marginRight: 22,
+                  }}
+                  onPress={() => {
+                    setShowModal(false);
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "700",
+                      color: "#5c5c5c",
+                    }}
+                  >
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
   const navigation = useNavigation();
+
+  const renderDisputeButton = () => {
+    if (showDisputeButton) {
+      return (
+        <TouchableOpacity
+          style={{
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+
+            paddingVertical: 9,
+            backgroundColor: "#D80000",
+            borderRadius: 5,
+
+            marginRight: 12,
+            marginBottom: 24,
+            marginTop: 12,
+          }}
+          onPress={() => {
+            setShowModal(true);
+          }}
+        >
+          <Text
+            style={{
+              color: "#FAFAFA",
+              fontWeight: "700",
+              fontSize: 15,
+            }}
+          >
+            Initiate Dispute
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+    //
+  };
 
   return (
     <ScrollView
@@ -95,6 +373,43 @@ export default function TransactionDetails({ route }) {
         paddingBottom: 22,
       }}
     >
+      {showModal ? disputeModal() : null}
+      {props.status === "disputed" ? (
+        <View
+          style={{
+            paddingVertical: 8,
+            paddingHorizontal: 12,
+            alignItems: "center",
+            flexDirection: "row",
+            borderRadius: 4,
+
+            backgroundColor: "#5c0000",
+            marginTop: 12,
+            width: "98%",
+          }}
+        >
+          <IconI name={"warning"} color={"#ff0000"} size={38} />
+          <View style={{ marginLeft: 12 }}>
+            <Text
+              style={{
+                color: "#D80000",
+                fontSize: 16,
+                fontWeight: "700",
+              }}
+            >
+              Dispute in progress
+            </Text>
+            <Text
+              style={{
+                color: "#D80000",
+                fontSize: 13,
+              }}
+            >
+              Follow the instructions sent by email
+            </Text>
+          </View>
+        </View>
+      ) : null}
       {props.buyer === auth.currentUser.uid ? (
         <View>
           <Text
@@ -114,6 +429,8 @@ export default function TransactionDetails({ route }) {
               borderRadius: 3,
               flexDirection: "row",
               backgroundColor: "#121212",
+
+              justifyContent: "space-between",
 
               paddingLeft: 12,
               marginRight: 12,
@@ -185,84 +502,7 @@ export default function TransactionDetails({ route }) {
             <View
               style={{
                 justifyContent: "center",
-                marginLeft: 30,
-                marginRight: 30,
-              }}
-            >
-              <View style={{ flexDirection: "row", marginBottom: 22 }}>
-                <IconMCI
-                  name="eye"
-                  size={16}
-                  style={{ color: "#0082ff", marginRight: 4 }}
-                />
-                <Text
-                  style={{
-                    color: "#f4f4f4",
-                    fontSize: 13,
-                    fontWeight: "700",
-                    marginRight: 12,
-                  }}
-                >
-                  {loading ? 0 : vendor.sellerProfile.statistics.visits}
-                </Text>
-                <IconMCI
-                  name="cards-outline"
-                  size={17}
-                  style={{ color: "#0082ff", marginRight: 4 }}
-                />
-                <Text
-                  style={{
-                    color: "#f4f4f4",
-                    fontSize: 13,
-                    fontWeight: "700",
-                  }}
-                >
-                  {loading ? 0 : vendor.sellerProfile.statistics.numberOfOffers}
-                </Text>
-              </View>
-              <View style={{ flexDirection: "row" }}>
-                <Image
-                  source={cart_up_icon}
-                  style={{
-                    height: undefined,
-                    aspectRatio: 23 / 26,
-                    width: 16,
-                    marginRight: 4,
-                  }}
-                />
-                <Text
-                  style={{
-                    color: "#f4f4f4",
-                    fontSize: 13,
-                    fontWeight: "700",
-                    marginRight: 12,
-                  }}
-                >
-                  {loading ? 0 : vendor.sellerProfile.statistics.sales}
-                </Text>
-                <Image
-                  source={cart_down_icon}
-                  style={{
-                    height: undefined,
-                    aspectRatio: 23 / 26,
-                    width: 16,
-                    marginRight: 4,
-                  }}
-                />
-                <Text
-                  style={{
-                    color: "#f4f4f4",
-                    fontSize: 13,
-                    fontWeight: "700",
-                  }}
-                >
-                  {loading ? 0 : vendor.sellerProfile.statistics.purchases}
-                </Text>
-              </View>
-            </View>
-            <View
-              style={{
-                justifyContent: "center",
+                marginRight: 12,
               }}
             >
               <TouchableOpacity
@@ -271,16 +511,18 @@ export default function TransactionDetails({ route }) {
                   flexDirection: "row",
                   justifyContent: "center",
 
-                  borderWidth: 2,
                   borderRadius: 3,
-                  borderColor: "#5c5c5c",
-                  paddingVertical: 3,
-                  paddingHorizontal: 8,
+
+                  marginTop: 12,
+                  paddingVertical: 4.5,
+                  paddingHorizontal: 12,
+
+                  backgroundColor: "#0082ff",
                 }}
               >
                 <Text
                   style={{
-                    color: "#5c5c5c",
+                    color: "#121212",
 
                     fontSize: 13,
                     fontWeight: "700",
@@ -288,12 +530,12 @@ export default function TransactionDetails({ route }) {
                     marginRight: 4,
                   }}
                 >
-                  Report
+                  Start Chat
                 </Text>
                 <IconMCI
-                  name={"flag-plus-outline"}
+                  name={"message"}
                   size={17}
-                  style={{ color: "#5c5c5c" }}
+                  style={{ color: "#121212" }}
                 />
               </TouchableOpacity>
               <TouchableOpacity
@@ -335,7 +577,7 @@ export default function TransactionDetails({ route }) {
                   All Offers
                 </Text>
                 <IconMCI
-                  name={"cards-outline"}
+                  name={"cards"}
                   size={17}
                   style={{ color: "#121212" }}
                 />
@@ -344,13 +586,12 @@ export default function TransactionDetails({ route }) {
           </View>
         </View>
       ) : null}
-
       <Text
         style={{
           color: "#f4f4f4",
           fontWeight: "700",
           fontSize: 24,
-          marginVertical: 12,
+          marginTop: 12,
         }}
       >
         Cards
@@ -568,7 +809,8 @@ export default function TransactionDetails({ route }) {
               </Text>
             ) : null}
             <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
-              {props.shipping.address.city}, {props.shipping.address.zipCode}
+              {props.shipping.address.city}, {props.shipping.address.state},{" "}
+              {props.shipping.address.zipCode}
             </Text>
             <Text style={{ color: "#f4f4f4", marginLeft: 6 }}>
               {props.shipping.address.country}
@@ -606,7 +848,7 @@ export default function TransactionDetails({ route }) {
               SENT
             </Text>
             <Text style={{ color: "#f4f4f4", marginLeft: 6, marginBottom: 6 }}>
-              {props.shipping.sent ? "props.shipping.sent" : "-"}
+              {props.shipping.sent ? sentDate : "-"}
             </Text>
             <Text
               style={{
@@ -620,7 +862,7 @@ export default function TransactionDetails({ route }) {
               DELIVERED
             </Text>
             <Text style={{ color: "#f4f4f4", marginLeft: 6, marginBottom: 6 }}>
-              {props.shipping.delivered ? "props.shipping.delivered" : "-"}
+              {props.shipping.delivered ? deliveryDate : "-"}
             </Text>
           </View>
         </View>
@@ -692,70 +934,16 @@ export default function TransactionDetails({ route }) {
       <View
         style={{
           marginRight: 12,
-          marginBottom: 18,
 
           paddingHorizontal: 12,
           paddingVertical: 10,
 
           borderRadius: 3,
           backgroundColor: "#121212",
+
+          marginBottom: 12,
         }}
       >
-        {/* <View
-          style={{
-            flexDirection: "row",
-            marginBottom: 12,
-            alignItems: "center",
-          }}
-        >
-          <Text
-            style={{
-              color: "#565656",
-              fontFamily: "Roboto_Medium",
-              fontSize: 12,
-            }}
-          >
-            CARDS
-          </Text>
-          <Text
-            style={{
-              color: "#f4f4f4",
-              marginLeft: 16,
-              fontWeight: "700",
-              fontSize: 15,
-            }}
-          >
-            + 121 <Text style={{ color: "#0082ff" }}>USD</Text>
-          </Text>
-        </View>
-        <View
-          style={{
-            flexDirection: "row",
-            marginBottom: 4,
-            alignItems: "center",
-          }}
-        >
-          <Text
-            style={{
-              color: "#565656",
-              fontFamily: "Roboto_Medium",
-              fontSize: 12,
-            }}
-          >
-            SHIPPING
-          </Text>
-          <Text
-            style={{
-              color: "#f4f4f4",
-              marginLeft: 16,
-              fontWeight: "700",
-              fontSize: 15,
-            }}
-          >
-            + 8.50 <Text style={{ color: "#0082ff" }}>USD</Text>
-          </Text>
-        </View> */}
-
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Text
             style={{
@@ -824,50 +1012,7 @@ export default function TransactionDetails({ route }) {
           <Text style={{ color: "#05FD00" }}>USD</Text>
         </Text>
       </View>
-
-      {/* <TouchableOpacity
-        style={{
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-
-          paddingVertical: 6,
-          backgroundColor: "#D80000",
-          borderRadius: 3,
-
-          marginRight: 12,
-          marginBottom: 24,
-          marginTop: 26,
-        }}
-        onPress={() => {
-          setSnackbarState("You need to wait 32H before opening dispute");
-        }}
-      >
-        <Text style={{ color: "#FAFAFA", fontWeight: "700" }}>
-          Open Dispute
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={{
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-
-          paddingVertical: 6,
-          backgroundColor: "#25DD21",
-          borderRadius: 3,
-
-          marginRight: 12,
-          marginBottom: 24,
-        }}
-        onPress={() => {
-          setSnackbarState("Now you have 48H to open dispute if need");
-        }}
-      >
-        <Text style={{ color: "#121212", fontWeight: "700" }}>
-          Confirm parcel receive
-        </Text>
-      </TouchableOpacity> */}
+      {props.buyer === auth.currentUser.uid ? renderDisputeButton() : null}
       <Snackbar
         visible={snackbarState}
         duration={3000}

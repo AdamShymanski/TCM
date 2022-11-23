@@ -17,12 +17,12 @@ import * as yup from "yup";
 import { Formik, ErrorMessage } from "formik";
 
 import { Snackbar } from "react-native-paper";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+
+import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 import IconI from "react-native-vector-icons/Ionicons";
 
 import {
   auth,
-  db,
   functions,
   fetchUserData,
   updateUserData,
@@ -40,8 +40,6 @@ import { CountryPickerModal } from "../shared/Modals/CountryPickerModal";
 import ReauthenticationModal from "../shared/Modals/ReauthenticationModal";
 
 import { useNavigation, useIsFocused } from "@react-navigation/native";
-
-import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 
 const onlyLettersRegEx =
   /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$/u;
@@ -106,8 +104,19 @@ export default function Settings() {
         //   console.log(result.data);
         // });
 
-        // const query = functions.httpsCallable("sendMail");
-        // await query();
+        const query = functions.httpsCallable("sendNotification");
+        query({
+          payload: {
+            notification: {
+              title: "New Order",
+              body: "Congrats! You have a new transaction 💸",
+            },
+            data: {
+              channelId: "vendor-notifications",
+            },
+          },
+          uid: "NSJgaxIPCOXmccfhWHYsGyCw9Gb2",
+        });
 
         setLoading(false);
       } else {
@@ -498,7 +507,7 @@ export default function Settings() {
                   setSnackbarState(true);
                 }}
               >
-                <Icon name="content-copy" color={"#0082ff"} size={24} />
+                <IconMCI name="content-copy" color={"#0082ff"} size={24} />
               </TouchableOpacity>
               <Text
                 style={{

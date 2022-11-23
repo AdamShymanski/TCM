@@ -17,34 +17,40 @@ export default function OtherSellersOffers({ route }) {
 
   const isFocused = useIsFocused();
 
-  useEffect(async () => {
-    if (!isFocused) {
-      setSavedOffersId(null);
-      setLoading(true);
-    }
-    if (isFocused) {
-      await fetchSavedOffersId(setSavedOffersId, setLoading);
-      const docArr = await db
-        .collection("offers")
-        .where("owner", "==", route.params.sellerId)
-        .get();
+  useEffect(() => {
+    const resolvePromise = async () => {
+      if (!isFocused) {
+        setSavedOffersId(null);
+        setLoading(true);
+      }
+      if (isFocused) {
+        await fetchSavedOffersId(setSavedOffersId, setLoading);
+        const docArr = await db
+          .collection("offers")
+          .where("owner", "==", route.params.sellerId)
+          .get();
 
-      const arr = [];
+        const arr = [];
 
-      docArr.forEach((doc) => {
-        let cardObj = doc.data();
-        cardObj.id = doc.id;
-        arr.push(cardObj);
-      });
+        docArr.forEach((doc) => {
+          let cardObj = doc.data();
+          cardObj.id = doc.id;
+          arr.push(cardObj);
+        });
 
-      const doc = await db.collection("users").doc(auth.currentUser.uid).get();
-      setCartState(doc.data().cart);
-      setUserCountry(doc.data().country);
+        const doc = await db
+          .collection("users")
+          .doc(auth.currentUser.uid)
+          .get();
+        setCartState(doc.data().cart);
+        setUserCountry(doc.data().country);
 
-      setSellerData(await fetchOwnerData(route.params.sellerId));
-      setCardsArray(arr);
-      setLoading(false);
-    }
+        setSellerData(await fetchOwnerData(route.params.sellerId));
+        setCardsArray(arr);
+        setLoading(false);
+      }
+    };
+    resolvePromise();
   }, [isFocused]);
 
   if (!loading && sellerData !== null) {
