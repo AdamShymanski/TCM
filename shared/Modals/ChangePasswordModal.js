@@ -97,7 +97,7 @@ const ChangePasswordModal = ({ setModal }) => {
             {(props) => (
               <View>
                 <TextInput
-                autoCapitalize="none"
+                  autoCapitalize="none"
                   mode={"outlined"}
                   value={props.values.recentPassword}
                   secureTextEntry={true}
@@ -147,7 +147,7 @@ const ChangePasswordModal = ({ setModal }) => {
                   )}
                 </ErrorMessage>
                 <TextInput
-                autoCapitalize="none"
+                  autoCapitalize="none"
                   mode={"outlined"}
                   value={props.values.newPassowrd}
                   secureTextEntry={true}
@@ -197,7 +197,7 @@ const ChangePasswordModal = ({ setModal }) => {
                   )}
                 </ErrorMessage>
                 <TextInput
-                autoCapitalize="none"
+                  autoCapitalize="none"
                   mode={"outlined"}
                   value={props.values.confirmPassword}
                   secureTextEntry={true}
@@ -267,6 +267,7 @@ const ChangePasswordModal = ({ setModal }) => {
                       borderRadius: 3,
                       paddingHorizontal: 20,
                     }}
+                    disabled={loadingIndicator}
                     onPress={props.submitForm}
                   >
                     <Text
@@ -289,36 +290,37 @@ const ChangePasswordModal = ({ setModal }) => {
                         marginLeft: 18,
                       }}
                     />
-                  ) : null}
-                  <TouchableOpacity
-                    style={{
-                      height: 30,
-                      marginTop: 30,
-                      marginRight: 14,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-
-                      borderColor: "#5c5c5c",
-                      borderWidth: 2,
-                      borderRadius: 3,
-
-                      paddingHorizontal: 20,
-                    }}
-                    onPress={() => {
-                      setModal(false);
-                    }}
-                  >
-                    <Text
+                  ) : (
+                    <TouchableOpacity
                       style={{
-                        fontSize: 16,
-                        fontWeight: "700",
-                        color: "#5c5c5c",
+                        height: 30,
+                        marginTop: 30,
+                        marginRight: 14,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+
+                        borderColor: "#5c5c5c",
+                        borderWidth: 2,
+                        borderRadius: 3,
+
+                        paddingHorizontal: 20,
+                      }}
+                      onPress={() => {
+                        setModal(false);
                       }}
                     >
-                      Cancel
-                    </Text>
-                  </TouchableOpacity>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: "700",
+                          color: "#5c5c5c",
+                        }}
+                      >
+                        Cancel
+                      </Text>
+                    </TouchableOpacity>
+                  )}
 
                   <Text
                     style={{

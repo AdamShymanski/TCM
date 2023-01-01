@@ -4,11 +4,14 @@ import ImageViewer from "react-native-image-zoom-viewer";
 import { View, Image, Text, TouchableOpacity, Modal } from "react-native";
 
 import { fetchDefaultCardsDetails } from "../../authContext";
+
 import { useNavigation } from "@react-navigation/native";
 
-export default function SelectingCard({ props, setCardId }) {
+export default function SearchResultCard({ props }) {
   const [imageViewerState, setImageViewer] = useState(false);
   const [details, setDetails] = useState([0, 0, 0]);
+
+  const navigation = useNavigation();
 
   const renderNumber = () => {
     let firstSegment;
@@ -30,7 +33,6 @@ export default function SelectingCard({ props, setCardId }) {
 
     return `#${firstSegment}/${secondSegment}`;
   };
-
   useEffect(() => {
     let mounted = true;
     const resolvePromises = async () => {
@@ -77,6 +79,7 @@ export default function SelectingCard({ props, setCardId }) {
                 height: 66,
                 flexDirection: "row",
                 backgroundColor: "#121212",
+                alignItems: "center",
               }}
             >
               <TouchableOpacity
@@ -123,8 +126,11 @@ export default function SelectingCard({ props, setCardId }) {
           paddingHorizontal: 12,
           paddingVertical: 9,
         }}
+        disabled={details[0] === 0 ? true : false}
         onPress={() => {
-          setCardId(props.id);
+          navigation.navigate("SearchOffers", {
+            id: props.id,
+          });
         }}
       >
         <TouchableOpacity

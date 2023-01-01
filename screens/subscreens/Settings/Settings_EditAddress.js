@@ -685,6 +685,7 @@ export default function Settings_EditAddress() {
                     borderRadius: 3,
                     paddingHorizontal: 20,
                   }}
+                  disabled={loadingIndicator}
                   onPress={() => {
                     setLoadingIndicator(true);
                     setCountryInputTouched(true);
@@ -711,8 +712,7 @@ export default function Settings_EditAddress() {
                       marginTop: 20,
                     }}
                   />
-                ) : null}
-                {!loadingIndicator ? (
+                ) : (
                   <Text
                     style={{
                       color: "#b40424",
@@ -723,7 +723,7 @@ export default function Settings_EditAddress() {
                   >
                     {error}
                   </Text>
-                ) : null}
+                )}
               </View>
             </View>
           </View>

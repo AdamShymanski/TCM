@@ -259,13 +259,20 @@ export function CardYourOffers({ props, setModal, setId }) {
           />
         </Modal>
         {returnStatus(props.status)}
-        <View>
+        <View
+          style={{
+            alignItems: "flex-start",
+            backgroundColor: "#121212",
+            zIndex: 1,
+            borderRadius: 6,
+          }}
+        >
           <View
             style={{
               flexDirection: "row",
               alignItems: "flex-start",
               backgroundColor: "#121212",
-
+              zIndex: 1,
               paddingVertical: 12,
 
               borderRadius: 6,
@@ -459,72 +466,107 @@ export function CardYourOffers({ props, setModal, setId }) {
               </Text>
             </View>
 
-            <View
-              style={{
-                flexDirection: "row",
-              }}
-            >
-              <TouchableOpacity
+            {props.status !== "sold" ? (
+              <View
                 style={{
-                  width: 76,
-                  height: 30,
-                  marginRight: 10,
-
-                  alignItems: "center",
                   flexDirection: "row",
-                  justifyContent: "center",
-
-                  borderColor: "#5c5c5c",
-                  borderRadius: 3,
-                  borderWidth: 2.5,
-                }}
-                onPress={() => {
-                  setModal(true);
-                  setId(props.id);
                 }}
               >
-                <Text
+                <TouchableOpacity
                   style={{
-                    fontSize: 16,
-                    fontWeight: "700",
-                    color: "#5c5c5c",
+                    width: 76,
+                    height: 30,
+                    marginRight: 10,
+
+                    alignItems: "center",
+                    flexDirection: "row",
+                    justifyContent: "center",
+
+                    borderColor: "#5c5c5c",
+                    borderRadius: 3,
+                    borderWidth: 2.5,
+                  }}
+                  onPress={() => {
+                    setModal(true);
+                    setId(props.id);
                   }}
                 >
-                  Delete
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{
-                  width: 76,
-                  height: 30,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-
-                  backgroundColor: "#0082FF",
-                  borderRadius: 3,
-
-                  marginRight: 5,
-                }}
-                onPress={() =>
-                  navigation.navigate("YourOffersStack", {
-                    params: { props, photosArray, setModal },
-                    screen: "EditCard",
-                  })
-                }
-              >
-                <Text
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "700",
+                      color: "#5c5c5c",
+                    }}
+                  >
+                    Delete
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
                   style={{
-                    fontSize: 16,
-                    fontWeight: "700",
-                    color: "#121212",
+                    width: 76,
+                    height: 30,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+
+                    backgroundColor: "#0082FF",
+                    borderRadius: 3,
+
+                    marginRight: 5,
                   }}
+                  onPress={() =>
+                    navigation.navigate("YourOffersStack", {
+                      params: { props, photosArray, setModal },
+                      screen: "EditCard",
+                    })
+                  }
                 >
-                  Edit
-                </Text>
-              </TouchableOpacity>
-            </View>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "700",
+                      color: "#121212",
+                    }}
+                  >
+                    Edit
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
           </View>
+        </View>
+        <View
+          style={{
+            top: -6,
+            zIndex: 0,
+
+            flexDirection: "row",
+            alignSelf: "flex-start",
+
+            paddingVertical: 5,
+            paddingTop: 11,
+            paddingHorizontal: 12,
+            position: "relative",
+
+            borderRadius: 6,
+            borderTopLeftRadius: 0,
+
+            backgroundColor: "#404040",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 11,
+              fontFamily: "Roboto_Medium",
+              color: "#ffffff",
+
+              flexShrink: 1,
+              flexGrow: 0,
+              flexWrap: "wrap",
+            }}
+          >
+            ID: {props.id}
+          </Text>
         </View>
       </View>
     );

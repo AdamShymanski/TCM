@@ -51,10 +51,10 @@ const reviewSchema = yup.object({
     .string('Wrong format!')
     .min(4, 'Name must be longer then 4 charts!'),
   country: yup
-    .string('Wrong format!')
-    .required('Country is required!')
-    .matches(firstCapitalLetter, 'Wrong country name!')
-    .matches(onlyLettersRegEx, 'Name cannot contain numbers or symbols!'),
+    .string("Wrong format!")
+    .matches(firstCapitalLetter, "Wrong country name!")
+    .matches(onlyLettersRegEx, "Name cannot contain numbers or symbols!"),
+  email: yup.string("Wrong format!").email("Email is invalid!"),
 });
 
 export default function Settings() {
@@ -74,12 +74,14 @@ export default function Settings() {
   const [snackbarState, setSnackbarState] = useState(false);
 
   const [userData, setUserData] = useState({
-    nick: '',
-    country: '',
+    nick: "",
+    email: "",
+    country: "",
   });
   const [initValues, setInitValues] = useState({
-    nick: '',
-    country: '',
+    nick: "",
+    email: "",
+    country: "",
   });
 
   const navigation = useNavigation();
@@ -94,29 +96,38 @@ export default function Settings() {
       if (isFocused) {
         const result = await fetchUserData();
 
-        setInitValues({ nick: result.nick, country: result.country });
-        setUserData({ nick: result.nick, country: result.country });
+        setInitValues({
+          nick: result.nick,
+          country: result.countr,
+          email: auth.currentUser.email,
+        });
+        setUserData({
+          nick: result.nick,
+          country: result.country,
+          email: auth.currentUser.email,
+        });
 
         setAddressesArray(result.addresses);
 
-        // const query = functions.httpsCallable("testNotification");
-        // await query().then((result) => {
-        //   console.log(result.data);
-        // });
+        const query = functions.httpsCallable("runXXX");
 
-        const query = functions.httpsCallable("sendNotification");
-        query({
-          payload: {
-            notification: {
-              title: "New Order",
-              body: "Congrats! You have a new transaction 💸",
-            },
-            data: {
-              channelId: "vendor-notifications",
-            },
-          },
-          uid: "NSJgaxIPCOXmccfhWHYsGyCw9Gb2",
+        await query().then((result) => {
+          console.log(result.data);
         });
+
+        // const query = functions.httpsCallable("sendNotification");
+        // query({
+        //   payload: {
+        //     notification: {
+        //       title: "New Order",
+        //       body: "Congrats! You have a new transaction 💸",
+        //     },
+        //     data: {
+        //       channelId: "vendor-notifications",
+        //     },
+        //   },
+        //   uid: "NSJgaxIPCOXmccfhWHYsGyCw9Gb2",
+        // });
 
         setLoading(false);
       } else {
@@ -124,10 +135,12 @@ export default function Settings() {
         setInitValues({
           nick: "",
           country: "",
+          email: "",
         });
         setUserData({
           nick: "",
           country: "",
+          email: "",
         });
         setAddressesArray([]);
       }
@@ -139,7 +152,8 @@ export default function Settings() {
   useEffect(() => {
     const resolvePromises = async () => {
       if (reauthenticationResult) {
-        if (actionType == 'deleteAccount') {
+        if (actionType == "deleteAccount") {
+          navigation.navigate("DeletingAccount");
           await deleteAccount();
         } else if (actionType == 'changeEmail') {
           await changeEmail();
@@ -149,6 +163,7 @@ export default function Settings() {
           setInitValues({
             nick: userData.nick,
             country: userData.country,
+            email: userData.email,
           });
         }
 
@@ -173,6 +188,7 @@ export default function Settings() {
   const detectChanges = (values) => {
     if (
       values.nick !== initValues.nick ||
+      values.email !== initValues.email ||
       userData.country !== initValues.country
     ) {
       setUserData(values);
@@ -184,9 +200,9 @@ export default function Settings() {
 
   async function reSignInWithGoogleAsync(action) {
     try {
-      if (action === 'deleteAccount') {
-        navigation.navigate('DeletingAccount');
-      }
+      // if (action === "deleteAccount") {
+      //   navigation.navigate("DeletingAccount");
+      // }
 
       await GoogleSignIn.askForPlayServicesAsync();
       const { type, user } = await GoogleSignIn.signInAsync();
@@ -200,16 +216,17 @@ export default function Settings() {
         }))
       ) {
         if (action === "deleteAccount") {
-          await deleteAccount();
           navigation.navigate("DeletingAccount");
+          await deleteAccount();
         } else {
           setInitValues({
             nick: userData.nick,
             country: userData.country,
+            email: userData.email,
           });
           setFormChanged(false);
 
-          await updateUserData(userData);
+          await updateUserData(userData, initValues, setAddressesArray);
         }
       } else {
         return { cancelled: true };
@@ -311,6 +328,7 @@ export default function Settings() {
               initialValues={{
                 nick: initValues.nick,
                 country: initValues.country,
+                email: initValues.email,
               }}
               validationSchema={reviewSchema}
               onSubmit={async (values, actions) => {
@@ -420,6 +438,63 @@ export default function Settings() {
                       </Text>
                     )}
                   </ErrorMessage>
+                  {auth.currentUser?.providerData[0].providerId !=
+                  "google.com" ? (
+                    <View>
+                      <TextInput
+                        mode={"outlined"}
+                        value={props.values.email}
+                        onChangeText={props.handleChange("email")}
+                        onEndEditing={(e) => {
+                          if (e.nativeEvent.text.length >= 4) {
+                            detectChanges(props.values);
+                          } else {
+                            setFormChanged(false);
+                          }
+                        }}
+                        label="Email"
+                        outlineColor={"#5c5c5c"}
+                        error={
+                          props.touched.email && props.errors.email
+                            ? true
+                            : false
+                        }
+                        style={{
+                          width: "80%",
+                          backgroundColor: "#1B1B1B",
+                          color: "#f4f4f4",
+                          marginTop: 20,
+                        }}
+                        theme={{
+                          colors: {
+                            primary: "#0082ff",
+                            placeholder: "#5c5c5c",
+                            background: "transparent",
+                            text: "#f4f4f4",
+                          },
+                        }}
+                      />
+                      <ErrorMessage component="div" name="email">
+                        {(msg) => (
+                          <Text
+                            style={{
+                              width: "80%",
+                              marginTop: 8,
+                              marginBottom: 18,
+                              height: 20,
+                              flexDirection: "row",
+                              justifyContent: "flex-end",
+                              color: "#b40424",
+                              fontWeight: "700",
+                            }}
+                          >
+                            {msg}
+                          </Text>
+                        )}
+                      </ErrorMessage>
+                    </View>
+                  ) : null}
+
                   <TouchableOpacity
                     style={{ width: "80%" }}
                     onPress={() => {

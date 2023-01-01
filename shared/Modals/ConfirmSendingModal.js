@@ -62,7 +62,6 @@ export default function ConfirmSendingModal({ id, setModal }) {
           >
             <TouchableOpacity
               style={{
-                width: 84,
                 height: 30,
                 flexDirection: "row",
                 alignItems: "center",
@@ -70,7 +69,9 @@ export default function ConfirmSendingModal({ id, setModal }) {
 
                 backgroundColor: "#0082FF",
                 borderRadius: 3,
+                paddingHorizontal: 20,
               }}
+              disabled={activityIndicator}
               onPress={async () => {
                 setActivityIndicator(true);
 
@@ -117,11 +118,11 @@ export default function ConfirmSendingModal({ id, setModal }) {
                   .update({
                     ["shipping.sent"]:
                       firebaseObj.firestore.FieldValue.serverTimestamp(),
-                    ["shipping.trackingNumber"]: trackingNumber.trim(),
+                    ["status"]: "sent",
                   });
 
                 setActivityIndicator(false);
-                setModal(null);
+                setModal(false);
               }}
             >
               <Text
@@ -147,18 +148,18 @@ export default function ConfirmSendingModal({ id, setModal }) {
             ) : (
               <TouchableOpacity
                 style={{
-                  width: 76,
                   height: 30,
+
+                  marginRight: 14,
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
 
-                  backgroundColor: "transparent",
-                  borderRadius: 3,
                   borderColor: "#5c5c5c",
                   borderWidth: 2,
 
-                  marginRight: 22,
+                  borderRadius: 3,
+                  paddingHorizontal: 20,
                 }}
                 onPress={() => {
                   setModal(null);

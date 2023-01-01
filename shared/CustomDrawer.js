@@ -540,7 +540,19 @@ export default function CustomDrawer({ navigation }) {
               labelStyle={{ color: "#f4f4f4" }}
               label="Cart"
               onPress={() => {
-                navigation.navigate("CartStack", { screen: "Cart" });
+                // navigation.reset("CartStack", { screen: "Cart" });
+                // navigation.navigate("CartStack");
+                navigation.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: "CartStack",
+                      params: {
+                        screen: "TranCartsactions",
+                      },
+                    },
+                  ],
+                });
               }}
             />
             <DrawerItem

@@ -14,7 +14,6 @@ import {
   useNavigation,
   useIsFocused,
   useRoute,
-  CommonActions,
 } from "@react-navigation/native";
 
 import {
@@ -37,8 +36,6 @@ import signature from "../assets/signature_x.png";
 import IconI from "react-native-vector-icons/Ionicons";
 import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 
-let paymentIntentId = null;
-
 // import UPS_logo from "../assets/UPS_logo.png";
 // import DHL_logo from "../assets/DHL_logo.png";
 // import USPS_logo from "../assets/USPS_logo.png";
@@ -53,15 +50,9 @@ export default function Checkout({ pageState, setPage }) {
 
   let instantBuy = null;
 
-  if (route.params) {
-    instantBuy = route.params.instantBuy;
-  }
-
   LogBox.ignoreLogs([
     "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing and other functionality - use another VirtualizedList-backed container instead.",
   ]);
-
-  const navigation = useNavigation();
 
   const [shippingMethod, setShippingMethod] = useState({});
   const [shippingAddress, setShippingAddress] = useState({});
@@ -80,12 +71,12 @@ export default function Checkout({ pageState, setPage }) {
   };
 
   useEffect(() => {
-    navigation.addListener("beforeRemove", (e) => {
-      e.preventDefault();
-    });
-
     const resolvePromise = async () => {
       setPage("loadingPage");
+
+      if (route.params) {
+        instantBuy = route.params.instantBuy;
+      }
 
       if (instantBuy) {
         setOffersState(instantBuy);
@@ -111,74 +102,59 @@ export default function Checkout({ pageState, setPage }) {
       }
     };
 
-    const cancelPayment = async () => {
-      if (paymentIntentId) {
-        const query = functions.httpsCallable("cancelPaymentSheet");
-        await query({ paymentIntent: paymentIntentId });
-        paymentIntentId = null;
-      }
-    };
-
     if (isFocused) {
       resolvePromise();
-    } else {
-      // setShippingMethod({});
-      // setShippingAddress({});
-      // setAddressesArray([]);
-      // setAvalibleShippingMethods([]);
-      // setOffersState([]);
-      // setPage("shippingPage");
-
-      if (pageState !== "endPage") {
-        cancelPayment();
-      }
-
-      // console.log("Unmounted");
     }
   }, [isFocused]);
 
   useEffect(() => {
     if (addressesArray) {
-      setAddressesArray((prevState) => addEmptyObj(prevState));
+      setAddressesArray((prev) => addEmptyObj(prev));
     }
   }, [addressesArray]);
 
   useEffect(() => {
     const resolvePromise = async () => {
-      if (shippingAddress) {
-        const shippingMethodsArray = [];
-        const promise = new Promise((resolve, reject) => {
-          offersState.forEach(async (obj, index) => {
-            const owner = await db.collection("users").doc(obj.uid).get();
+      setAvalibleShippingMethods([]);
+      offersState.forEach(async (offer, index) => {
+        if (shippingAddress && !shippingAddress.empty) {
+          const owner = await db.collection("users").doc(offer.uid).get();
 
-            if (shippingAddress.country !== owner.data().country) {
-              shippingMethodsArray.push({
-                title: obj.title,
-                uid: obj.uid,
-                data: owner.data().sellerProfile.shippingMethods.international,
-              });
+          const validateMethods = (arr) => {
+            const result = [];
+            if (arr.length === 0) return [{ empty: true }];
+            arr.forEach((item, index) => {
+              if (item.destinationCountries.includes(shippingAddress.country)) {
+                result.push(item);
+              }
+            });
+
+            if (result.length === 0) {
+              return [{ empty: true }];
             } else {
-              shippingMethodsArray.push({
-                title: obj.title,
-                uid: obj.uid,
-                data: owner.data().sellerProfile.shippingMethods.domestic,
-              });
+              return result;
             }
+          };
 
-            if (index === offersState.length - 1) {
-              resolve();
-            }
-          });
-        });
-
-        promise.then(() => {
-          shippingMethodsArray.forEach((item, index) => {
-            if (item.data.length === 0)
-              shippingMethodsArray[index].data.push({ empty: true });
-          });
-          setAvalibleShippingMethods(shippingMethodsArray);
-        });
-      }
+          setAvalibleShippingMethods((prev) => [
+            ...prev,
+            {
+              title: offer.title,
+              uid: offer.uid,
+              data: validateMethods(owner.data().sellerProfile.shippingMethods),
+            },
+          ]);
+        } else {
+          setAvalibleShippingMethods((prev) => [
+            ...prev,
+            {
+              title: offer.title,
+              uid: offer.uid,
+              data: [{ empty: true }],
+            },
+          ]);
+        }
+      });
     };
 
     resolvePromise();
@@ -874,51 +850,52 @@ const EndPage = () => {
             borderRadius: 5,
           }}
           onPress={async () => {
-            let outArray = [];
+            // let outArray = [];
 
-            await db
-              .collection("transactions")
-              .where("buyer", "==", auth.currentUser.uid)
-              .get()
-              .then((snapshot) => {
-                snapshot.forEach((doc) => {
-                  let obj = doc.data();
-                  obj.id = doc.id;
-                  outArray.push(obj);
-                });
-              });
+            // await db
+            //   .collection("transactions")
+            //   .where("buyer", "==", auth.currentUser.uid)
+            //   .get()
+            //   .then((snapshot) => {
+            //     snapshot.forEach((doc) => {
+            //       let obj = doc.data();
+            //       obj.id = doc.id;
+            //       outArray.push(obj);
+            //     });
+            //   });
 
-            await db
-              .collection("transactions")
-              .where("seller", "==", auth.currentUser.uid)
-              .get()
-              .then((snapshot) => {
-                snapshot.forEach((doc) => {
-                  outArray.push(doc.data());
-                });
-              });
+            // await db
+            //   .collection("transactions")
+            //   .where("seller", "==", auth.currentUser.uid)
+            //   .get()
+            //   .then((snapshot) => {
+            //     snapshot.forEach((doc) => {
+            //       outArray.push(doc.data());
+            //     });
+            //   });
 
-            const promise = new Promise((resolve, reject) => {
-              const finalArray = [];
+            // const promise = new Promise((resolve, reject) => {
+            //   const finalArray = [];
 
-              outArray[0].offers.forEach(async (offerID, index) => {
-                db.collection("offers")
-                  .doc(offerID)
-                  .get()
-                  .then((doc) => {
-                    const obj = doc.data();
+            //   outArray[0].offers.forEach(async (offerID, index) => {
+            //     db.collection("offers")
+            //       .doc(offerID)
+            //       .get()
+            //       .then((doc) => {
+            //         const obj = doc.data();
 
-                    fetchCardsName(obj.cardId).then((res) => {
-                      obj.name = res;
-                      obj.id = doc.id;
-                      finalArray.push(obj);
-                      if (index + 1 === outArray[0].offers.length) {
-                        resolve(finalArray);
-                      }
-                    });
-                  });
-              });
-            });
+            //         fetchCardsName(obj.cardId).then((res) => {
+            //           obj.name = res;
+            //           obj.id = doc.id;
+            //           finalArray.push(obj);
+            //           if (index + 1 === outArray[0].offers.length) {
+            //             resolve(finalArray);
+            //           }
+            //         });
+            //       });
+            //   });
+            // });
+
             navigation.navigate("TransactionsStack", {
               screen: "Transactions",
             });
@@ -1007,12 +984,12 @@ const getHeader = () => {
         </Text>
         <Text
           style={{
-            fontWeight: "600",
             color: "#939393",
             fontSize: 12,
             textAlign: "center",
             width: "80%",
             marginBottom: 20,
+            fontFamily: "Roboto_Medium",
           }}
         >
           {"Check your order and proceed to payment."}
@@ -1028,6 +1005,7 @@ const getFooter = (
   shippingAddress,
   offersState
 ) => {
+  const [paymentSheetReceived, setPaymentSheetReceived] = useState(false);
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const [totals, setTotals] = useState({
@@ -1037,21 +1015,23 @@ const getFooter = (
     final: 0,
   });
 
-  const navigation = useNavigation();
-
   useEffect(() => {
     const resolvePromise = async () => {
       const query = functions.httpsCallable("paymentSheet");
 
-      query({ offersState, shippingMethod, shippingAddress })
+      await query({ offersState, shippingMethod, shippingAddress })
         .then((result) => {
           try {
             initializePaymentSheet(result.data);
+            setPaymentSheetReceived(true);
           } catch (e) {
             console.log(e);
           }
         })
-        .catch((err) => console.log(err));
+        .catch((err) => {
+          console.log("ERROR");
+          console.log(err);
+        });
     };
 
     resolvePromise();
@@ -1075,8 +1055,9 @@ const getFooter = (
           .doc(auth.currentUser.uid)
           .get();
 
-        doc.data()?.discounts.referralProgram.forEach((item) => {
-          db.collection("users")
+        doc.data()?.discounts.referralProgram.forEach(async (item) => {
+          await db
+            .collection("users")
             .doc(item.uid)
             .get()
             .then((doc) => {
@@ -1105,9 +1086,7 @@ const getFooter = (
   }, [offersState]);
 
   const initializePaymentSheet = async (data) => {
-    const { id, paymentIntent, ephemeralKey, customer } = data;
-
-    paymentIntentId = id;
+    const { paymentIntent, ephemeralKey, customer } = data;
 
     let merchantName = auth.currentUser.displayName;
 
@@ -1339,6 +1318,7 @@ const getFooter = (
 
             width: "90%",
           }}
+          disabled={!paymentSheetReceived}
           onPress={() => {
             // setPage("endPage");
 
@@ -1366,9 +1346,13 @@ const getFooter = (
             //! ONLY FOR DEMO PURPOSE || 1 SELLER ONLY
           }}
         >
-          <Text style={{ fontWeight: "700", color: "#121212", fontSize: 18 }}>
-            Purchase
-          </Text>
+          {paymentSheetReceived ? (
+            <Text style={{ fontWeight: "700", color: "#121212", fontSize: 18 }}>
+              Purchase
+            </Text>
+          ) : (
+            <ActivityIndicator size={"small"} color={"#121212"} />
+          )}
         </TouchableOpacity>
         <View style={{ flexDirection: "row", marginTop: 12 }}>
           <Text style={{ fontFamily: "Roboto_Medium", color: "#555555" }}>

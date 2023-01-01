@@ -23,19 +23,11 @@ import { Checkbox, TextInput } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { addCard, fetchCards, fetchMoreCards } from "../authContext";
 
-import pikachu from "../assets/pikachu.png";
-
-import PickerModal from "../shared/Modals/PickerModal";
-import SelectingCard from "../shared/Cards/SelectingCard";
 import { LanguagePickerModal } from "../shared/Modals/LanguagePickerModal";
 
-export default function AddCard() {
+export default function AddCard({ cardId }) {
   const navigation = useNavigation();
-
-  // const conditionRegEx = /^\b([1-9]|10)\b$/g;
-
   const priceRegEx = /^\d+([.,]\d{1,2})?$/g;
-  const xRegEx = /^\d{0,2}(\.\d{1})?/g;
 
   const reviewSchema = yup.object({
     price: yup
@@ -68,21 +60,6 @@ export default function AddCard() {
       .max(60, "Description is too long!"),
   });
 
-  const [props, setProps] = useState({
-    pageNumber: 2,
-    cardsData: [],
-    loadingState: false,
-    inputValue: "",
-    inputFocusState: false,
-    sorterParams: "Rarity Declining",
-    filterParams: {
-      language: [],
-      price: { from: null, to: null },
-      graded: null,
-      condition: null,
-    },
-  });
-
   const submitForm = async (values) => {
     if (cardId) {
       if (photoState) {
@@ -100,19 +77,6 @@ export default function AddCard() {
     } else {
       setScError(true);
     }
-  };
-
-  const searchForCard = async () => {
-    setProps((prevState) => ({
-      ...prevState,
-      loadingState: true,
-    }));
-    await fetchCards(props, setProps);
-    setProps((prevState) => ({
-      ...prevState,
-      pageNumber: 2,
-      loadingState: false,
-    }));
   };
 
   const ImagePlaceHolder = () => {
@@ -247,58 +211,10 @@ export default function AddCard() {
     }
   };
 
-  const stateHandler = (variant) => {
-    if (variant == "pikachu") {
-      if (props.loadingState) return false;
-
-      if (props.cardsData == null || undefined) {
-        return true;
-      } else if (props.cardsData.length < 1) {
-        return true;
-      }
-      return false;
-    }
-    if (variant == "list") {
-      if (props.loadingState) {
-        return false;
-      } else if (props.cardsData == null || undefined) {
-        return false;
-      } else if (props.cardsData.length < 1) {
-        return false;
-      } else {
-        return true;
-      }
-    }
-    if (variant == "indicator") {
-      if (props?.loadingState) return true;
-      return false;
-    }
-  };
-
-  const closeModal = (setProps) => {
-    setModal(false);
-
-    setProps((prevState) => ({
-      ...prevState,
-      pageNumber: 2,
-      cardsData: null,
-      inputValue: "",
-    }));
-  };
-
   const [photoState, setPhoto] = useState(null);
   const [gradingSwitch, setGrading] = useState(false);
 
-  const [modalState, setModal] = useState(false);
   const [scError, setScError] = useState(false);
-
-  const [cardId, setId] = useState(null);
-
-  const [inputPlaceholderState, setInputPlaceholder] = useState(
-    "Card number or Name"
-  );
-
-  const [pickerModal, setPickerModal] = useState(false);
 
   const [languagePickerState, setLanguagePickerState] = useState(false);
   const [languageInputTouched, setLanguageInputTouched] = useState(false);
@@ -309,212 +225,6 @@ export default function AddCard() {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "#1b1b1b", padding: 20 }}>
-      <PickerModal
-        props={props}
-        setProps={setProps}
-        mode={"sorting"}
-        visible={pickerModal}
-        setVisible={setPickerModal}
-      />
-      <Modal visible={modalState} animationType={"slide"}>
-        <View style={{ flex: 1, backgroundColor: "#1b1b1b" }}>
-          <View
-            style={{
-              backgroundColor: "#121212",
-              height: 80,
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <TouchableOpacity
-              style={{
-                borderRadius: 3,
-                marginLeft: 12,
-
-                height: 30,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                borderWidth: 2,
-                borderColor: "#777777",
-                paddingHorizontal: 12,
-              }}
-              onPress={() => closeModal(setProps)}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#777777",
-                }}
-              >
-                {"Go back"}
-              </Text>
-            </TouchableOpacity>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
-                marginRight: 12,
-              }}
-            >
-              <TextInputNative
-                mode="outlined"
-                autoCapitalize="none"
-                placeholderTextColor={"#5c5c5c"}
-                outlineColor={"#121212"}
-                onEndEditing={() => {
-                  searchForCard();
-                }}
-                value={props.inputValue}
-                onChangeText={(text) => {
-                  setProps((prevState) => ({
-                    ...prevState,
-                    inputValue: text,
-                  }));
-                }}
-                placeholder={inputPlaceholderState}
-                onFocus={() => setInputPlaceholder("")}
-                onBlur={() => setInputPlaceholder("Card number or Name")}
-                style={{
-                  width: 260,
-                  height: 40,
-                  marginBottom: 5,
-                  borderColor: "#121212",
-                  backgroundColor: "#1b1b1b",
-                  borderWidth: 2,
-                  borderRadius: 5,
-                  paddingLeft: 10,
-                  color: "#f4f4f4",
-                }}
-              />
-              <MaterialIcons
-                name="search"
-                size={24}
-                color={"#f4f4f4"}
-                style={{ position: "absolute", right: 14 }}
-              />
-            </View>
-          </View>
-          <View
-            style={{
-              backgroundColor: "#121212",
-
-              borderTopColor: "#5c5c5c",
-              borderTopWidth: 1.5,
-              marginBottom: 12,
-              flexDirection: "column",
-              justifyContent: "space-between",
-              paddingBottom: 8,
-              paddingTop: 8,
-            }}
-          >
-            <View style={{ flexDirection: "row" }}>
-              <TouchableOpacity
-                style={{
-                  borderRadius: 4,
-
-                  marginLeft: 8,
-                  marginTop: 4,
-
-                  height: 32,
-                  paddingHorizontal: 14,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#1B1B1B",
-                }}
-                onPress={() => setPickerModal(true)}
-              >
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: "700",
-                    color: "#f4f4f4",
-                  }}
-                >
-                  {" Sort by :  "}
-                  <Text style={{ color: "#0082ff" }}>{props.sorterParams}</Text>
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {stateHandler("pikachu") ? (
-            <View
-              style={{
-                flex: 1,
-
-                alignItems: "center",
-                justifyContent: "center",
-                paddingBottom: 30,
-              }}
-            >
-              <Image
-                source={pikachu}
-                style={{
-                  aspectRatio: 651 / 522,
-                  width: "80%",
-                  height: undefined,
-                }}
-              />
-              <Text
-                style={{
-                  color: "#434343",
-                  fontSize: 20,
-                  fontWeight: "600",
-                  marginTop: 30,
-                  fontWeight: "700",
-                }}
-              >
-                {"No cards found "}
-              </Text>
-            </View>
-          ) : null}
-
-          {stateHandler("list") ? (
-            <FlatList
-              style={{ paddingHorizontal: 8 }}
-              data={props.cardsData}
-              numColumns={2}
-              scrollEventThrottle={2000}
-              renderItem={({ item }) => {
-                return (
-                  <SelectingCard
-                    props={item}
-                    setProps={setProps}
-                    setId={setId}
-                    closeModal={closeModal}
-                  />
-                );
-              }}
-              keyExtractor={(item, index) => index.toString()}
-              onEndReached={async () => {
-                await fetchMoreCards(props, setProps);
-                setProps((prevState) => ({
-                  ...prevState,
-                  pageNumber: prevState.pageNumber + 1,
-                }));
-              }}
-              onEndReachedThreshold={4}
-            />
-          ) : null}
-
-          {stateHandler("indicator") ? (
-            <View
-              style={{
-                flex: 1,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <ActivityIndicator size="large" color="#0082ff" />
-            </View>
-          ) : null}
-        </View>
-      </Modal>
       <View>
         <TouchableOpacity
           style={{
@@ -612,7 +322,7 @@ export default function AddCard() {
                   backgroundColor: "#0082FF",
                 }}
                 onPress={() => {
-                  setModal(true);
+                  navigation.navigate("SelectCardFilters");
                 }}
               >
                 <Text
@@ -642,7 +352,7 @@ export default function AddCard() {
                     color: "#5c5c5c",
                   }}
                 >
-                  Seleceted card number:{" "}
+                  Selected card number:{" "}
                   <Text
                     style={{
                       color: "#0082FF",

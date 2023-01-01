@@ -7,6 +7,7 @@ import firebase from "firebase/app";
 import pokemon from "pokemontcgsdk";
 
 import * as GoogleSignIn from "expo-google-sign-in";
+import { StreamChat } from "stream-chat";
 
 if (firebase.apps.length === 0) {
   firebase.initializeApp({
@@ -20,6 +21,9 @@ if (firebase.apps.length === 0) {
   });
 }
 
+pokemon.configure({ apiKey: "3c362cd9-2286-48d4-989a-0d2a65b9d5a8" });
+
+export const pokemonAPI = pokemon;
 export const db = firebase.firestore();
 db.settings({ experimentalForceLongPolling: true });
 export const auth = firebase.auth();
@@ -28,16 +32,16 @@ export const functions = firebase.functions();
 
 export const firebaseObj = firebase;
 
-if (__DEV__) {
-  firebase.functions().useEmulator("192.168.0.105", 5001);
-  // firebase.firestore().useEmulator("192.168.0.105", 8080);
-}
+export const chatClient = StreamChat.getInstance("nfnwsdq54g3b");
+
+// if (__DEV__) {
+//   firebase.functions().useEmulator("192.168.0.106", 5001);
+//   firebase.firestore().useEmulator("192.168.0.101", 8080);
+// }
 
 //! CARDS
 export async function fetchCards(props, setProps) {
   try {
-    pokemon.configure({ apiKey: "3c362cd9-2286-48d4-989a-0d2a65b9d5a8" });
-
     setProps((prevState) => ({
       ...prevState,
       cardsData: [],
@@ -84,8 +88,6 @@ export async function fetchCards(props, setProps) {
 }
 export async function fetchMoreCards(props, setProps) {
   try {
-    pokemon.configure({ apiKey: "3c362cd9-2286-48d4-989a-0d2a65b9d5a8" });
-
     let result;
 
     if (props.inputValue) {
@@ -236,12 +238,12 @@ export async function setChatListeners(setListenerData) {
 }
 
 //! PURCHASE Co-Related FUNCTIONS
-export async function addShippingMethod(props, range) {
+export async function addShippingMethod(props) {
   try {
     db.collection("users")
       .doc(auth.currentUser.uid)
       .update({
-        [`sellerProfile.shippingMethods.${range}`]:
+        [`sellerProfile.shippingMethods`]:
           firebase.firestore.FieldValue.arrayUnion(props),
       });
   } catch (error) {
@@ -249,19 +251,19 @@ export async function addShippingMethod(props, range) {
     return false;
   }
 }
-export async function editShippingMethod(oldObj, newObj, oldRange, newRange) {
+export async function editShippingMethod(oldObj, newObj) {
   try {
     db.collection("users")
       .doc(auth.currentUser.uid)
       .update({
-        [`sellerProfile.shippingMethods.${oldRange}`]:
+        [`sellerProfile.shippingMethods`]:
           firebase.firestore.FieldValue.arrayRemove(oldObj),
       })
       .then(() => {
         db.collection("users")
           .doc(auth.currentUser.uid)
           .update({
-            [`sellerProfile.shippingMethods.${newRange}`]:
+            [`sellerProfile.shippingMethods`]:
               firebase.firestore.FieldValue.arrayUnion(newObj),
           });
       });
@@ -270,12 +272,12 @@ export async function editShippingMethod(oldObj, newObj, oldRange, newRange) {
     return false;
   }
 }
-export async function deleteShippingMethod(oldObj, oldRange) {
+export async function deleteShippingMethod(oldObj) {
   try {
     db.collection("users")
       .doc(auth.currentUser.uid)
       .update({
-        [`sellerProfile.shippingMethods.${oldRange}`]:
+        [`sellerProfile.shippingMethods`]:
           firebase.firestore.FieldValue.arrayRemove(oldObj),
       });
   } catch (error) {
@@ -603,7 +605,7 @@ export async function fetchPhotos(offerId) {
     console.log(error);
   }
 }
-export async function fetchOffers(id, filterParams, setOffers) {
+export async function fetchOffers(id, filters, setOffers) {
   try {
     const arr = [];
 
@@ -611,35 +613,40 @@ export async function fetchOffers(id, filterParams, setOffers) {
       let docArr = db.collection("offers").where("cardId", "==", id);
 
       const languageFilter = (offer) => {
-        if (filterParams.language.length === 0) return true;
-        return filterParams.language.includes(offer.language);
+        if (filters.language.length === 0) return true;
+        return filters.language.includes(offer.languageVersion);
       };
 
-      if (filterParams.graded) {
-        if (
-          filterParams.price.from &&
-          filterParams.price.to &&
-          filterParams.condition
-        ) {
+      // if (filters.graded) docArr = docArr.where("isGraded", "==", true);
+      // if (filters.condition)
+      //   docArr = docArr.where("condition", "==", filters.condition);
+      // if (filters.price.from && filters.price.to) {
+      //   docArr = docArr
+      //     .where("price", ">=", filters.price.from)
+      //     .where("price", "<=", filters.price.to);
+      // }
+
+      if (filters.graded) {
+        if (filters.price.from && filters.price.to && filters.condition) {
           docArr = db
             .collection("offers")
             .where("cardId", "==", id)
-            .where("price", ">=", filterParams.price.from)
-            .where("price", "<=", filterParams.price.to)
-            .where("condition", "==", filterParams.condition)
+            .where("price", ">=", filters.price.from)
+            .where("price", "<=", filters.price.to)
+            .where("condition", "==", filters.condition)
             .where("isGraded", "==", true);
-        } else if (filterParams.condition) {
+        } else if (filters.condition) {
           docArr = db
             .collection("offers")
             .where("cardId", "==", id)
-            .where("condition", "==", filterParams.condition)
+            .where("condition", "==", filters.condition)
             .where("isGraded", "==", true);
-        } else if (filterParams.price.from && filterParams.price.to) {
+        } else if (filters.price.from && filters.price.to) {
           docArr = db
             .collection("offers")
             .where("cardId", "==", id)
-            .where("price", ">=", filterParams.price.from)
-            .where("price", "<=", filterParams.price.to)
+            .where("price", ">=", filters.price.from)
+            .where("price", "<=", filters.price.to)
             .where("isGraded", "==", true);
         } else {
           docArr = db
@@ -647,37 +654,35 @@ export async function fetchOffers(id, filterParams, setOffers) {
             .where("cardId", "==", id)
             .where("isGraded", "==", true);
         }
-      } else if (filterParams.condition) {
-        if (filterParams.price.from && filterParams.price.to) {
+      } else if (filters.condition) {
+        if (filters.price.from && filters.price.to) {
           docArr = db
             .collection("offers")
             .where("cardId", "==", id)
-            .where("price", ">=", filterParams.price.from)
-            .where("price", "<=", filterParams.price.to)
-            .where("condition", "==", filterParams.condition);
+            .where("price", ">=", filters.price.from)
+            .where("price", "<=", filters.price.to)
+            .where("condition", "==", filters.condition);
         } else {
           docArr = db
             .collection("offers")
             .where("cardId", "==", id)
-            .where("condition", "==", filterParams.condition);
+            .where("condition", "==", filters.condition);
         }
-      } else if (filterParams.price.from && filterParams.price.to) {
+      } else if (filters.price.from && filters.price.to) {
         docArr = db
           .collection("offers")
           .where("cardId", "==", id)
-          .where("price", ">=", filterParams.price.from)
-          .where("price", "<=", filterParams.price.to);
+          .where("price", ">=", filters.price.from)
+          .where("price", "<=", filters.price.to);
       }
 
       const snapshot = await docArr.get();
-      snapfetchOwnerDatasoldshot.forEach((doc) => {
+      snapshot.forEach((doc) => {
         let offers = doc.data();
         offers.id = doc.id;
 
         if (languageFilter(offers)) arr.push(offers);
       });
-
-      console.log(arr);
 
       setOffers(arr);
     } else setOffers([]);
@@ -688,9 +693,14 @@ export async function fetchOffers(id, filterParams, setOffers) {
 export async function fetchCardsName(id) {
   try {
     const promise = new Promise(async (resolve, reject) => {
-      pokemon.card.find(id).then((card) => {
-        resolve(card.name);
-      });
+      pokemon.card
+        .find(id)
+        .then((card) => {
+          resolve(card.name);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     });
 
     return promise;
@@ -974,6 +984,7 @@ export async function fetchOwnerData(
 
         cart = doc.data()?.cart ? doc.data()?.cart : [];
         sellerProfile = doc.data()?.sellerProfile;
+        sellerProfile.uid = ownerId;
 
         if (sellerProfile === undefined) {
           sellerProfile = {
@@ -997,19 +1008,13 @@ export async function fetchOwnerData(
         });
 
         if (setShippingImposible && userCountry) {
-          if (country !== userCountry) {
-            if (sellerProfile.shippingMethods.international.length > 0) {
-              setShippingImposible(false);
-            } else {
-              setShippingImposible(true);
-            }
-          } else if (country === userCountry) {
-            if (sellerProfile.shippingMethods.domestic.length > 0) {
-              setShippingImposible(false);
-            } else {
-              setShippingImposible(true);
-            }
-          }
+          doc.data().sellerProfile.shippingMethods.forEach((method) => {
+            method.destinationCountries.forEach((country) => {
+              if (country === userCountry) {
+                setShippingImposible(false);
+              }
+            });
+          });
         }
       })
       .catch((error) => {
@@ -1102,8 +1107,23 @@ export async function register(email, password, nick, country, setError) {
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           });
         const query = functions.httpsCallable("createChatToken");
-
         await query();
+
+        const mailQuery = functions.httpsCallable("sendMail");
+
+        await mailQuery({
+          to: user.uid,
+          subject: "Welcome",
+          from: {
+            email: "contact@tcmarket.place",
+            name: "TCM",
+          },
+          templateId: "d-e4314d0e1ff44a708d65f68374e62d83",
+          dynamicTemplateData: {
+            name: nick.trim(),
+          },
+        });
+
         // const { clientIsReady, chatClient } = useChatClient();
 
         // await query()
@@ -1150,7 +1170,20 @@ export async function deleteAccount() {
       arr.push(cardObj);
     });
 
-    functions.httpsCallable("deleteChatUser");
+    const chatQuery = functions.httpsCallable("deleteChatUser");
+    await chatQuery();
+
+    const mailQuery = functions.httpsCallable("sendMail");
+
+    await mailQuery({
+      to: auth.currentUser.uid,
+      subject: "Account Deleted",
+      from: {
+        email: "contact@tcmarket.place",
+        name: "TCM",
+      },
+      templateId: "d-b5623b8b20ba4e6aba03154f14f166cf",
+    });
 
     if (arr.length > 0) {
       const promise = new Promise(async (resolve, reject) => {
@@ -1223,27 +1256,23 @@ export async function googleReSignIn(result) {
 }
 export async function updateUserData(outValues, initValues, setAddressesArray) {
   try {
-    if (initValues.country != outValues.country) {
-      setAddressesArray([]);
+    if (outValues.nick !== initValues.nick) {
+      await db
+        .collection("users")
+        .doc(auth.currentUser.uid)
+        .update({ nick: outValues.nick });
 
-      if (initValues.nick != outValues.nick) {
-        await db
-          .collection("users")
-          .doc(auth.currentUser.uid)
-          .update({ nick: outValues.nick, country: outValues.country });
+      //update nick in firebase auth
+      await auth.currentUser.updateProfile({
+        displayName: outValues.nick,
+      });
+    }
 
-        //update nick in firebase auth
-        await auth.currentUser.updateProfile({
-          displayName: outValues.nick,
-        });
-      } else {
-        await db
-          .collection("users")
-          .doc(auth.currentUser.uid)
-          .update({ country: outValues.country });
-      }
-
-      //fetch all users addresses, and push them to arr
+    if (outValues.country !== initValues.country) {
+      await db
+        .collection("users")
+        .doc(auth.currentUser.uid)
+        .update({ country: outValues.country });
 
       const result = await db
         .collection("users")
@@ -1269,12 +1298,64 @@ export async function updateUserData(outValues, initValues, setAddressesArray) {
             addresses: firebase.firestore.FieldValue.arrayUnion(doc),
           });
       });
-    } else {
-      await db
-        .collection("users")
-        .doc(auth.currentUser.uid)
-        .update({ nick: outValues.nick });
     }
+
+    if (outValues.email !== initValues.email) {
+      await auth.currentUser.updateEmail(outValues.email);
+    }
+
+    // if (initValues.country != outValues.country) {
+    //   setAddressesArray([]);
+
+    //   if (initValues.nick != outValues.nick) {
+    //     await db
+    //       .collection("users")
+    //       .doc(auth.currentUser.uid)
+    //       .update({ nick: outValues.nick, country: outValues.country });
+
+    //     //update nick in firebase auth
+    //     await auth.currentUser.updateProfile({
+    //       displayName: outValues.nick,
+    //     });
+    //   } else {
+    //     await db
+    //       .collection("users")
+    //       .doc(auth.currentUser.uid)
+    //       .update({ country: outValues.country });
+    //   }
+
+    //   //fetch all users addresses, and push them to arr
+
+    //   const result = await db
+    //     .collection("users")
+    //     .doc(auth.currentUser.uid)
+    //     .get();
+
+    //   result.data().addresses.forEach(async (doc) => {
+    //     await db
+    //       .collection("users")
+    //       .doc(auth.currentUser.uid)
+    //       .update({
+    //         addresses: firebase.firestore.FieldValue.arrayRemove(doc),
+    //       });
+
+    //     doc.country = outValues.country;
+
+    //     setAddressesArray((prev) => [...prev, doc]);
+
+    //     await db
+    //       .collection("users")
+    //       .doc(auth.currentUser.uid)
+    //       .update({
+    //         addresses: firebase.firestore.FieldValue.arrayUnion(doc),
+    //       });
+    //   });
+    // } else {
+    //   await db
+    //     .collection("users")
+    //     .doc(auth.currentUser.uid)
+    //     .update({ nick: outValues.nick });
+    // }
   } catch (error) {
     console.log(error);
   }
@@ -1399,9 +1480,9 @@ export async function fetchCart() {
         doc.data().cart.forEach(async (item, index) => {
           const card = await db.collection("offers").doc(item).get();
 
-          const owner = await fetchOwnerData(card.data().owner);
+          if (card.exists && card.data().status === "published") {
+            const owner = await fetchOwnerData(card.data().owner);
 
-          if (card.data().status === "published") {
             const res = cartArr.find((item) => {
               if (item.uid === card.data().owner) {
                 item.data.push({ ...card.data(), id: card.id });
@@ -1416,13 +1497,13 @@ export async function fetchCart() {
                 uid: card.data().owner,
               });
             }
-          }
 
-          if (index + 1 == doc.data().cart.length) {
-            if (cartArr.length > 0) {
-              resolve(cartArr);
-            } else {
-              reject(false);
+            if (index + 1 == doc.data().cart.length) {
+              if (cartArr.length > 0) {
+                resolve(cartArr);
+              } else {
+                reject(false);
+              }
             }
           }
         });

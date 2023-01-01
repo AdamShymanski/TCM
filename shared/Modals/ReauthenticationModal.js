@@ -110,6 +110,7 @@ const ReauthenticationModal = ({ setReauthenticationResult, setModal }) => {
                   borderRadius: 3,
                   paddingHorizontal: 20,
                 }}
+                disabled={activityIndicator}
                 onPress={async () => {
                   try {
                     setActivityIndicator(true);

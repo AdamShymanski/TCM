@@ -478,6 +478,7 @@ export default function Register() {
                   borderRadius: 3,
                   paddingHorizontal: 20,
                 }}
+                disabled={loadingIndicator}
                 onPress={props.submitForm}
               >
                 <Text

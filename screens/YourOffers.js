@@ -206,19 +206,23 @@ export default function YourOffers() {
               }}
               disabled={activityIndicator}
               onPress={() => {
-                const query = functions.httpsCallable("linkStripeAccount");
+                try {
+                  const query = functions.httpsCallable("createStripeAccount");
 
-                setActivityIndicator(true);
+                  setActivityIndicator(true);
 
-                query()
-                  .then((result) => {
-                    Linking.openURL(result.data);
-                    setActivityIndicator(false);
-                  })
-                  .catch((err) => {
-                    console.log(err);
-                    setActivityIndicator(false);
-                  });
+                  query()
+                    .then((result) => {
+                      Linking.openURL(result.data);
+                      setActivityIndicator(false);
+                    })
+                    .catch((err) => {
+                      console.log(err);
+                      setActivityIndicator(false);
+                    });
+                } catch (err) {
+                  console.log(err);
+                }
               }}
             >
               <Text

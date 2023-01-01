@@ -6,7 +6,7 @@ import { useRoute } from "@react-navigation/native";
 
 export default function ChannelScreen() {
   const route = useRoute();
-  const channel = route.params;
+  const channel = route.params.channel;
 
   return (
     <Channel channel={channel}>

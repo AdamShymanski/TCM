@@ -112,16 +112,14 @@ export default function Cart({ route }) {
           if (doc.data().cart.length > 0) {
             doc.data().cart.forEach(async (item, index) => {
               const card = await db.collection("offers").doc(item).get();
+              if (card.exists && card.data().status === "published") {
+                val.price += card.data().price;
+                val.cards++;
+                if (!val.sellers.includes(card.data().owner)) {
+                  val.sellers.push(card.data().owner);
+                }
+                const owner = await fetchOwnerData(card.data().owner);
 
-              val.price += card.data().price;
-              val.cards++;
-              if (!val.sellers.includes(card.data().owner)) {
-                val.sellers.push(card.data().owner);
-              }
-
-              const owner = await fetchOwnerData(card.data().owner);
-
-              if (card.data().status === "published") {
                 const res = cartArr.find((item) => {
                   if (item.uid === card.data().owner) {
                     item.data.push({ ...card.data(), id: card.id });
@@ -136,18 +134,18 @@ export default function Cart({ route }) {
                     uid: card.data().owner,
                   });
                 }
-              }
 
-              if (index + 1 == doc.data().cart.length) {
-                if (cartArr.length > 0) {
-                  resolve(cartArr);
-                } else {
-                  reject(false);
+                if (index + 1 == doc.data().cart.length) {
+                  if (cartArr.length > 0) {
+                    resolve(cartArr);
+                  } else {
+                    reject(false);
+                  }
                 }
               }
             });
           } else {
-            reject("no cart");
+            reject("no cards in cart");
           }
         });
 
@@ -276,10 +274,6 @@ export default function Cart({ route }) {
             }}
             onPress={() => {
               navigation.navigate("Checkout");
-              // navigation.reset({
-              //   index: 0,
-              //   routes: [{ name: "Checkout" }],
-              // });
             }}
           >
             <Text

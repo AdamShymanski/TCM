@@ -210,8 +210,8 @@ export default function Login() {
                         backgroundColor: "#0082FF",
                         borderRadius: 3,
                       }}
+                      disabled={modalLoadingIndicator}
                       onPress={() => {
-                        console.log("click");
                         props.submitForm();
                       }}
                     >
@@ -225,33 +225,44 @@ export default function Login() {
                         Submit
                       </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      style={{
-                        width: 76,
-                        height: 30,
-                        marginRight: 12,
-                        alignItems: "center",
-                        flexDirection: "row",
-                        justifyContent: "center",
-
-                        borderRadius: 3,
-                        borderWidth: 2,
-                        borderColor: "#5c5c5c",
-                      }}
-                      onPress={() => {
-                        setModalVisible(false);
-                      }}
-                    >
-                      <Text
+                    {modalLoadingIndicator ? (
+                      <ActivityIndicator
+                        size={30}
+                        color="#0082ff"
+                        animating={modalLoadingIndicator}
                         style={{
-                          fontSize: 16,
-                          fontWeight: "700",
-                          color: "#5c5c5c",
+                          marginRight: 14,
+                        }}
+                      />
+                    ) : (
+                      <TouchableOpacity
+                        style={{
+                          width: 76,
+                          height: 30,
+                          marginRight: 12,
+                          alignItems: "center",
+                          flexDirection: "row",
+                          justifyContent: "center",
+
+                          borderRadius: 3,
+                          borderWidth: 2,
+                          borderColor: "#5c5c5c",
+                        }}
+                        onPress={() => {
+                          setModalVisible(false);
                         }}
                       >
-                        Cancel
-                      </Text>
-                    </TouchableOpacity>
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            fontWeight: "700",
+                            color: "#5c5c5c",
+                          }}
+                        >
+                          Cancel
+                        </Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               )}
@@ -428,7 +439,9 @@ export default function Login() {
                   borderRadius: 3,
                   paddingHorizontal: 20,
                 }}
-                onPress={props.submitForm}>
+                onPress={props.submitForm}
+                disabled={loadingIndicator}
+              >
                 <Text
                   style={{
                     fontSize: 16,
@@ -448,16 +461,18 @@ export default function Login() {
                     marginTop: 20,
                   }}
                 />
-              ) : null}
-              <Text
-                style={{
-                  color: '#b40424',
-                  fontWeight: '700',
-                  marginTop: 20,
-                  marginRight: 14,
-                }}>
-                {error}
-              </Text>
+              ) : (
+                <Text
+                  style={{
+                    color: "#b40424",
+                    fontWeight: "700",
+                    marginTop: 20,
+                    marginRight: 14,
+                  }}
+                >
+                  {error}
+                </Text>
+              )}
             </View>
           </View>
         )}

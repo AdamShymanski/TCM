@@ -149,8 +149,8 @@ android {
         // targetSdkVersion 33
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1280
-        versionName "1.28.0"
+        versionCode 1320
+        versionName "1.32.0"
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
 
         if (isNewArchitectureEnabled()) {
