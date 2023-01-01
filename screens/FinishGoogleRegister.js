@@ -11,7 +11,7 @@ import { TextInput } from "react-native-paper";
 import { Formik, ErrorMessage } from "formik";
 import * as yup from "yup";
 
-import { db, auth, functions, firebaseObj, login } from "../authContext";
+import { db, auth, functions, firebaseObj } from "../authContext";
 import { CountryPickerModal } from "../shared/Modals/CountryPickerModal";
 
 const firstCapitalLetter = /^[A-Z].*/;
@@ -105,6 +105,21 @@ export default function FinishGoogleRegister({ setFinishRegisterProcess }) {
               savedOffers: [],
               createdAt: firebaseObj.firestore.FieldValue.serverTimestamp(),
             });
+
+          const mailQuery = functions.httpsCallable("sendMail");
+
+          await mailQuery({
+            to: auth.currentUser.uid,
+            subject: "Welcome",
+            from: {
+              email: "contact@tcmarket.place",
+              name: "TCM",
+            },
+            templateId: "d-e4314d0e1ff44a708d65f68374e62d83",
+            dynamicTemplateData: {
+              name: auth.currentUser.displayName,
+            },
+          });
 
           setLoadingIndicator(false);
           setFinishRegisterProcess(false);
@@ -276,6 +291,7 @@ export default function FinishGoogleRegister({ setFinishRegisterProcess }) {
                   paddingHorizontal: 20,
                 }}
                 onPress={props.submitForm}
+                disabled={loadingIndicator}
               >
                 <Text
                   style={{

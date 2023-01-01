@@ -40,7 +40,7 @@ export default function Checkout_AddAddress() {
     };
     resolvePromises();
   }, []);
-  
+
   return (
     <ScrollView style={{ backgroundColor: "#1b1b1b", flex: 1 }}>
       <View style={{ alignItems: "center", width: "100%" }}>
@@ -640,6 +640,7 @@ export default function Checkout_AddAddress() {
                   borderRadius: 3,
                   paddingHorizontal: 20,
                 }}
+                disabled={loadingIndicator}
                 onPress={async () => {
                   setLoadingIndicator(true);
                   props.handleSubmit();
@@ -665,8 +666,7 @@ export default function Checkout_AddAddress() {
                     marginTop: 20,
                   }}
                 />
-              ) : null}
-              {!loadingIndicator ? (
+              ) : (
                 <Text
                   style={{
                     color: "#b40424",
@@ -677,7 +677,7 @@ export default function Checkout_AddAddress() {
                 >
                   {error}
                 </Text>
-              ) : null}
+              )}
             </View>
           </View>
         )}

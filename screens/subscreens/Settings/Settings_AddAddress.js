@@ -646,6 +646,7 @@ export default function Settings_AddAddress() {
                   borderRadius: 3,
                   paddingHorizontal: 20,
                 }}
+                disabled={loadingIndicator}
                 onPress={async () => {
                   setLoadingIndicator(true);
                   setCountryInputTouched(true);
@@ -672,8 +673,7 @@ export default function Settings_AddAddress() {
                     marginTop: 20,
                   }}
                 />
-              ) : null}
-              {!loadingIndicator ? (
+              ) : (
                 <Text
                   style={{
                     color: "#b40424",
@@ -684,7 +684,7 @@ export default function Settings_AddAddress() {
                 >
                   {error}
                 </Text>
-              ) : null}
+              )}
             </View>
           </View>
         )}

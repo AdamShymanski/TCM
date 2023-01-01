@@ -16,18 +16,16 @@ import cart_up_icon from "./../assets/cart_up.png";
 
 import { useNavigation } from "@react-navigation/native";
 
-import { db, auth, createChat } from "../authContext";
-
-import useChatClient from "../screens/Chat/useChatClient";
+import { db, auth, chatClient } from "../authContext";
 
 export default function SellerDetailsBar({ props }) {
   const navigation = useNavigation();
 
   const [startChatLoading, setStartChatLoading] = useState(false);
 
-  const { clientIsReady, chatClient } = useChatClient();
+  const { sellerProfile, hide, setSnackbar } = props;
 
-  if (!props.hide)
+  if (!hide)
     return (
       <View
         style={{
@@ -40,6 +38,7 @@ export default function SellerDetailsBar({ props }) {
           backgroundColor: "#121212",
 
           paddingLeft: 8,
+          zIndex: 1,
         }}
       >
         <View style={{ justifyContent: "center" }}>
@@ -88,7 +87,7 @@ export default function SellerDetailsBar({ props }) {
           style={{
             justifyContent: "center",
             marginLeft: 42,
-            marginRight: 54,
+            marginRight: 46,
           }}
         >
           <View style={{ flexDirection: "row", marginBottom: 12 }}>
@@ -119,7 +118,7 @@ export default function SellerDetailsBar({ props }) {
                 fontWeight: "700",
               }}
             >
-              {props.sellerProfile.statistics.numberOfOffers}
+              {sellerProfile.statistics.numberOfOffers}
             </Text>
           </View>
           <View style={{ flexDirection: "row" }}>
@@ -178,7 +177,7 @@ export default function SellerDetailsBar({ props }) {
               borderRadius: 3,
               borderColor: "#5c5c5c",
               paddingVertical: 3,
-              paddingHorizontal: 8,
+              paddingHorizontal: 12,
 
               flex: 1,
             }}
@@ -203,23 +202,32 @@ export default function SellerDetailsBar({ props }) {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={async () => {
-              setStartChatLoading(true);
+              if (auth.currentUser) {
+                if (sellerProfile.uid === auth.currentUser.uid) {
+                  setSnackbarVisible("You can't start a chat with yourself");
+                } else {
+                  setStartChatLoading(true);
 
-              try {
-                const channel = chatClient.channel("messaging", {
-                  members: [props.sellerProfile.uid, auth.currentUser.uid],
-                  created_by_id: auth.currentUser.uid,
-                });
+                  try {
+                    const channel = chatClient.channel("messaging", {
+                      members: [sellerProfile.uid, auth.currentUser.uid],
+                      created_by_id: auth.currentUser.uid,
+                    });
 
-                await channel.create();
+                    await channel.watch();
 
-                navigation.navigate("ChatStack", {
-                  screen: "ChannelListScreen",
-                });
-              } catch (e) {
-                console.log(e);
+                    navigation.navigate("ChatStack", {
+                      screen: "ChannelListScreen",
+                    });
+                  } catch (e) {
+                    console.log(e);
+                  }
+
+                  setStartChatLoading(false);
+                }
+              } else if (setSnackbar) {
+                setSnackbarVisible("You have to be signed in to start a chat");
               }
-              setStartChatLoading(false);
             }}
             style={{
               alignItems: "center",
@@ -229,7 +237,7 @@ export default function SellerDetailsBar({ props }) {
               borderRadius: 3,
 
               paddingVertical: 5,
-              paddingHorizontal: 8,
+              paddingHorizontal: 12,
 
               backgroundColor: "#0082ff",
 

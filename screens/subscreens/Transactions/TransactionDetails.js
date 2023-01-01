@@ -16,17 +16,16 @@ import IconMI from "react-native-vector-icons/MaterialIcons";
 import IconI from "react-native-vector-icons/Ionicons";
 import Icon from "react-native-vector-icons/Octicons";
 
-import cart_down_icon from "../../../assets/cart_down.png";
-import cart_up_icon from "../../../assets/cart_up.png";
-
 import {
+  db,
   auth,
   fetchOwnerData,
   fetchPhotos,
-  db,
   functions,
   firebaseObj,
+  chatClient,
 } from "../../../authContext";
+
 import { Snackbar } from "react-native-paper";
 
 import { useNavigation } from "@react-navigation/native";
@@ -54,6 +53,7 @@ export default function TransactionDetails({ route }) {
   const [showModal, setShowModal] = useState(false);
 
   const [activityIndicator, setActivityIndicator] = useState(false);
+  const [startChatLoading, setStartChatLoading] = useState(false);
 
   const fillPhotosArray = (array) => {
     let outArray = [];
@@ -67,11 +67,7 @@ export default function TransactionDetails({ route }) {
 
   useEffect(() => {
     const resolvePromises = async () => {
-      setVendor(
-        await fetchOwnerData(
-          props.seller === auth.currentUser.uid ? props.buyer : props.seller
-        )
-      );
+      setVendor(await fetchOwnerData(props.seller));
 
       const promise = new Promise((resolve, reject) => {
         offersArray.forEach(async (item, index) => {
@@ -211,56 +207,83 @@ export default function TransactionDetails({ route }) {
                     setActivityIndicator(true);
                     setShowDisputeButton(false);
 
-                    await db.collection("transactions").doc(props.id).update({
-                      status: "disputed",
-                      disputeDate:
-                        firebaseObj.firestore.FieldValue.serverTimestamp(),
-                    });
+                    await db
+                      .collection("transactions")
+                      .doc(props.id)
+                      .get()
+                      .then(async (doc) => {
+                        const currentDate = new Date();
+                        const deliveredDate = new Date(
+                          doc.data().shipping.delivered.seconds * 1000
+                        );
 
-                    const notificationQuery =
-                      functions.httpsCallable("sendNotification");
+                        //time difference in minutes
+                        const diff = Math.ceil(
+                          (currentDate - deliveredDate) / (1000 * 60)
+                        );
 
-                    await notificationQuery({
-                      payload: {
-                        notification: {
-                          title: "Dispute Initiated",
-                          body: "Buyer initiated a dispute, check your email ⚠",
-                        },
-                        data: {
-                          channelId: "transactions-notifications",
-                        },
-                      },
-                      uid: props.seller,
-                    });
+                        if (diff < 60 * 24 * 3 && props.status !== "disputed") {
+                          await db
+                            .collection("transactions")
+                            .doc(props.id)
+                            .update({
+                              status: "disputed",
+                              disputeDate:
+                                firebaseObj.firestore.FieldValue.serverTimestamp(),
+                            });
 
-                    const mailQueryV = functions.httpsCallable("sendMail");
+                          const notificationQuery =
+                            functions.httpsCallable("sendNotification");
 
-                    await mailQueryV({
-                      to: props.seller,
-                      from: {
-                        email: "sales@tcmarket.place",
-                        name: "TCM",
-                      },
-                      templateId: "d-aa2838060fa344439c2a24e301e34420",
-                      subject: "Dispute Initiated",
-                      dynamicTemplateData: {
-                        order_id: props.id,
-                      },
-                    });
-                    const mailQueryB = functions.httpsCallable("sendMail");
+                          await notificationQuery({
+                            payload: {
+                              notification: {
+                                title: "Dispute Initiated",
+                                body: "Buyer initiated a dispute, check your email ⚠",
+                              },
+                              data: {
+                                channelId: "transactions-notifications",
+                              },
+                            },
+                            uid: props.seller,
+                          });
 
-                    await mailQueryB({
-                      to: props.buyer,
-                      from: {
-                        email: "sales@tcmarket.place",
-                        name: "TCM",
-                      },
-                      templateId: "d-6ee0863df5574ba8a9fd46def9d44c10",
-                      subject: "Dispute Initiated",
-                      dynamicTemplateData: {
-                        order_id: props.id,
-                      },
-                    });
+                          const mailQueryV =
+                            functions.httpsCallable("sendMail");
+
+                          await mailQueryV({
+                            to: props.seller,
+                            from: {
+                              email: "sales@tcmarket.place",
+                              name: "TCM",
+                            },
+                            templateId: "d-aa2838060fa344439c2a24e301e34420",
+                            subject: "Dispute Initiated",
+                            dynamicTemplateData: {
+                              order_id: props.id,
+                            },
+                          });
+                          const mailQueryB =
+                            functions.httpsCallable("sendMail");
+
+                          await mailQueryB({
+                            to: props.buyer,
+                            from: {
+                              email: "sales@tcmarket.place",
+                              name: "TCM",
+                            },
+                            templateId: "d-6ee0863df5574ba8a9fd46def9d44c10",
+                            subject: "Dispute Initiated",
+                            dynamicTemplateData: {
+                              order_id: props.id,
+                            },
+                          });
+                        } else {
+                          setSnackbarState(
+                            "Error: You can only initiate a dispute within 3 days of delivery."
+                          );
+                        }
+                      });
 
                     setActivityIndicator(false);
                     setShowModal(false);
@@ -422,9 +445,8 @@ export default function TransactionDetails({ route }) {
           >
             Vendor
           </Text>
-          <View
+          <TouchableOpacity
             style={{
-              height: 100,
               marginBottom: 18,
               borderRadius: 3,
               flexDirection: "row",
@@ -433,7 +455,14 @@ export default function TransactionDetails({ route }) {
               justifyContent: "space-between",
 
               paddingLeft: 12,
+              paddingVertical: 12,
               marginRight: 12,
+            }}
+            onPress={() => {
+              navigation.navigate("SellerStack", {
+                screen: "OtherSellersOffers",
+                params: { sellerId: vendor.sellerProfile.uid },
+              });
             }}
           >
             <View style={{ justifyContent: "center" }}>
@@ -514,29 +543,55 @@ export default function TransactionDetails({ route }) {
                   borderRadius: 3,
 
                   marginTop: 12,
-                  paddingVertical: 4.5,
+                  paddingVertical: 5.5,
                   paddingHorizontal: 12,
 
                   backgroundColor: "#0082ff",
                 }}
+                onPress={async () => {
+                  setStartChatLoading(true);
+
+                  try {
+                    const channel = chatClient.channel("messaging", {
+                      members: [props.seller, auth.currentUser.uid],
+                      created_by_id: auth.currentUser.uid,
+                    });
+
+                    await channel.watch();
+
+                    navigation.navigate("ChatStack", {
+                      screen: "ChannelListScreen",
+                    });
+                  } catch (e) {
+                    console.log(e);
+                  }
+
+                  setStartChatLoading(false);
+                }}
               >
-                <Text
-                  style={{
-                    color: "#121212",
+                {startChatLoading ? (
+                  <ActivityIndicator size={17} color={"#121212"} />
+                ) : (
+                  <View style={{ flexDirection: "row" }}>
+                    <Text
+                      style={{
+                        color: "#121212",
 
-                    fontSize: 13,
-                    fontWeight: "700",
+                        fontSize: 13,
+                        fontWeight: "700",
 
-                    marginRight: 4,
-                  }}
-                >
-                  Start Chat
-                </Text>
-                <IconMCI
-                  name={"message"}
-                  size={17}
-                  style={{ color: "#121212" }}
-                />
+                        marginRight: 4,
+                      }}
+                    >
+                      Start Chat
+                    </Text>
+                    <IconMCI
+                      name={"message-arrow-right"}
+                      size={16}
+                      style={{ color: "#121212" }}
+                    />
+                  </View>
+                )}
               </TouchableOpacity>
               <TouchableOpacity
                 style={{
@@ -574,7 +629,7 @@ export default function TransactionDetails({ route }) {
                     marginRight: 4,
                   }}
                 >
-                  All Offers
+                  Visit Profile
                 </Text>
                 <IconMCI
                   name={"cards"}
@@ -583,7 +638,7 @@ export default function TransactionDetails({ route }) {
                 />
               </TouchableOpacity>
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
       ) : null}
       <Text
@@ -601,159 +656,209 @@ export default function TransactionDetails({ route }) {
         style={{ flex: 1 }}
         renderItem={({ item, index }) => {
           return (
-            <View
-              style={{
-                paddingVertical: 12,
-                paddingHorizontal: 12,
-
-                marginRight: 12,
-                marginVertical: 8,
-
-                // alignItems: "center",
-                // flexDirection: "row",
-
-                backgroundColor: "#121212",
-                borderRadius: 5,
+            <TouchableOpacity
+              style={{ marginRight: 12, marginVertical: 8 }}
+              onPress={() => {
+                navigation.navigate("OfferDetailsStack", {
+                  screen: "OfferDetails",
+                  params: {
+                    ...item,
+                    photosArray: item?.cardPhotos,
+                    owner: vendor,
+                    userCountry: "XXX",
+                    cartArray: [],
+                  },
+                });
               }}
             >
-              <View style={{ alignItems: "center", flexDirection: "row" }}>
-                <Image
-                  source={{
-                    uri: item?.cardPhotos[0] ? item.cardPhotos[0].url : "",
-                  }}
-                  style={{
-                    aspectRatio: 105 / 140,
-                    width: undefined,
-                    height: 90,
-                  }}
-                />
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    flex: 1,
-                  }}
-                >
+              <View
+                style={{
+                  paddingVertical: 12,
+                  paddingHorizontal: 12,
+
+                  // alignItems: "center",
+                  // flexDirection: "row",
+                  zIndex: 1,
+
+                  backgroundColor: "#121212",
+                  borderRadius: 5,
+                }}
+              >
+                <View style={{ alignItems: "center", flexDirection: "row" }}>
+                  <Image
+                    source={{
+                      uri:
+                        item?.cardPhotos?.length > 0
+                          ? item?.cardPhotos[0]?.url
+                          : "",
+                    }}
+                    style={{
+                      aspectRatio: 105 / 140,
+                      width: undefined,
+                      height: 90,
+                    }}
+                  />
                   <View
                     style={{
+                      flexDirection: "row",
                       justifyContent: "space-between",
-                      height: 90,
-                      marginLeft: 12,
+                      flex: 1,
                     }}
                   >
-                    <Text
+                    <View
                       style={{
-                        color: "#f4f4f4",
-                        fontFamily: "Roboto_Medium",
-                        fontSize: 15,
+                        justifyContent: "space-between",
+                        height: 90,
+                        marginLeft: 12,
                       }}
                     >
-                      {item.cardName}
-                    </Text>
-                    <View style={{ flexDirection: "row", marginTop: 6 }}>
-                      <Text
-                        style={{
-                          color: "#585858",
-                          fontFamily: "Roboto_Medium",
-                          fontSize: 11,
-                        }}
-                      >
-                        Price
-                      </Text>
                       <Text
                         style={{
                           color: "#f4f4f4",
                           fontFamily: "Roboto_Medium",
-                          fontSize: 11,
-                          marginLeft: 4,
+                          fontSize: 15,
                         }}
                       >
-                        {`${item.price.toFixed(2)} USD`}
+                        {item.cardObject.name}
                       </Text>
-                    </View>
-                    <View style={{ flexDirection: "row" }}>
-                      <Text
-                        style={{
-                          color: "#585858",
-                          fontFamily: "Roboto_Medium",
-                          fontSize: 11,
-                        }}
-                      >
-                        Graded
-                      </Text>
-                      <Text
-                        style={{
-                          color: "#f4f4f4",
-                          fontFamily: "Roboto_Medium",
-                          fontSize: 11,
-                          marginLeft: 4,
-                        }}
-                      >
-                        {item.isGraded ? (
-                          <Icon name="check" color={"#0dff25"} size={14} />
-                        ) : (
-                          <Text style={{ fontSize: 11, color: "#CD0000" }}>
-                            X
-                          </Text>
-                        )}
-                      </Text>
-                    </View>
-                    <View style={{ flexDirection: "row" }}>
-                      <Text
-                        style={{
-                          color: "#585858",
-                          fontFamily: "Roboto_Medium",
-                          fontSize: 11,
-                        }}
-                      >
-                        Condition
-                      </Text>
-                      <Text
-                        style={{
-                          color: "#f4f4f4",
-                          fontFamily: "Roboto_Medium",
-                          fontSize: 11,
-                          marginLeft: 4,
-                        }}
-                      >
-                        {item.condition}
+                      <View style={{ flexDirection: "row", marginTop: 6 }}>
                         <Text
                           style={{
-                            color: "#7c7c7c",
+                            color: "#585858",
                             fontFamily: "Roboto_Medium",
-                            fontSize: 8,
+                            fontSize: 11,
+                          }}
+                        >
+                          Price
+                        </Text>
+                        <Text
+                          style={{
+                            color: "#f4f4f4",
+                            fontFamily: "Roboto_Medium",
+                            fontSize: 11,
                             marginLeft: 4,
                           }}
                         >
-                          /10
+                          {`${item.price.toFixed(2)} USD`}
                         </Text>
-                      </Text>
-                    </View>
-                    <View style={{ flexDirection: "row" }}>
-                      <Text
-                        style={{
-                          color: "#585858",
-                          fontFamily: "Roboto_Medium",
-                          fontSize: 11,
-                        }}
-                      >
-                        Language
-                      </Text>
-                      <Text
-                        style={{
-                          color: "#f4f4f4",
-                          fontFamily: "Roboto_Medium",
-                          fontSize: 11,
-                          marginLeft: 4,
-                        }}
-                      >
-                        {item.languageVersion}
-                      </Text>
+                      </View>
+                      <View style={{ flexDirection: "row" }}>
+                        <Text
+                          style={{
+                            color: "#585858",
+                            fontFamily: "Roboto_Medium",
+                            fontSize: 11,
+                          }}
+                        >
+                          Graded
+                        </Text>
+                        <Text
+                          style={{
+                            color: "#f4f4f4",
+                            fontFamily: "Roboto_Medium",
+                            fontSize: 11,
+                            marginLeft: 4,
+                          }}
+                        >
+                          {item.isGraded ? (
+                            <Icon name="check" color={"#0dff25"} size={14} />
+                          ) : (
+                            <Text style={{ fontSize: 11, color: "#CD0000" }}>
+                              X
+                            </Text>
+                          )}
+                        </Text>
+                      </View>
+                      <View style={{ flexDirection: "row" }}>
+                        <Text
+                          style={{
+                            color: "#585858",
+                            fontFamily: "Roboto_Medium",
+                            fontSize: 11,
+                          }}
+                        >
+                          Condition
+                        </Text>
+                        <Text
+                          style={{
+                            color: "#f4f4f4",
+                            fontFamily: "Roboto_Medium",
+                            fontSize: 11,
+                            marginLeft: 4,
+                          }}
+                        >
+                          {item.condition}
+                          <Text
+                            style={{
+                              color: "#7c7c7c",
+                              fontFamily: "Roboto_Medium",
+                              fontSize: 8,
+                              marginLeft: 4,
+                            }}
+                          >
+                            /10
+                          </Text>
+                        </Text>
+                      </View>
+                      <View style={{ flexDirection: "row" }}>
+                        <Text
+                          style={{
+                            color: "#585858",
+                            fontFamily: "Roboto_Medium",
+                            fontSize: 11,
+                          }}
+                        >
+                          Language
+                        </Text>
+                        <Text
+                          style={{
+                            color: "#f4f4f4",
+                            fontFamily: "Roboto_Medium",
+                            fontSize: 11,
+                            marginLeft: 4,
+                          }}
+                        >
+                          {item.languageVersion}
+                        </Text>
+                      </View>
                     </View>
                   </View>
                 </View>
               </View>
-            </View>
+              <View
+                style={{
+                  top: -6,
+                  zIndex: 0,
+
+                  flexDirection: "row",
+                  alignSelf: "flex-start",
+
+                  paddingVertical: 5,
+                  paddingTop: 11,
+                  paddingHorizontal: 12,
+                  position: "relative",
+
+                  borderRadius: 6,
+                  borderTopLeftRadius: 0,
+
+                  backgroundColor: "#404040",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontFamily: "Roboto_Medium",
+                    color: "#ffffff",
+
+                    flexShrink: 1,
+                    flexGrow: 0,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  ID: {item.id}
+                </Text>
+              </View>
+            </TouchableOpacity>
           );
         }}
         ListEmptyComponent={

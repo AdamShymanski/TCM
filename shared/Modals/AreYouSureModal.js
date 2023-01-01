@@ -94,6 +94,7 @@ export default function AreYouSureModal({
                 backgroundColor: "#0082FF",
                 borderRadius: 3,
               }}
+              disabled={loadingIndicator}
               onPress={async () => {
                 setLoadingIndicator(true);
                 if (await reSignIn()) {
@@ -123,37 +124,38 @@ export default function AreYouSureModal({
                   marginLeft: 18,
                 }}
               />
-            ) : null}
-            <TouchableOpacity
-              style={{
-                width: 76,
-                height: 30,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-
-                backgroundColor: "transparent",
-                borderRadius: 3,
-                borderColor: "#5c5c5c",
-                borderWidth: 2,
-
-                marginRight: 22,
-              }}
-              onPress={() => {
-                setReauthenticationResult(false);
-                setModal(false);
-              }}
-            >
-              <Text
+            ) : (
+              <TouchableOpacity
                 style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#5c5c5c",
+                  width: 76,
+                  height: 30,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+
+                  backgroundColor: "transparent",
+                  borderRadius: 3,
+                  borderColor: "#5c5c5c",
+                  borderWidth: 2,
+
+                  marginRight: 22,
+                }}
+                onPress={() => {
+                  setReauthenticationResult(false);
+                  setModal(false);
                 }}
               >
-                Cancel
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#5c5c5c",
+                  }}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>

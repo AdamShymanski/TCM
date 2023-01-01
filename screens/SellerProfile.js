@@ -39,6 +39,7 @@ export default function SellerProfile() {
 
   const [rating, setRating] = useState([]);
   const [statistics, setStatistics] = useState(null);
+  const [userCountry, setUserCountry] = useState(null);
   const [shippingMethods, setShippingMethods] = useState(null);
 
   const [noStripe, setNoStripe] = useState(true);
@@ -63,7 +64,26 @@ export default function SellerProfile() {
         .onSnapshot((doc) => {
           setRating(doc.data().sellerProfile.rating);
           setStatistics(doc.data().sellerProfile.statistics);
-          setShippingMethods(doc.data().sellerProfile.shippingMethods);
+          setUserCountry(doc.data().country);
+
+          let shippingArr = {
+            domestic: [],
+            international: [],
+          };
+
+          if (doc.data().sellerProfile.shippingMethods.length > 0) {
+            doc.data().sellerProfile.shippingMethods.forEach((element) => {
+              if (
+                element.destinationCountries.length === 1 &&
+                doc.data().country === element.destinationCountries[0]
+              ) {
+                shippingArr.domestic.push(element);
+              } else {
+                shippingArr.international.push(element);
+              }
+            });
+            setShippingMethods(shippingArr);
+          }
 
           setLoadingState(false);
 
@@ -543,19 +563,25 @@ export default function SellerProfile() {
                 }}
                 disabled={activityIndicator}
                 onPress={() => {
-                  const query = functions.httpsCallable("createStripeAccount");
+                  try {
+                    const query = functions.httpsCallable(
+                      "createStripeAccount"
+                    );
 
-                  setActivityIndicator(true);
+                    setActivityIndicator(true);
 
-                  query()
-                    .then((result) => {
-                      Linking.openURL(result.data);
-                      setActivityIndicator(false);
-                    })
-                    .catch((err) => {
-                      console.log(err);
-                      setActivityIndicator(false);
-                    });
+                    query()
+                      .then((result) => {
+                        Linking.openURL(result.data);
+                        setActivityIndicator(false);
+                      })
+                      .catch((err) => {
+                        console.log(err);
+                        setActivityIndicator(false);
+                      });
+                  } catch (err) {
+                    console.log(err);
+                  }
                 }}
               >
                 <Text
@@ -892,27 +918,6 @@ export default function SellerProfile() {
             >
               Shipping
             </Text>
-            {/* <TouchableOpacity
-              style={{
-                backgroundColor: "#0082ff",
-                justifyContent: "center",
-                alignItems: "center",
-                paddingHorizontal: 14,
-                paddingVertical: 4,
-
-                borderRadius: 3,
-              }}
-              onPress={() => navigation.navigate("AddShippingMethod")}
-            >
-              <Text
-                style={{
-                  fontWeight: "700",
-                  color: "#121212",
-                }}
-              >
-                Add New
-              </Text>
-            </TouchableOpacity> */}
             <TouchableOpacity
               style={{
                 backgroundColor: "transparent",
@@ -924,7 +929,11 @@ export default function SellerProfile() {
 
                 borderRadius: 3,
               }}
-              onPress={() => navigation.navigate("AddShippingMethod")}
+              onPress={() =>
+                navigation.navigate("AddShippingMethod", {
+                  userCountry,
+                })
+              }
             >
               <Text
                 style={{
@@ -1014,6 +1023,7 @@ export default function SellerProfile() {
                           navigation.navigate("EditShippingMethod", {
                             shippingMethod: shippingMethods.domestic[index],
                             shippingRange: "domestic",
+                            userCountry: userCountry,
                           });
                         }}
                       >
@@ -1114,6 +1124,7 @@ export default function SellerProfile() {
                             shippingMethod:
                               shippingMethods.international[index],
                             shippingRange: "international",
+                            userCountry: userCountry,
                           });
                         }}
                       >

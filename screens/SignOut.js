@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import IconMCI from "react-native-vector-icons/MaterialCommunityIcons";
 
-import { auth } from "../authContext";
+import { auth, chatClient } from "../authContext";
 import { View, Text, ActivityIndicator } from "react-native";
 
 import { useNavigation, CommonActions } from "@react-navigation/native";
@@ -12,6 +12,7 @@ export default function SignOut() {
 
   useEffect(() => {
     auth.signOut();
+    chatClient.disconnectUser();
     navigation.dispatch(
       CommonActions.reset({ index: 0, routes: [{ name: "HomeStack" }] })
     );

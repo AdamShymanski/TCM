@@ -120,6 +120,7 @@ export default function AddTrackigNumberModal({ id, setModal }) {
                   borderRadius: 3,
                   paddingHorizontal: 20,
                 }}
+                disabled={activityIndicator}
                 onPress={async () => {
                   try {
                     setActivityIndicator(true);
@@ -168,10 +169,11 @@ export default function AddTrackigNumberModal({ id, setModal }) {
                         ["shipping.sent"]:
                           firebaseObj.firestore.FieldValue.serverTimestamp(),
                         ["shipping.trackingNumber"]: trackingNumber.trim(),
+                        ["status"]: "sent",
                       });
 
                     setActivityIndicator(false);
-                    setModal(null);
+                    setModal(false);
                   } catch (error) {
                     console.log(error);
                   }
@@ -196,8 +198,7 @@ export default function AddTrackigNumberModal({ id, setModal }) {
                     marginRight: 14,
                   }}
                 />
-              ) : null}
-              {!activityIndicator ? (
+              ) : (
                 <TouchableOpacity
                   style={{
                     height: 30,
@@ -227,7 +228,7 @@ export default function AddTrackigNumberModal({ id, setModal }) {
                     Cancel
                   </Text>
                 </TouchableOpacity>
-              ) : null}
+              )}
             </View>
           </View>
         </View>

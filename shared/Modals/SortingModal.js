@@ -1,29 +1,7 @@
-import React, { useEffect } from "react";
-import {
-  Image,
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  FlatList,
-} from "react-native";
+import React from "react";
+import { View, Text, Modal, TouchableOpacity, FlatList } from "react-native";
 
-export const LanguagePickerModal = ({ setValue, setVisible }) => {
-  const countryCodes = [
-    { Code: "PL", Name: "Polish" },
-    { Code: "JP", Name: "Japanese" },
-    { Code: "GB", Name: "English" },
-    { Code: "BE", Name: "Dutch" },
-    { Code: "DE", Name: "German" },
-    { Code: "FR", Name: "French" },
-    { Code: "IT", Name: "Italian" },
-    { Code: "ES", Name: "Spanish " },
-    { Code: "PT", Name: "Portuguese " },
-    { Code: "KR", Name: "Korean" },
-    { Code: "CN", Name: "Traditional Chinese" },
-    { Code: "RU", Name: "Russian" },
-  ];
-
+export default function SortingModal({ setSorting, setVisible }) {
   return (
     <Modal
       style={{
@@ -46,8 +24,8 @@ export const LanguagePickerModal = ({ setValue, setVisible }) => {
       >
         <View
           style={{
-            width: "90%",
-            height: "80%",
+            width: "80%",
+
             backgroundColor: "#121212",
             borderRadius: 8,
             paddingVertical: 10,
@@ -57,9 +35,7 @@ export const LanguagePickerModal = ({ setValue, setVisible }) => {
             style={{
               paddingHorizontal: 8,
             }}
-            data={countryCodes}
-            scrollEventThrottle={2000}
-            legacyImplementation={false}
+            data={["Rarity Ascending", "Rarity Declining"]}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => {
               return (
@@ -72,33 +48,39 @@ export const LanguagePickerModal = ({ setValue, setVisible }) => {
                   }}
                   onPress={() => {
                     setVisible(false);
-                    setValue(item.Name);
+                    setSorting(item);
                   }}
                 >
                   <View
                     style={{
-                      width: "90%",
+                      width: "70%",
                       justifyContent: "space-between",
                       flexDirection: "row",
                       alignItems: "center",
                     }}
                   >
-                    <Image
-                      style={{ width: 28, height: 21, marginRight: 8 }}
-                      source={{
-                        uri: `https://flagcdn.com/160x120/${item.Code.toLowerCase()}.png`,
-                      }}
-                    />
                     <Text
                       style={{
                         color: "#f4f4f4",
                         fontWeight: "700",
                         fontSize: 16,
-                        textAlign: "right",
                       }}
                     >
-                      {item.Name}
+                      {item}
                     </Text>
+                    <MaterialIcons
+                      name={
+                        item.split(" ")[1] === "Ascending"
+                          ? "keyboard-arrow-up"
+                          : "keyboard-arrow-down"
+                      }
+                      size={30}
+                      color={
+                        item.split(" ")[1] === "Ascending"
+                          ? "#03fc07"
+                          : "#ff0000"
+                      }
+                    />
                   </View>
                 </TouchableOpacity>
               );
@@ -108,4 +90,4 @@ export const LanguagePickerModal = ({ setValue, setVisible }) => {
       </TouchableOpacity>
     </Modal>
   );
-};
+}

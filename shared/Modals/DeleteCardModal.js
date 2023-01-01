@@ -6,11 +6,13 @@ import {
   TouchableOpacity,
   Modal,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 
 import { deleteCard } from "../../authContext";
 
 export default function DeleteCardModal({ setModal, id }) {
+  const [activityIndicator, setActivityIndicator] = useState(false);
   return (
     <Modal
       style={{
@@ -67,8 +69,11 @@ export default function DeleteCardModal({ setModal, id }) {
                 backgroundColor: "#0082FF",
                 borderRadius: 3,
               }}
+              disabled={activityIndicator}
               onPress={async () => {
+                setActivityIndicator(true);
                 await deleteCard(id);
+                setActivityIndicator(false);
                 setModal(false);
               }}
             >
@@ -82,35 +87,39 @@ export default function DeleteCardModal({ setModal, id }) {
                 Submit
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={{
-                width: 76,
-                height: 30,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-
-                backgroundColor: "transparent",
-                borderRadius: 3,
-                borderColor: "#5c5c5c",
-                borderWidth: 2,
-
-                marginRight: 22,
-              }}
-              onPress={() => {
-                setModal(false);
-              }}
-            >
-              <Text
+            {activityIndicator ? (
+              <ActivityIndicator />
+            ) : (
+              <TouchableOpacity
                 style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: "#5c5c5c",
+                  width: 76,
+                  height: 30,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+
+                  backgroundColor: "transparent",
+                  borderRadius: 3,
+                  borderColor: "#5c5c5c",
+                  borderWidth: 2,
+
+                  marginRight: 22,
+                }}
+                onPress={() => {
+                  setModal(false);
                 }}
               >
-                Cancel
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#5c5c5c",
+                  }}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </TouchableOpacity>

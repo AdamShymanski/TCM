@@ -7,7 +7,7 @@ const functions = require("firebase-functions");
 const sgMail = require("@sendgrid/mail");
 const stream_chat = require("stream-chat");
 const stripe = require("stripe")(
-  "sk_test_51KDXfNCVH1iPNeBrKw7YbGdP8IpIPZiQKrG6uKrrUSd3xVie1zH7EJe9uO5pdvnl8lgl17qhxB5Q9JM84WFr6Nqb00lWqb7G75"
+  "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"
 );
 //! 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
 //! sk_test_51KDXfNCVH1iPNeBrKw7YbGdP8IpIPZiQKrG6uKrrUSd3xVie1zH7EJe9uO5pdvnl8lgl17qhxB5Q9JM84WFr6Nqb00lWqb7G75
@@ -23,10 +23,11 @@ admin.initializeApp();
 const api_key = "nfnwsdq54g3b";
 const api_secret =
   "3fzhjfk2spyxw8tmxeudfj4thqu3q2ftbure2qqxgpqrth7nv8dwahp45b6cc4pk";
+const serverClient = stream_chat.StreamChat.getInstance(api_key, api_secret);
+
 const SENDGRID_API_KEY =
   "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";
 sgMail.setApiKey(SENDGRID_API_KEY);
-const serverClient = stream_chat.StreamChat.getInstance(api_key, api_secret);
 
 function uuidv4() {
   var d = new Date().getTime(); //Timestamp
@@ -368,24 +369,24 @@ exports.fetchStripeAccount = functions.https.onCall(async (data, context) => {
 exports.useReferralCode = functions.https.onCall(async (data, context) => {
   let result = false;
   try {
-    await admin
-      .firestore()
-      .collection("users")
-      .doc(data.code)
-      .update({
-        discounts: {
-          referralProgram: admin.firestore.FieldValue.arrayUnion(
-            context.auth.uid
-          ),
-        },
-      })
-      .then((res) => {
-        result = res;
-        console.log(res);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    // await admin
+    //   .firestore()
+    //   .collection("users")
+    //   .doc(data.code)
+    //   .update({
+    //     discounts: {
+    //       referralProgram: admin.firestore.FieldValue.arrayUnion(
+    //         context.auth.uid
+    //       ),
+    //     },
+    //   })
+    //   .then((res) => {
+    //     result = res;
+    //     console.log(res);
+    //   })
+    //   .catch((err) => {
+    //     console.log(err);
+    //   });
 
     return result;
   } catch (e) {
@@ -393,36 +394,35 @@ exports.useReferralCode = functions.https.onCall(async (data, context) => {
   }
 });
 
-exports.calculateDiscount = functions.https.onCall(async (data, context) => {
-  let result = false;
-  try {
-    await admin
-      .firestore()
-      .collection("users")
-      .doc(context.auth.uid)
-      .get()
-      .then((doc) => {
-        const array = doc.data()?.discounts.referralProgram;
-        array.forEach((item) => {
-          result += 2;
-        });
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+// exports.calculateDiscount = functions.https.onCall(async (data, context) => {
+//   let result = false;
+//   try {
+//     await admin
+//       .firestore()
+//       .collection("users")
+//       .doc(context.auth.uid)
+//       .get()
+//       .then((doc) => {
+//         const array = doc.data()?.discounts.referralProgram;
+//         array.forEach((item) => {
+//           result += 2;
+//         });
+//       })
+//       .catch((err) => {
+//         console.log(err);
+//       });
 
-    return result;
-  } catch (e) {
-    console.log(e);
-  }
-});
+//     return result;
+//   } catch (e) {
+//     console.log(e);
+//   }
+// });
 
 exports.paymentSheet = functions.https.onCall(async (data, context) => {
   try {
     const docsArray = [];
 
-    let finalAmount = 0;
-    let { offersState, shippingMethod } = data;
+    let { offersState, shippingMethod, shippingAddress } = data;
 
     let customer,
       paymentIntent = null;
@@ -436,7 +436,16 @@ exports.paymentSheet = functions.https.onCall(async (data, context) => {
     if (doc.data().stripe.merchantId) {
       customer = { id: doc.data().stripe.merchantId };
     } else {
-      customer = await stripe.customers.create();
+      const emailAddress = await admin
+        .auth()
+        .getUser(context.auth.uid)
+        .then((userRecord) => userRecord.toJSON().email);
+
+      customer = await stripe.customers.create({
+        email: emailAddress,
+        name: doc.data().nick,
+      });
+
       await admin
         .firestore()
         .collection("users")
@@ -450,31 +459,22 @@ exports.paymentSheet = functions.https.onCall(async (data, context) => {
     );
 
     const promise = new Promise((resolve, reject) => {
+      let finalAmount = 0;
       offersState.forEach(async (section, masterIndex) => {
-        const transactionCosts = {
-          shipping: shippingMethod[section.uid].price * 100,
-          cards: 0,
-          fee: 0,
-          discount: 0,
-        };
-
         finalAmount += shippingMethod[section.uid].price * 100;
-
+        let transactionCosts = {
+          cards: 0,
+          shipping: shippingMethod[section.uid].price * 100,
+        };
         section.data.forEach(async (offer, index) => {
           await admin
             .firestore()
             .collection("offers")
             .doc(offer.id)
             .get()
-            .then((doc) => {
-              const fetchedOffer = doc.data();
-
-              transactionCosts.fee += Math.round(
-                fetchedOffer.price * 100 * 0.09
-              );
-
-              transactionCosts.cards += fetchedOffer.price * 100;
-              finalAmount += fetchedOffer.price * 100;
+            .then((offerObject) => {
+              transactionCosts.cards += offerObject.data().price * 100;
+              finalAmount += transactionCosts.cards;
             });
 
           if (section.data.length === index + 1) {
@@ -484,8 +484,8 @@ exports.paymentSheet = functions.https.onCall(async (data, context) => {
               buyer: context.auth.uid,
               offers: section.data,
               shipping: {
-                method: data.shippingMethod[section.uid],
-                address: data.shippingAddress,
+                method: shippingMethod[section.uid],
+                address: shippingAddress,
                 trackingNumber: null,
                 sent: false,
                 delivered: false,
@@ -493,13 +493,9 @@ exports.paymentSheet = functions.https.onCall(async (data, context) => {
               costs: {
                 cards: transactionCosts.cards,
                 shipping: transactionCosts.shipping,
-                discount: transactionCosts.discount,
-                fee: transactionCosts.fee,
               },
               status: "unpaid",
             });
-
-            //APPLICATION FEE
 
             if (offersState.length === masterIndex + 1) {
               paymentIntent = await stripe.paymentIntents.create({
@@ -533,11 +529,13 @@ exports.paymentSheet = functions.https.onCall(async (data, context) => {
         customer: customer.id,
         publishableKey:
           "pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX",
+
+        //"pk_live_51KDXfNCVH1iPNeBrTGAw1ZFwnNCTNO3rJ23zBni3ohGDWO8zuby2xDw3dYiHabs2furS1EAgQKq3hdtR2PP2jPZr00JCFvS9h8",
       };
     });
   } catch (e) {
     console.log(e);
-    res.status(400).send(e);
+    // return e;
   }
 });
 
@@ -547,7 +545,6 @@ exports.cancelPaymentSheet = functions.https.onCall(async (data, context) => {
     await stripe.paymentIntents.cancel(data.paymentIntent);
   } catch (e) {
     console.log(e);
-    res.status(400).send(e);
   }
 });
 
@@ -561,8 +558,6 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
     console.log(`Webhook Error: ${err.message}`);
     res.status(400).send(`Webhook Error: ${err.message}`);
   }
-
-  console.log(event.type);
 
   if (event.type === "payment_intent.succeeded") {
     await admin
@@ -643,12 +638,9 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
             msg.dynamicTemplateData.final_cost = {
               shipping: doc.data().costs.shipping / 100 + " USD",
               cards: doc.data().costs.cards / 100 + " USD",
-              discount: doc.data().costs.discount / 100 + " USD",
+              discount: "-0 USD",
               total:
-                (doc.data().costs.shipping +
-                  doc.data().costs.cards -
-                  doc.data().costs.discount) /
-                  100 +
+                (doc.data().costs.shipping + doc.data().costs.cards) / 100 +
                 " USD",
             };
 
@@ -668,6 +660,7 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
                     language: offer.languageVersion,
                     graded: offer.isGraded,
                     url: `https://firebasestorage.googleapis.com/v0/b/ptcg-marketpla.appspot.com/o/cards%2F${offer.id}%2F0?alt=media&token=b1428248-6d61-41fb-a222-d8973540776d`,
+                    id: offer.id,
                   };
                 } else if (index == 1) {
                   msg.dynamicTemplateData.second = {
@@ -677,6 +670,7 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
                     language: offer.languageVersion,
                     graded: offer.isGraded,
                     url: `https://firebasestorage.googleapis.com/v0/b/ptcg-marketpla.appspot.com/o/cards%2F${offer.id}%2F0?alt=media&token=b1428248-6d61-41fb-a222-d8973540776d`,
+                    id: offer.id,
                   };
                 } else if (index == 2) {
                   msg.dynamicTemplateData.third = {
@@ -686,6 +680,7 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
                     language: offer.languageVersion,
                     graded: offer.isGraded,
                     url: `https://firebasestorage.googleapis.com/v0/b/ptcg-marketpla.appspot.com/o/cards%2F${offer.id}%2F0?alt=media&token=b1428248-6d61-41fb-a222-d8973540776d`,
+                    id: offer.id,
                   };
                 } else {
                   msg.dynamicTemplateData.more_cards = true;
@@ -725,11 +720,36 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
                   sgMail.send(msg);
                 });
 
+              const sellerMsg = { ...msg };
+
+              sellerMsg.subject = "New Order";
+              sellerMsg.templateId = "d-61dd76364c434c9c8e852bff5c30fa8b";
+
+              sellerMsg.dynamicTemplateData.final_cost.commision =
+                doc.data().costs.cards * 0.085;
+
+              sellerMsg.dynamicTemplateData.final_cost.payment_processing =
+                (doc.data().costs.cards + doc.data().costs.shipping) * 0.029 +
+                30;
+
+              sellerMsg.dynamicTemplateData.final_cost.total =
+                sellerMsg.dynamicTemplateData.final_cost.total -
+                sellerMsg.dynamicTemplateData.final_cost.commision -
+                sellerMsg.dynamicTemplateData.final_cost.payment_processing;
+
+              admin
+                .auth()
+                .getUser(doc.data().seller)
+                .then((userRecord) => {
+                  sellerMsg.to = userRecord.toJSON().email;
+                  sgMail.send(sellerMsg);
+                });
+
               admin.messaging().send({
                 token: FCMToken,
                 notification: {
                   title: "New Order",
-                  body: "Congrats! You have a new transaction 💸",
+                  body: "Congrats! You have a new order 🛒",
                 },
                 data: {
                   channelId: "vendor-notifications",
@@ -737,58 +757,13 @@ exports.stripeWebhooks = functions.https.onRequest(async (req, res) => {
               });
             });
 
-            //! DO TRANSFER 3 DAYS AFTER BUYER HAVE RECEIVED CARDS
-            // await stripe.transfers.create({
-            //   amount:
-            //     doc.data().costs.cards +
-            //     doc.data().costs.shipping -
-            //     doc.data().costs.fee,
-            //   currency: "usd",
-            //   destination: transferDestination,
-            //   transfer_group: event.data.object.transfer_group,
-            // });
-
-            //
-
             if (transactions.length - 1 === index) resolve();
           });
-
-          // promise.then(() => {
-          //   res.status(200).send("success");
-          // });
         } catch (err) {
           res.status(400).send(err);
         }
       });
   }
-  // else if (
-  //   event.type === ("payment_intent.canceled" || "payment_intent.failed")
-  // ) {
-  //   await admin
-  //     .firestore()
-  //     .collection("transactions")
-  //     .where("paymentIntent", "==", event.data.object.id)
-  //     .get()
-  //     .then((transactions) => {
-  //       const promise = new Promise((resolve, reject) => {
-  //         transactions.forEach(async (doc) => {
-  //           await admin
-  //             .firestore()
-  //             .collection("transactions")
-  //             .doc(doc.id)
-  //             .delete();
-  //         });
-
-  //         if (transactions.length - 1 === index) {
-  //           resolve();
-  //         }
-  //       });
-
-  //       promise.then(() => {
-  //         res.status(200).send("success");
-  //       });
-  //     });
-  // }
   if (event.type === "account.updated") {
     const accountData = event.data.object;
 
@@ -1010,57 +985,304 @@ exports.sendNotification = functions.https.onCall(async (data, context) => {
 
 // exports.sendListenerPushNotification = functions.database.ref('/sendMessage/{userId}/').onWrite((data, context) => {});
 
-// exports.validateOffersStatus = functions.pubsub
-//   .schedule("every 10 minutes")
-//   .onRun((context) => {
-//     //check status of all sellerProfiles
-//     //if status != enabled, set status of all published offers to suspended
+exports.deleteExpiredTransactions = functions.pubsub
+  .schedule("every 10 minutes")
+  .onRun((context) => {
+    try {
+      let expirationDate = new Date(Date.now() - 3 * 60 * 60 * 1000);
 
-//     admin
-//       .firestore()
-//       .collection("users")
-//       .where("sellerProfile.status", "!=", "enabled")
-//       .get()
-//       .then((snapshot) => {
-//         if (snapshot.lenght > 0) {
-//           snapshot.forEach(async (doc) => {
-//             await admin
-//               .firestore()
-//               .collection("offers")
-//               .where("owner", "==", doc.id)
-//               .where("status", "==", "published")
-//               .get()
-//               .then((offers) => {
-//                 if (offers.length > 0) {
-//                   offers.forEach(async (offer) => {
-//                     offer.ref.update({ status: "suspended" });
-//                     await handleCardDeletion(offer.id);
-//                   });
-//                 }
-//               });
-//           });
-//         }
-//       });
-//     return null;
-//   });
+      admin
+        .firestore()
+        .collection("transactions")
+        .where("timestamp", "<", expirationDate)
+        .where("status", "==", "unpaid")
+        .get()
+        .then((snapshot) => {
+          if (snapshot.docs.length > 0) {
+            snapshot.forEach(async (doc) => {
+              await stripe.paymentIntents.cancel(doc.data().paymentIntent);
+              doc.ref.delete();
+            });
+          }
+        });
+    } catch (err) {
+      console.log(err);
+    }
+    return null;
+  });
 
-// exports.deleteExpiredTransactions = functions.pubsub
-//   .schedule("every 10 minutes")
-//   .onRun((context) => {
-//     let currentDate = new Date();
-//     var pastDue = new Date(currentDate.getTime() - 600000);
+exports.confirmSuccesfulTransaction = functions.pubsub
+  .schedule("every 10 minutes")
+  .onRun((context) => {
+    try {
+      let expirationDate = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
 
-//     admin
-//       .firestore()
-//       .collection("transactions")
-//       .where("timestamp", "<", pastDue)
-//       .where("status", "==", "unpaid")
-//       .get()
-//       .then(function (querySnapshot) {
-//         querySnapshot.forEach(function (doc) {
-//           doc.ref.delete();
-//         });
-//       });
+      admin
+        .firestore()
+        .collection("transactions")
+        .where("shipping.delivered", "<", expirationDate)
+        .where("status", "==", "delivered")
+        .get()
+        .then((snapshot) => {
+          if (snapshot.docs.length > 0) {
+            snapshot.forEach(async (doc) => {
+              let buyerEmail;
+              let sellerEmail;
 
-//     return null;
-//   });
+              await admin
+                .auth()
+                .getUser(doc.data().buyer)
+                .then((userRecord) => {
+                  buyerEmail = userRecord.toJSON().email;
+                });
+
+              await admin
+                .auth()
+                .getUser(doc.data().seller)
+                .then((userRecord) => {
+                  sellerEmail = userRecord.toJSON().email;
+                });
+
+              //transaction confirmation with request for feedback
+              const msg1 = {
+                to: buyerEmail,
+                from: {
+                  email: "sales@tcmarket.place",
+                  name: "TCM",
+                },
+                templateId: "d-27e3838d4db44c66bea4dbf4f57eb5a2",
+                subject: "Transaction completed",
+                dynamicTemplateData: {
+                  order_id: doc.id,
+                },
+              };
+
+              await sgMail.send(msg1);
+
+              //paybout available
+              const msg2 = {
+                to: sellerEmail,
+                from: {
+                  email: "sales@tcmarket.place",
+                  name: "TCM",
+                },
+                templateId: "d-8d714d90048f469590cb4e0061e1dea3",
+                subject: "Payout available",
+                dynamicTemplateData: {
+                  order_id: doc.id,
+                },
+              };
+
+              await sgMail.send(msg2);
+
+              let FCMTokenSeller;
+              let stripeAccount;
+
+              await admin
+                .firestore()
+                .collection("users")
+                .doc(doc.data().seller)
+                .get()
+                .then((doc) => {
+                  FCMTokenSeller = doc.data().notificationToken;
+                  stripeAccount = doc.data().stripe.vendorId;
+                });
+
+              const FCMTokenBuyer = await admin
+                .firestore()
+                .collection("users")
+                .doc(doc.data().buyer)
+                .get()
+                .then((doc) => doc.data().notificationToken);
+
+              const payloadSeller = {
+                token: FCMTokenSeller,
+                notification: {
+                  title: "Payout available",
+                  body: "Funds available for payout from your Stripe account 💸",
+                },
+                data: {
+                  channelId: "transactions-notifications",
+                },
+              };
+              const payloadBuyer = {
+                token: FCMTokenBuyer,
+                notification: {
+                  title: "Transaction completed",
+                  body: "From now any actions about this transaction are not possible. Please give a review to the seller ⭐⭐⭐⭐⭐",
+                },
+                data: {
+                  channelId: "transactions-notifications",
+                },
+              };
+
+              await admin.messaging().send(payloadSeller);
+              await admin.messaging().send(payloadBuyer);
+
+              const paymentIntent = await stripe.paymentIntents.retrieve(
+                doc.data().paymentIntent
+              );
+
+              await doc.ref.update({ status: "completed" });
+
+              await stripe.transfers.create({
+                amount: doc.data().costs.cards + doc.data().costs.shipping,
+                currency: "usd",
+                destination: stripeAccount,
+                transfer_group: paymentIntent.transfer_group,
+              });
+
+              //update doc
+            });
+          }
+        });
+    } catch (err) {
+      console.log(err);
+    }
+    return null;
+  });
+
+//
+
+exports.onlyTest = functions.https.onCall(async (data, context) => {
+  try {
+    await stripe.charges.create({
+      amount: 20000000,
+      currency: "usd",
+      source: "tok_bypassPending",
+      description: "TEST CHARGE",
+    });
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+exports.runXXX = functions.https.onCall(async (data, context) => {
+  try {
+    let expirationDate = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+
+    admin
+      .firestore()
+      .collection("transactions")
+      .where("shipping.delivered", "<", expirationDate)
+      .where("status", "==", "delivered")
+      .get()
+      .then((snapshot) => {
+        if (snapshot.docs.length > 0) {
+          snapshot.forEach(async (doc) => {
+            let buyerEmail;
+            let sellerEmail;
+
+            await admin
+              .auth()
+              .getUser(doc.data().buyer)
+              .then((userRecord) => {
+                buyerEmail = userRecord.toJSON().email;
+              });
+
+            await admin
+              .auth()
+              .getUser(doc.data().seller)
+              .then((userRecord) => {
+                sellerEmail = userRecord.toJSON().email;
+              });
+
+            //transaction confirmation with request for feedback
+            const msg1 = {
+              to: buyerEmail,
+              from: {
+                email: "sales@tcmarket.place",
+                name: "TCM",
+              },
+              templateId: "d-27e3838d4db44c66bea4dbf4f57eb5a2",
+              subject: "Transaction completed",
+              dynamicTemplateData: {
+                order_id: doc.id,
+              },
+            };
+
+            await sgMail.send(msg1);
+
+            //paybout available
+            const msg2 = {
+              to: sellerEmail,
+              from: {
+                email: "sales@tcmarket.place",
+                name: "TCM",
+              },
+              templateId: "d-8d714d90048f469590cb4e0061e1dea3",
+              subject: "Payout available",
+              dynamicTemplateData: {
+                order_id: doc.id,
+              },
+            };
+
+            await sgMail.send(msg2);
+
+            let FCMTokenSeller;
+            let stripeAccount;
+
+            await admin
+              .firestore()
+              .collection("users")
+              .doc(doc.data().seller)
+              .get()
+              .then((doc) => {
+                FCMTokenSeller = doc.data().notificationToken;
+                stripeAccount = doc.data().stripe.vendorId;
+              });
+
+            const FCMTokenBuyer = await admin
+              .firestore()
+              .collection("users")
+              .doc(doc.data().buyer)
+              .get()
+              .then((doc) => doc.data().notificationToken);
+
+            const payloadSeller = {
+              token: FCMTokenSeller,
+              notification: {
+                title: "Payout available",
+                body: "Funds available for payout from your Stripe account 💸",
+              },
+              data: {
+                channelId: "transactions-notifications",
+              },
+            };
+
+            const payloadBuyer = {
+              token: FCMTokenBuyer,
+              notification: {
+                title: "Transaction completed",
+                body: "From now any actions about this transaction are not possible. Please give a review to the seller ⭐⭐⭐⭐⭐",
+              },
+              data: {
+                channelId: "transactions-notifications",
+              },
+            };
+
+            await admin.messaging().send(payloadSeller);
+            await admin.messaging().send(payloadBuyer);
+
+            const paymentIntent = await stripe.paymentIntents.retrieve(
+              doc.data().paymentIntent
+            );
+
+            await stripe.transfers.create({
+              amount:
+                (doc.data().costs.cards + doc.data().costs.shipping) * 0.915,
+              currency: "usd",
+              destination: stripeAccount,
+              transfer_group: paymentIntent.transfer_group,
+            });
+
+            //update doc
+            doc.ref.update({ status: "completed" });
+          });
+        }
+      });
+  } catch (err) {
+    console.log(err);
+  }
+  return null;
+});

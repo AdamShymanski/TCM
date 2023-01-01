@@ -17,6 +17,7 @@ messaging().setBackgroundMessageHandler(async (remoteMessage) => {
       },
       client.tokenManager.getToken()
     );
+
     const message = await client.getMessage(remoteMessage.data.id);
     const { stream, ...rest } = remoteMessage.data ?? {};
 
@@ -29,6 +30,7 @@ messaging().setBackgroundMessageHandler(async (remoteMessage) => {
     //   ...rest,
     //   stream,
     // };+
+
     const data = {
       ...rest,
     };
@@ -44,6 +46,8 @@ messaging().setBackgroundMessageHandler(async (remoteMessage) => {
       data,
       android: {
         channelId,
+        smallIcon: "notification_icon",
+        color: "#0082ff",
         // add a press action to open the app on press
         pressAction: {
           id: "default",

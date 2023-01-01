@@ -4,9 +4,10 @@
     "name": "TCM",
     "scheme": "tcm",
     "slug": "ptcg_marketplace",
-    "version": "1.28.0",
+    "version": "1.30.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "sdkVersion": "46.0.0",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "cover",
@@ -40,7 +41,7 @@
         "android.permission.ACCESS_MEDIA_LOCATION",
         "android.permission.RECORD_AUDIO"
       ],
-      "versionCode": 1280,
+      "versionCode": 1300,
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-2637485113454186~8246765572"
       },

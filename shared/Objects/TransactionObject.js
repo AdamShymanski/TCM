@@ -23,7 +23,7 @@ import {
   auth,
   functions,
   firebaseObj,
-  fetchCardsName,
+  pokemonAPI,
 } from "../../authContext";
 
 export default function TransactionObject({ props, setATN, setCS }) {
@@ -152,7 +152,8 @@ export default function TransactionObject({ props, setATN, setCS }) {
             </Text>
           </View>
         );
-      } else if (props.shipping.delivered || parcelReceived) {
+        // || parcelReceived
+      } else if (props.status === "delivered" || props.status === "completed") {
         return (
           <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
             <Image
@@ -172,7 +173,7 @@ export default function TransactionObject({ props, setATN, setCS }) {
             </Text>
           </View>
         );
-      } else if (props.shipping.sent) {
+      } else if (props.status === "sent") {
         return (
           <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
             <Image
@@ -235,7 +236,7 @@ export default function TransactionObject({ props, setATN, setCS }) {
             </Text>
           </View>
         );
-      } else if (props.shipping.delivered) {
+      } else if (props.status === "delivered" || props.status === "completed") {
         return (
           <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
             <Image
@@ -255,7 +256,7 @@ export default function TransactionObject({ props, setATN, setCS }) {
             </Text>
           </View>
         );
-      } else if (props.shipping.sent) {
+      } else if (props.status === "sent") {
         return (
           <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
             <Image
@@ -329,7 +330,7 @@ export default function TransactionObject({ props, setATN, setCS }) {
             </Text>
           </View>
         );
-      } else if (props.shipping.delivered) {
+      } else if (props.status === "delivered" || props.status === "completed") {
         return (
           <View
             style={{
@@ -352,7 +353,7 @@ export default function TransactionObject({ props, setATN, setCS }) {
             </Text>
           </View>
         );
-      } else if (props.shipping.sent) {
+      } else if (props.status === "sent") {
         return (
           <View
             style={{
@@ -423,7 +424,7 @@ export default function TransactionObject({ props, setATN, setCS }) {
             </Text>
           </View>
         );
-      } else if (props.shipping.delivered) {
+      } else if (props.status === "delivered" || props.status === "completed") {
         return (
           <View
             style={{
@@ -446,7 +447,7 @@ export default function TransactionObject({ props, setATN, setCS }) {
             </Text>
           </View>
         );
-      } else if (props.shipping.sent) {
+      } else if (props.status === "sent") {
         return (
           <View
             style={{
@@ -505,20 +506,27 @@ export default function TransactionObject({ props, setATN, setCS }) {
       }
 
       const promise = new Promise((resolve, reject) => {
-        props.offers.forEach(async (offer, index) => {
-          const outArray = [];
+        try {
+          props.offers.forEach(async (offer, index) => {
+            await pokemonAPI.card
+              .find(offer.cardId)
+              .then((card) => {
+                props.offers[index].cardObject = { ...card };
+              })
+              .catch((error) => {
+                console.log(error);
+              });
 
-          fetchCardsName(offer.cardId).then((name) => {
-            let offerObj = offer;
-            offerObj.cardName = name;
-            outArray.push(offerObj);
-
-            if (props.offers.length === index + 1) resolve(outArray);
+            setTimeout(() => {
+              resolve(props.offers);
+            }, 100);
           });
-        });
+        } catch (e) {
+          console.log(e);
+        }
       });
 
-      promise.then((res) => {
+      await promise.then((res) => {
         setOffersArray(res);
 
         let total = 0;
@@ -731,7 +739,7 @@ export default function TransactionObject({ props, setATN, setCS }) {
                             fontSize: 15,
                           }}
                         >
-                          {item.cardName}
+                          {item.cardObject.name}
                         </Text>
                         <Text
                           style={{
@@ -761,44 +769,23 @@ export default function TransactionObject({ props, setATN, setCS }) {
                 keyExtractor={(item, index) => index.toString()}
                 ListFooterComponent={() => {
                   if (offersArray.length > 1) {
-                    // 3 dots
                     return (
                       <View
                         style={{
-                          flexDirection: "row",
-                          alignItems: "center",
                           marginBottom: 4,
+                          flexDirection: "row",
+                          alignItems: "flex-end",
                         }}
                       >
-                        <View
+                        <Text
                           style={{
-                            borderRadius: 6,
-                            width: 6,
-                            height: 6,
-                            marginRight: 4,
-                            marginLeft: 4,
-                            backgroundColor: "#383838",
+                            fontSize: 12,
+                            color: "#383838",
+                            fontFamily: "Roboto_Medium",
                           }}
-                        />
-                        <View
-                          style={{
-                            borderRadius: 6,
-                            width: 6,
-                            height: 6,
-                            marginRight: 4,
-
-                            backgroundColor: "#383838",
-                          }}
-                        />
-                        <View
-                          style={{
-                            borderRadius: 6,
-                            width: 6,
-                            height: 6,
-
-                            backgroundColor: "#383838",
-                          }}
-                        />
+                        >
+                          And {offersArray.length - 1} more ...
+                        </Text>
                       </View>
                     );
                   }
@@ -987,7 +974,7 @@ export default function TransactionObject({ props, setATN, setCS }) {
                           fontSize: 15,
                         }}
                       >
-                        {item.cardName}
+                        {item.cardObject.name}
                       </Text>
                       <Text
                         style={{
@@ -1017,44 +1004,23 @@ export default function TransactionObject({ props, setATN, setCS }) {
               keyExtractor={(item, index) => index.toString()}
               ListFooterComponent={() => {
                 if (offersArray.length > 1) {
-                  // 3 dots
                   return (
                     <View
                       style={{
-                        flexDirection: "row",
-                        alignItems: "center",
                         marginBottom: 4,
+                        flexDirection: "row",
+                        alignItems: "flex-end",
                       }}
                     >
-                      <View
+                      <Text
                         style={{
-                          borderRadius: 6,
-                          width: 6,
-                          height: 6,
-                          marginRight: 4,
-                          marginLeft: 4,
-                          backgroundColor: "#383838",
+                          fontSize: 12,
+                          color: "#383838",
+                          fontFamily: "Roboto_Medium",
                         }}
-                      />
-                      <View
-                        style={{
-                          borderRadius: 6,
-                          width: 6,
-                          height: 6,
-                          marginRight: 4,
-
-                          backgroundColor: "#383838",
-                        }}
-                      />
-                      <View
-                        style={{
-                          borderRadius: 6,
-                          width: 6,
-                          height: 6,
-
-                          backgroundColor: "#383838",
-                        }}
-                      />
+                      >
+                        And {offersArray.length - 1} more ...
+                      </Text>
                     </View>
                   );
                 }
@@ -1132,6 +1098,7 @@ export default function TransactionObject({ props, setATN, setCS }) {
                 .update({
                   ["shipping.delivered"]:
                     firebaseObj.firestore.FieldValue.serverTimestamp(),
+                  ["status"]: "delivered",
                 });
 
               await db

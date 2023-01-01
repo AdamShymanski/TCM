@@ -210,8 +210,8 @@ export default function Login() {
                         backgroundColor: "#0082FF",
                         borderRadius: 3,
                       }}
+                      disabled={modalLoadingIndicator}
                       onPress={() => {
-                        console.log("click");
                         props.submitForm();
                       }}
                     >
@@ -225,33 +225,44 @@ export default function Login() {
                         Submit
                       </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      style={{
-                        width: 76,
-                        height: 30,
-                        marginRight: 12,
-                        alignItems: "center",
-                        flexDirection: "row",
-                        justifyContent: "center",
-
-                        borderRadius: 3,
-                        borderWidth: 2,
-                        borderColor: "#5c5c5c",
-                      }}
-                      onPress={() => {
-                        setModalVisible(false);
-                      }}
-                    >
-                      <Text
+                    {modalLoadingIndicator ? (
+                      <ActivityIndicator
+                        size={30}
+                        color="#0082ff"
+                        animating={modalLoadingIndicator}
                         style={{
-                          fontSize: 16,
-                          fontWeight: "700",
-                          color: "#5c5c5c",
+                          marginRight: 14,
+                        }}
+                      />
+                    ) : (
+                      <TouchableOpacity
+                        style={{
+                          width: 76,
+                          height: 30,
+                          marginRight: 12,
+                          alignItems: "center",
+                          flexDirection: "row",
+                          justifyContent: "center",
+
+                          borderRadius: 3,
+                          borderWidth: 2,
+                          borderColor: "#5c5c5c",
+                        }}
+                        onPress={() => {
+                          setModalVisible(false);
                         }}
                       >
-                        Cancel
-                      </Text>
-                    </TouchableOpacity>
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            fontWeight: "700",
+                            color: "#5c5c5c",
+                          }}
+                        >
+                          Cancel
+                        </Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               )}
@@ -431,6 +442,7 @@ export default function Login() {
                   paddingHorizontal: 20,
                 }}
                 onPress={props.submitForm}
+                disabled={loadingIndicator}
               >
                 <Text
                   style={{
@@ -452,8 +464,7 @@ export default function Login() {
                     marginTop: 20,
                   }}
                 />
-              ) : null}
-              {!loadingIndicator ? (
+              ) : (
                 <Text
                   style={{
                     color: "#b40424",
@@ -464,7 +475,7 @@ export default function Login() {
                 >
                   {error}
                 </Text>
-              ) : null}
+              )}
             </View>
           </View>
         )}
