@@ -109,11 +109,11 @@ export default function Settings() {
 
         setAddressesArray(result.addresses);
 
-        const query = functions.httpsCallable("runXXX");
+        // const query = functions.httpsCallable("runXXX");
 
-        await query().then((result) => {
-          console.log(result.data);
-        });
+        // await query().then((result) => {
+        //   console.log(result.data);
+        // });
 
         // const query = functions.httpsCallable("sendNotification");
         // query({

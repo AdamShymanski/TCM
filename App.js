@@ -1897,7 +1897,7 @@ export default function App() {
   } else {
     if (finishRegisterProcess) {
       return (
-        <StripeProvider publishableKey="pk_test_51KDXfNCVH1iPNeBr6PM5Zak8UGwXkTlXQAQvPws2JKGYC8eTAQyto3yBt66jvthbe1Zetrdei7KHOC7oGuVK3xtA00jYwqovzX">
+        <StripeProvider publishableKey="pk_live_51KDXfNCVH1iPNeBrTGAw1ZFwnNCTNO3rJ23zBni3ohGDWO8zuby2xDw3dYiHabs2furS1EAgQKq3hdtR2PP2jPZr00JCFvS9h8">
           <OverlayProvider value={{ style: theme }}>
             <NavigationContainer>
               <Stack.Navigator>

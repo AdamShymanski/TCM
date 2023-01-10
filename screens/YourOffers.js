@@ -207,14 +207,16 @@ export default function YourOffers() {
               disabled={activityIndicator}
               onPress={() => {
                 try {
-                  const query = functions.httpsCallable("createStripeAccount");
+                  const query = functions.httpsCallable("linkStripeAccount");
 
                   setActivityIndicator(true);
 
                   query()
                     .then((result) => {
                       Linking.openURL(result.data);
-                      setActivityIndicator(false);
+                      setTimeout(() => {
+                        setActivityIndicator(false);
+                      }, 3000);
                     })
                     .catch((err) => {
                       console.log(err);
@@ -322,19 +324,24 @@ export default function YourOffers() {
               }}
               disabled={activityIndicator}
               onPress={() => {
-                const query = functions.httpsCallable("createStripeAccount");
+                try {
+                  const query = functions.httpsCallable("createStripeAccount");
+                  setActivityIndicator(true);
 
-                setActivityIndicator(true);
-
-                query()
-                  .then((result) => {
-                    Linking.openURL(result.data);
-                    setActivityIndicator(false);
-                  })
-                  .catch((err) => {
-                    console.log(err);
-                    setActivityIndicator(false);
-                  });
+                  query()
+                    .then((result) => {
+                      Linking.openURL(result.data);
+                      setTimeout(() => {
+                        setActivityIndicator(false);
+                      }, 3000);
+                    })
+                    .catch((err) => {
+                      console.log(err);
+                      setActivityIndicator(false);
+                    });
+                } catch (err) {
+                  console.log(err);
+                }
               }}
             >
               <Text

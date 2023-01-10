@@ -10,7 +10,7 @@ export default function DeletingAccount() {
   useEffect(() => {
     setTimeout(() => {
       navigation.navigate("HomeStack");
-    }, 4000);
+    }, 3000);
   }, []);
   return (
     <View

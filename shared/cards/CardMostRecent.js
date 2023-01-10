@@ -66,7 +66,7 @@ export default function CardMostRecent({ props, userCountry, cartArray }) {
         borderRadius: 5,
       }}
       onPress={() => {
-        if (cardObject) {
+        if (cardObject.name) {
           navigation.navigate("OfferDetailsStack", {
             screen: "OfferDetails",
             params: {

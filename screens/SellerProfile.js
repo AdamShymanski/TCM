@@ -31,6 +31,7 @@ export default function SellerProfile() {
 
   const [loadingState, setLoadingState] = useState(true);
   const [activityIndicator, setActivityIndicator] = useState(false);
+  const [activityIndicator2, setActivityIndicator2] = useState(false);
 
   const [UADLoading, setUADLoading] = useState(false);
 
@@ -237,16 +238,22 @@ export default function SellerProfile() {
                 query()
                   .then((result) => {
                     Linking.openURL(result.data);
-                    setUADLoading(false);
+                    setTimeout(() => {
+                      setUADLoading(false);
+                    }, 3000);
                   })
                   .catch((err) => {
-                    console.log(err);
-                    setUADLoading(false);
+                    setTimeout(() => {
+                      setUADLoading(false);
+                      console.log(err);
+                    }, 3000);
                   });
               }}
             >
               {UADLoading ? (
-                <ActivityIndicator size="small" color="#f4f4f4" />
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <ActivityIndicator size={"small"} color={"#f4f4f4"} />
+                </View>
               ) : (
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   <Text
@@ -572,6 +579,7 @@ export default function SellerProfile() {
 
                     query()
                       .then((result) => {
+                        // console.log(result.data);
                         Linking.openURL(result.data);
                         setActivityIndicator(false);
                       })

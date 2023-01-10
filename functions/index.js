@@ -512,6 +512,10 @@ exports.paymentSheet = functions.https.onCall(async (data, context) => {
         });
       });
     });
+    try {
+    } catch (err) {
+      console.log(err);
+    }
 
     return promise.then(() => {
       docsArray.forEach(async (doc) => {
