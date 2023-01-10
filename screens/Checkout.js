@@ -1019,20 +1019,22 @@ const getFooter = (
     const resolvePromise = async () => {
       const query = functions.httpsCallable("paymentSheet");
 
-      await query({ offersState, shippingMethod, shippingAddress })
-        .then((result) => {
+      await query({ offersState, shippingMethod, shippingAddress }).then(
+        (result) => {
           try {
             initializePaymentSheet(result.data);
-            setPaymentSheetReceived(true);
+            //!!!!!!!!!!!!!!!! setPaymentSheetReceived(true);
           } catch (e) {
             console.log(e);
           }
-        })
-        .catch((err) => {
-          console.log("ERROR");
-          console.log(err);
-        });
+        }
+      );
     };
+
+    // .catch((err) => {
+    //   console.log("ERROR");
+    //   console.log(err);
+    // });
 
     resolvePromise();
   }, []);

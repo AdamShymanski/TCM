@@ -34,10 +34,10 @@ export const firebaseObj = firebase;
 
 export const chatClient = StreamChat.getInstance("nfnwsdq54g3b");
 
-// if (__DEV__) {
-//   firebase.functions().useEmulator("192.168.0.106", 5001);
-//   firebase.firestore().useEmulator("192.168.0.101", 8080);
-// }
+if (__DEV__) {
+  // firebase.functions().useEmulator("192.168.0.106", 5001);
+  // firebase.firestore().useEmulator("192.168.0.101", 8080);
+}
 
 //! CARDS
 export async function fetchCards(props, setProps) {

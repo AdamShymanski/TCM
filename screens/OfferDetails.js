@@ -225,7 +225,7 @@ export default function OfferDetails() {
         />
       </Modal>
 
-      {auth.currentUser.uid !== owner.sellerProfile.uid ? (
+      {auth?.currentUser?.uid !== owner.sellerProfile.uid ? (
         <View
           style={{
             width: "96%",
