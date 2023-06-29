@@ -6,27 +6,20 @@ const admin = require("firebase-admin");
 const functions = require("firebase-functions");
 const sgMail = require("@sendgrid/mail");
 const stream_chat = require("stream-chat");
-const stripe = require("stripe")(
-  "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"
-);
-//! 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
-//! sk_test_51KDXfNCVH1iPNeBrKw7YbGdP8IpIPZiQKrG6uKrrUSd3xVie1zH7EJe9uO5pdvnl8lgl17qhxB5Q9JM84WFr6Nqb00lWqb7G75
+const stripe = require("stripe")("###");
 
-const endpointSecret =
-  "whsec_fe2b32369c4237e36bdacd1e74883ebebadde92f87c0eda852575649abee2e38";
+const endpointSecret ="###";
 
-pokemon.configure({ apiKey: "3c362cd9-2286-48d4-989a-0d2a65b9d5a8" });
+pokemon.configure({ apiKey:"###" });
 
 admin.initializeApp();
 //Stripe Account
 
-const api_key = "nfnwsdq54g3b";
-const api_secret =
-  "3fzhjfk2spyxw8tmxeudfj4thqu3q2ftbure2qqxgpqrth7nv8dwahp45b6cc4pk";
+const api_key = "###";
+const api_secret ="###";
 const serverClient = stream_chat.StreamChat.getInstance(api_key, api_secret);
 
-const SENDGRID_API_KEY =
-  "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";
+const SENDGRID_API_KEY ="###";
 sgMail.setApiKey(SENDGRID_API_KEY);
 
 function uuidv4() {
