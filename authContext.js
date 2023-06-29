@@ -21,8 +21,6 @@ if (firebase.apps.length === 0) {
   });
 }
 
-pokemon.configure({ apiKey: "3c362cd9-2286-48d4-989a-0d2a65b9d5a8" });
-
 export const pokemonAPI = pokemon;
 export const db = firebase.firestore();
 db.settings({ experimentalForceLongPolling: true });
