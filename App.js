@@ -1570,6 +1570,7 @@ function OfferDetailsStack() {
                 borderRadius: 3,
                 marginLeft: 12,
 
+
                 height: 30,
                 flexDirection: "row",
                 alignItems: "center",

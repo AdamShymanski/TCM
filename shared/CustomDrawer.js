@@ -565,7 +565,6 @@ export default function CustomDrawer({ navigation }) {
                 navigation.navigate("SavedOffersStack");
               }}
             />
-
             <DrawerItem
               icon={({ color, size }) => (
                 <Icon name="swap-vertical" color={"#f4f4f4"} size={size} />

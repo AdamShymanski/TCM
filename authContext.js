@@ -21,6 +21,7 @@ if (firebase.apps.length === 0) {
   });
 }
 
+
 pokemon.configure({ apiKey: "3c362cd9-2286-48d4-989a-0d2a65b9d5a8" });
 
 export const pokemonAPI = pokemon;
@@ -30,13 +31,14 @@ export const auth = firebase.auth();
 export const storage = firebase.storage();
 export const functions = firebase.functions();
 
+
 export const firebaseObj = firebase;
 
 export const chatClient = StreamChat.getInstance("nfnwsdq54g3b");
 
 if (__DEV__) {
-  // firebase.functions().useEmulator("192.168.0.106", 5001);
-  // firebase.firestore().useEmulator("192.168.0.101", 8080);
+  firebase.functions().useEmulator("192.168.0.106", 5001);
+  firebase.firestore().useEmulator("192.168.0.101", 8080);
 }
 
 //! CARDS

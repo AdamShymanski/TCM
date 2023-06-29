@@ -157,7 +157,6 @@ export default function Home() {
                 VENDOR ACCOUNT REQUIRED
               </Text>
             </View>
-
             <Icon name={"arrow-right-bold-box"} color={"#FF4408"} size={22} />
           </View>
         )}
@@ -298,7 +297,6 @@ export default function Home() {
                 <TouchableOpacity
                   style={{
                     backgroundColor: "#121212",
-
                     marginHorizontal: 10,
 
                     width: 250,
