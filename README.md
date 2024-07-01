@@ -4,6 +4,10 @@
 
 App is in EARLY ACCESS for now.
 
+
+https://github.com/AdamShymanski/TCM/assets/45077552/e07b5506-0b59-48ef-893f-2bee332d9b61
+
+
 TCM (Trading Card Marketplace) is a platform where you will sell your collectible cards quickly, cheaply and safely. The large number of sellers and buyers provides a spread of offers, so everyone will find what they are looking for. 
 
 Contact sellers, buy and track the progress of your order in the app.
